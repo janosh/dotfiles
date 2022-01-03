@@ -5,14 +5,14 @@ default_stages: [commit]
 
 repos:
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.7.2.1
+    rev: v0.8.0.3
     hooks:
       - id: shellcheck  # docs: https://github.com/koalaman/shellcheck/wiki
         # -x/--external-sources: Allow 'source' outside of FILES
         args: [-x, --shell=bash]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
       - id: check-case-conflict
       - id: check-symlinks

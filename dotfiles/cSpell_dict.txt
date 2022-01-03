@@ -455,6 +455,7 @@ pinterest
 Pixabay
 plotly
 PNPM
+Pokedex
 pokémons
 polycrystallinity
 polydisperse

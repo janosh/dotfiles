@@ -21,7 +21,7 @@ if [ -t 1 ]; then
   exec < /dev/tty
 
   while true; do
-    read -r "YorN?[commit-msg hook] Press n to abort and change the commit message or y to proceed anyway?"$'\n'
+    read -r YorN"?[commit-msg hook] Press n to abort and change the commit message or y to proceed anyway?"$'\n'
     if [ "$YorN" = "" ]; then YorN='y'; fi # interpret enter as y
     case $YorN in
         [Yy] ) echo Proceeding...; break;;

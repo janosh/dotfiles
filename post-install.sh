@@ -78,7 +78,7 @@ defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
 echo '- Disable smart quotes.'
 defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
 
-echo'- Disable Resume after reboot system-wide.'
+echo '- Disable Resume after reboot system-wide.'
 defaults write com.apple.systempreferences NSQuitAlwaysKeepsWindows -bool false
 
 echo '- Disable the prompt "Are you sure you want to open this application?".'
@@ -245,3 +245,7 @@ request_preferences 'Add printers.'
 
 preferences_pane 'com.apple.preference.security'
 request_preferences 'Set delay after sleep before prompting for password on wake.'
+
+echo 'Setup NPM publishing without one-time passwords.'
+read -r NPM_TOKEN'?Enter your NPM publish token (see 1Password): '
+echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
