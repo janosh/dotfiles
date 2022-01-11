@@ -46,6 +46,7 @@ cask "zoom"
 # Mac App Store
 mas "1Password", id: 443987910
 mas "Affinity Designer", id: 824171161
+mas "Compressor", id: 424390742
 mas "Final Cut Pro", id: 424389933
 mas "Gemini", id: 463541543
 mas "Keynote", id: 409183694

@@ -10,6 +10,7 @@
       "Working Directory": "~/Repos",
       "Scrollback Lines": 3000,
       "Normal Font": "Monaco 16",
+      "Open Password Manager Automatically": false,
       "Keyboard Map": {
         "0xf728-0x80000": {
           "Action": 10,

@@ -412,6 +412,7 @@ nullability
 numpy
 Octicon
 octicons
+octocat
 oligotrophic
 openmp
 ÖPNV

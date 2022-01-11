@@ -1,0 +1,33 @@
+[user]
+	name = Janosh Riebesell
+	email = janosh.riebesell@gmail.com
+
+[github]
+	user = janosh
+
+[credential]
+	helper = osxkeychain
+
+[core]
+  # Use VSCode as git editor (for interactive rebase sessions, tag annotation, ...).
+	editor = code --wait
+
+[rebase]
+  # Automatically create temporary stash entry before rebase begins. Reapply afterwards.
+  # https://git-scm.com/docs/git-config#Documentation/git-config.txt-rebaseautoStash
+	autoStash = true
+  # Automatically move fixup commits to the correct line during interactive rebase.
+	autoSquash = true
+
+[push]
+  # https://stackoverflow.com/a/3745250
+	followTags = true
+
+[pull]
+  # git pull may only fast-forward, not commit https://stackoverflow.com/a/62653400
+	ff = only
+  # How to reconcile divergent branches when pulling. Default is false, i.e. perform a merge.
+	rebase = true
+
+[init]
+	defaultBranch = main
