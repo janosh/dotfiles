@@ -455,6 +455,7 @@ piezoelectrics
 pinterest
 Pixabay
 plotly
+pngquant
 PNPM
 Pokedex
 pokémons

@@ -40,7 +40,7 @@ set completion-ignore-case on
 
 # activate virtualenv
 # shellcheck disable=SC1090
-source ~/rds/hpc-work/.venv/py38/bin/activate
+source ~/rds/hpc-work/.venv/py39/bin/activate
 
 # shell prompt (PS1 = prompt string 1)
 parse_git_branch() {
