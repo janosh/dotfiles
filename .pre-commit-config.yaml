@@ -7,7 +7,8 @@ repos:
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.8.0.3
     hooks:
-      - id: shellcheck  # docs: https://github.com/koalaman/shellcheck/wiki
+      - id: shellcheck
+        # docs: https://github.com/koalaman/shellcheck/wiki
         # -x/--external-sources: Allow 'source' outside of FILES
         args: [-x, --shell=bash]
 

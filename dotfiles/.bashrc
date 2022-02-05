@@ -54,6 +54,11 @@ parse_git_branch() {
 export PS1="\[\033[34m\]\h \[\033[32m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[00m\]$ "
 export LANG=C  # https://stackoverflow.com/a/2510548
 
+# add commands to history immediately, not when shell closes https://askubuntu.com/a/67306
+# shell may crash or ssh drop out, leading to lost commands
+shopt -s histappend
+PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+
 export FW_CONFIG_FILE=/home/jr769/rds/hpc-work/dielectric-frontier/fireworks_config/FW_config.yaml
 
 
