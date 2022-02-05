@@ -35,6 +35,7 @@ cask "imageoptim"
 cask "iterm2"
 cask "mylio"
 cask "nordvpn"
+cask "rectangle"
 cask "slack"
 cask "telegram"
 cask "transmission"
@@ -50,7 +51,6 @@ mas "Compressor", id: 424390742
 mas "Final Cut Pro", id: 424389933
 mas "Gemini", id: 463541543
 mas "Keynote", id: 409183694
-mas "Magnet", id: 441258766
 mas "MoneyMoney", id: 872698314
 mas "Numbers", id: 409203825
 mas "Pages", id: 409201541

@@ -8,6 +8,10 @@
 [credential]
 	helper = osxkeychain
 
+# on Linux
+# [credential]
+# 	helper = store
+
 [core]
   # Use VSCode as git editor (for interactive rebase sessions, tag annotation, ...).
 	editor = code --wait

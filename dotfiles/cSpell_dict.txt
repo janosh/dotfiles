@@ -29,6 +29,7 @@ autodiff
 Autoencoder
 autoencoders
 autofeaturizer
+autoflake
 autolink
 automations
 automatminer
@@ -133,6 +134,7 @@ decorrelating
 decorrelation
 Deduplicated
 delithiated
+delocalization
 denormed
 deps
 descriptor's
@@ -174,6 +176,7 @@ equivariance
 equivariant
 erbe
 ergodicity
+Ernzerhof
 Erstattungsformular
 evaluable
 exifreader
@@ -246,6 +249,7 @@ gzipped
 Hadamard
 hafnate
 Hartree
+Hartrees
 HEAs
 Hernienbehandlungen
 heteroscedastic
@@ -298,6 +302,7 @@ intermetallics
 interpretability
 interpunction
 interruptible
+interstitials
 intralayer
 invariances
 invertibility
@@ -328,6 +333,7 @@ Kleinicke
 kohn
 Kosiorek
 KPOINT
+kpoints
 KPOINTS
 kullback
 kurzweil
@@ -351,6 +357,7 @@ markerclustererplus
 markowitz
 Matbench
 matchen
+materialsproject
 matern
 mathcal
 Mathematica
@@ -414,6 +421,7 @@ Octicon
 octicons
 octocat
 oligotrophic
+Openbabel
 openmp
 ÖPNV
 optim
@@ -424,6 +432,7 @@ OQMD
 orthogonalized
 orthonormalized
 orthorhombically
+OSZICAR
 OUTCAR
 overengineered
 overfit
@@ -466,6 +475,7 @@ polymorphs
 posteriori
 POTCARs
 Pourbaix
+powerup
 prebuild
 prebundle
 predev
@@ -527,6 +537,7 @@ retrosynthesis
 rgba
 Rhys
 Ricci
+Rickard
 riebesell
 Riebesell's
 riemannian
