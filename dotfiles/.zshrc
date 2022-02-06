@@ -30,8 +30,6 @@ alias grb='git rebase'
 alias glog='git log --oneline'
 
 alias path='echo "${PATH//:/\n}"'
-alias brewup='brew upgrade && brew cleanup'
-alias yarnup='yarn global upgrade --latest && yarn cache clean'
 alias ssh="ssh -F ~/.ssh/config"  # https://stackoverflow.com/a/63935109
 
 # Source brew-installed zsh plugins.
