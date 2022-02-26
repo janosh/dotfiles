@@ -203,6 +203,13 @@ for corner in tl tr br bl; do
   defaults write com.apple.dock "wvous-$corner-corner" -int 0
 done
 
+echo '- Disable power chime (the sound effect on connecting to power source).'
+defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
+killall PowerChime
+# use following command to re-enable:
+# defaults write com.apple.PowerChime ChimeOnAllHardware -bool true
+# open /System/Library/CoreServices/PowerChime.app &
+
 # restart Dock and Finder for above 'defaults write' changes to take effect.
 killall Dock Finder
 

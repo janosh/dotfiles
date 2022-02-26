@@ -50,14 +50,14 @@ def compress_jpg(file: str) -> None:
 
 
 os.environ["PATH"] += ":/opt/homebrew/bin"
-bins = {x: which(x) for x in ("pngquant", "mogrify", "zopflipng")}
+clis = [which(x) for x in ("pngquant", "mogrify", "zopflipng")]
 
-pngquant, mogrify, zopflipng = bins.values()
+pngquant, mogrify, zopflipng = clis
 
 try:
-    for bin in bins:
-        if bins[bin] is None:
-            raise ImportError(f"Missing required binary: {bin}")
+    for cli in clis:
+        if cli is None:
+            raise ImportError(f"Missing required binary: {cli}")
 
     for file in sys.argv[1:]:  # first arg is this script's name
 
