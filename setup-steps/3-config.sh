@@ -13,6 +13,7 @@ configure_git() {
   # Hard-link global gitignore file into default location.
   mkdir -p ~/.config/git
   ln -f dotfiles/git/global-ignore ~/.config/git/ignore
+  ln -f dotfiles/git/global-attributes ~/.config/git/attributes
 
   # Hard-link git config into home directory.
   ln -f dotfiles/git/config ~/.gitconfig

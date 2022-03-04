@@ -15,6 +15,8 @@
 [core]
   # Use VSCode as git editor (for interactive rebase sessions, tag annotation, ...).
 	editor = code --wait
+	# set path to global .gitattributes file (has no default)
+	attributesfile = ~/.config/git/attributes
 
 [rebase]
   # Automatically create temporary stash entry before rebase begins. Reapply afterwards.

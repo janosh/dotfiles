@@ -4,7 +4,7 @@ import traceback
 from datetime import datetime
 from os.path import basename, expanduser
 from shutil import which
-from subprocess import CompletedProcess, run
+from subprocess import run
 
 from PIL import Image
 
@@ -24,23 +24,20 @@ HOME = expanduser("~")
 EXTS = (".png", ".jpg", ".jpeg")
 
 
-def shell(cmd: list[str], check: bool = False) -> CompletedProcess[bytes]:
-    return run(cmd, capture_output=True, check=check)
-
-
 def compress_png(file: str) -> None:
     # don't move file inside ''.split() so as not to split on spaces in filename
 
     # set check=False to not raise on non-zero exit code as pngquant returns code
     # 98/99 if processed file is not smaller
-    shell(
+    run(
         f"{pngquant} 32 --skip-if-larger --ext .png --force".split() + [file],
-        False,
+        check=False,
+        capture_output=True,
     )
 
-    shell(f"{mogrify} -resize '1200>'".split() + [file])
+    run(f"{mogrify} -resize '1200>'".split() + [file], capture_output=True)
 
-    shell(f"{zopflipng} -y".split() + [file, file])
+    run(f"{zopflipng} -y".split() + [file, file], capture_output=True)
 
 
 def compress_jpg(file: str) -> None:

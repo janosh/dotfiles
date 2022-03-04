@@ -1,0 +1,4 @@
+# exclude dependency lock files from git diff
+package-lock.json binary
+pnpm-lock.yaml binary
+yarn.lock binary
