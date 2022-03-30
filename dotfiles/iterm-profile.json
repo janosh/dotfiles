@@ -7,7 +7,7 @@
       "Rows": 35,
       "Columns": 90,
       "Custom Directory": "Yes",
-      "Working Directory": "~/Repos",
+      "Working Directory": "~/dev",
       "Scrollback Lines": 3000,
       "Normal Font": "Monaco 16",
       "Open Password Manager Automatically": false,

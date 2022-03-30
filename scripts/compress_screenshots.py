@@ -10,9 +10,10 @@ from PIL import Image
 
 # Use this script by creating a new folder action with 'Folder Actions Setup.app' that
 # watches '~/Desktop' (pass inputs as arguments!) and runs this shell script:
-#
+# ```sh
 # source ~/.zshrc # can be omitted if the system python3 is 3.9+
-# python3 ~/Repos/macos-setup/scripts/compress-screenshots.py "$@"
+# python3 ~/dev/macos-setup/scripts/compress-screenshots.py "$@"
+# ```
 
 # Requires: brew install pngquant zopfli imagemagick && pip install Pillow
 
@@ -35,7 +36,7 @@ def compress_png(file: str) -> None:
         capture_output=True,
     )
 
-    run(f"{mogrify} -resize '1200>'".split() + [file], capture_output=True)
+    run(f"{mogrify} -resize '2000>'".split() + [file], capture_output=True)
 
     run(f"{zopflipng} -y".split() + [file, file], capture_output=True)
 

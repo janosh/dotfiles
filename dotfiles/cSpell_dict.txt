@@ -61,9 +61,11 @@ Bing
 BIOACID
 biogeochemists
 bioinformatics
+bloch
 BMBF
 bnns
 boltz
+boltzmann
 boltztrap
 bootcamp
 bosonic
@@ -220,6 +222,7 @@ fworker
 gallate
 Galtür
 GANs
+gantt
 Gantt
 gaultois
 Gaussianization
@@ -251,6 +254,7 @@ Hadamard
 hafnate
 Hartree
 Hartrees
+headful
 HEAs
 Hernienbehandlungen
 heteroscedastic
@@ -554,6 +558,7 @@ rsync
 rtgs
 salmhofer
 Sanderson
+Satzungszweck
 sbatch
 scalings
 scherer
@@ -621,6 +626,7 @@ surjective
 Svelte's
 sveltejs
 sveltekit
+svicons
 Svicons
 Symlink
 symlinked
@@ -637,6 +643,7 @@ tensorboard
 tensorflow
 tensorial
 Tera
+texlive
 thermoelectic
 thermoelectrics
 thermopower
