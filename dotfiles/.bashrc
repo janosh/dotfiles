@@ -24,10 +24,11 @@ alias glog='git log --oneline'
 # -A: show hidden files but not ..
 alias l='ls -lhA'
 # list queued SLURM jobs (docs at https://slurm.schedmd.com/squeue.html)
-alias sq="squeue --user jr769 --format '%10i %10P %16j %8u %8T %8M %9l %6D %R'"
+alias sq="squeue --user jr769 --format '%18i %10P %28j %8T %8M %9l %6D'"
 # multiple stats about running and passed SLURM jobs in table form
 # (includes jobs since midnight today by default, use -S MMDD to specify other dates)
-alias sacctx="sacct -X --format jobid,partition,exitcode,elapsed,state,reqmem,alloctres%40"
+# --allocations: only show statistics relevant to the job itself, not taking steps into consideration.
+alias sacctx="sacct --allocations --format jobid,JobName%25,elapsed,state,reqmem"
 # show remaining computation budget
 alias path='echo -e "${PATH//:/\n}"'
 
@@ -55,11 +56,19 @@ export PS1="\[\033[34m\]\h \[\033[32m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[
 export LANG=C  # https://stackoverflow.com/a/2510548
 
 # add commands to history immediately, not when shell closes https://askubuntu.com/a/67306
-# shell may crash or ssh drop out, leading to lost commands
+# shell may crash or ssh drops out, leading to lost commands
 shopt -s histappend
 PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 
+# firework config
 export FW_CONFIG_FILE=/home/jr769/rds/hpc-work/dielectric-frontier/fireworks_config/FW_config.yaml
+
+# VASP config see https://gist.github.com/janosh/a484f3842b600b60cd575440e99455c0#benchmarking
+export OMP_NUM_THREADS="1"
+
+# atomate2 config
+export ATOMATE2_CONFIG_FILE=/home/jr769/rds/hpc-work/vasp/vasp-on-m1/atomate2.yaml
+export JOBFLOW_CONFIG_FILE=/home/jr769/rds/hpc-work/vasp/vasp-on-m1/jobflow.yaml
 
 
 # https://superuser.com/a/686293 (see link in 2nd comment)
