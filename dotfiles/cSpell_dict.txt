@@ -1,5 +1,6 @@
 adhoc
 afara
+affiliateship
 aflow
 AIRSS
 airtable
@@ -7,6 +8,7 @@ aleatoric
 algolia
 algolia's
 algoliasearch
+Alignn
 allowfullscreen
 altenkirch
 Ångstroms
@@ -27,8 +29,10 @@ atto
 authsource
 autocorrelation
 autodiff
+autoencoder
 Autoencoder
 autoencoders
+autofeaturization
 autofeaturizer
 autoflake
 autolink
@@ -77,15 +81,18 @@ Bravais
 Broyden
 BSON
 bucher
+bundesvorstand
 burnin
 calabi
 Canonicalization
 captionsetup
 Castelli
 CASTEP
+Categoricals
 cclake
 CGCNN
 chalcogen
+Changesets
 checkpointed
 cheminformatics
 chmod
@@ -127,6 +134,8 @@ cuprate
 cuprates
 customizability
 darkorange
+dataframe
+dataframes
 dataset
 datasets
 Datasheet
@@ -156,6 +165,7 @@ disqus
 distro
 distros
 DOIs
+dopability
 dotenv
 dotfiles
 draggable
@@ -181,7 +191,9 @@ erbe
 ergodicity
 Ernzerhof
 Erstattungsformular
+esseneite
 evaluable
+exchangeability
 exifreader
 experimentalists
 explainability
@@ -199,6 +211,7 @@ femto
 ferroelectricity
 ferromagnetically
 Figshare
+finanzen
 Firetask
 Firetasks
 fireworker
@@ -293,6 +306,7 @@ imageoptim
 Impfdashboard
 importances
 INCAR
+inclusionary
 inequivalent
 initio
 inpainting
@@ -323,6 +337,7 @@ Jacobians
 Jang
 janosh
 jarib
+jarvis
 joomla
 judgements
 Jupyter
@@ -347,6 +362,7 @@ Langevin
 LBNL
 leaderboard
 leibler
+lightskyblue
 linebreak
 LORBIT
 Louizos
@@ -360,6 +376,7 @@ markdownlint
 markdownlintrc
 markerclustererplus
 markowitz
+matbench
 Matbench
 matchen
 materialsproject
@@ -423,6 +440,7 @@ niobate
 nolas
 npmignore
 nullability
+nullable
 numpy
 Octicon
 octicons
@@ -454,6 +472,7 @@ Pastur
 perceptron
 percolative
 Perdew
+permittivities
 permutationally
 perovskite
 perovskites
@@ -466,6 +485,7 @@ phablet
 phononic
 phonopy
 photovoltaics
+Pickard
 pico
 piezoelectrics
 pinterest
@@ -521,6 +541,7 @@ recentered
 Registrierungsstatus
 regressand
 regressands
+regularizations
 regularizers
 rehype
 reindex
@@ -535,6 +556,7 @@ reparametrization
 reparametrizing
 repo
 repo's
+repondents
 repos
 Repurposable
 repurpose
@@ -554,10 +576,13 @@ rmse
 RNVP
 ROCAUC
 roggenkamp
+roostformer
+Roostformer
 rsync
 rtgs
 salmhofer
 Sanderson
+Sankey
 Satzungszweck
 sbatch
 scalings
@@ -633,6 +658,7 @@ symlinked
 symlinking
 symlinks
 symplectic
+synthesizability
 synthesizable
 sythesizable
 Taliarte
@@ -695,6 +721,7 @@ Ununquadium
 Ununseptium
 Ununtrium
 VAEs
+variadic
 VASP
 VASP's
 vaspdb
@@ -719,6 +746,8 @@ Weng
 wetterich
 wiedemann
 winton
+Wrenformer
+wyckoff
 Wyckoff
 xerr
 xlabel
