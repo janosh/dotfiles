@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Automatically activates conda environments when entering directories
 # containing a conda environment file. The file must be named one of

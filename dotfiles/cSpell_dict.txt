@@ -204,6 +204,7 @@ favicon
 featurization
 featurize
 featurized
+featurizer
 Featurizer
 featurizers
 featurizing
@@ -261,6 +262,7 @@ graphiql
 graphql
 griffiths
 grimme
+Grueneisen
 gurobi
 gzipped
 Hadamard
@@ -565,6 +567,7 @@ rerenders
 Researchgate
 retrosynthesis
 rgba
+rhys
 Rhys
 Ricci
 Rickard
@@ -637,6 +640,7 @@ subpreambles
 subprojects
 subschema
 subselection
+substitutor
 supercapacitor
 supercapacitors
 supercell
@@ -729,6 +733,7 @@ vasprun
 Vecteezy
 vectorizing
 Vercel
+videotoolbox
 Viridis
 virtualenv
 vite

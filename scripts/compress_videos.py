@@ -11,6 +11,12 @@ __date__ = "2022-07-04"
 DIRNAME = os.path.dirname(__file__)
 
 
+"""
+Example invocation:
+python ~/dev/macos-setup/scripts/compress_videos.py src-dir/*.mp4 --outdir out-dir
+"""
+
+
 def handbrake_h265_vtb_encode(input_file: str, output_file: str) -> None:
     """Compress input_file to output_file with HandBrakeCLI using vt_h265 (Apple's
     Video Toolbox H265 encoder). https://developer.apple.com/documentation/videotoolbox

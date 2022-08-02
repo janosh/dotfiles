@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 bold_echo() { # Helper function for bold text.
   echo "$(tput bold)${1}$(tput sgr0)"

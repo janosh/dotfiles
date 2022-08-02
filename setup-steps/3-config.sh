@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 configure_zsh() {
   # Link .zshrc from dotfiles to home directory.

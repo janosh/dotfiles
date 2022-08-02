@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # git commit hook that checks for spelling errors in commit messages.
 # Install this hook by placing it in the default location for git hooks (.git/hooks) or
 # if a custom path was set, place it at `git config core.hooksPath`.
