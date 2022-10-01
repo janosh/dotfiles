@@ -13,11 +13,13 @@ DIRNAME = os.path.dirname(__file__)
 
 """
 Example invocation:
-python ~/dev/macos-setup/scripts/compress_videos.py src-dir/*.mp4 --outdir out-dir
+python ~/dev/macos-setup/scripts/compress_videos.py src-dir/*.mp4 --outdir outdir
 """
 
 
-def handbrake_h265_vtb_encode(input_file: str, output_file: str) -> None:
+def handbrake_h265_vtb_encode(
+    input_file: str, output_file: str, *args: str | int | None
+) -> None:
     """Compress input_file to output_file with HandBrakeCLI using vt_h265 (Apple's
     Video Toolbox H265 encoder). https://developer.apple.com/documentation/videotoolbox
 
@@ -28,7 +30,7 @@ def handbrake_h265_vtb_encode(input_file: str, output_file: str) -> None:
     cmd = ["handbrakeCLI", "--preset-import-file", f"{DIRNAME}/h265-videotoolbox.json"]
     # preset must be explicitly set even after importing
     cmd += ["--preset", "H265 Videotoolbox"]
-    cmd += ["--input", input_file, "--output", output_file]
+    cmd += ["--input", input_file, "--output", output_file, *args]
 
     subprocess.run(cmd, capture_output=True, check=True)
 
@@ -48,7 +50,15 @@ def main(
     outdir: str,
     write_file_map: bool = False,
     on_error: Literal["raise", "print", "ignore"] = "raise",
+    quality: int = None,
 ) -> int:
+    if os.path.isfile(outdir):
+        raise ValueError(
+            f"{outdir=} must be a (possibly non-existent) directory, not a file"
+        )
+    if len(source_files) == 0:
+        raise ValueError("No input files received")
+
     os.makedirs(outdir, exist_ok=True)
 
     in_out_map: dict[str, str] = {}
@@ -59,7 +69,7 @@ def main(
         print(f"Compressing {idx}/{len(source_files)}: {file_path}->{out_path}")
 
         try:
-            handbrake_h265_vtb_encode(file_path, out_path)
+            handbrake_h265_vtb_encode(file_path, out_path, "--quality", str(quality))
             copy_original_metadata(file_path, out_path)
         except Exception as exc:
             if on_error == "raise":
@@ -97,7 +107,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("source_files", nargs="+", help="Video files to be compressed")
     parser.add_argument(
-        "--outdir",
+        *("-o", "--outdir"),
         help="Output directory where compressed files will be created. New files will "
         "have the same basename as the original file.",
     )
@@ -113,6 +123,15 @@ if __name__ == "__main__":
         help="What to do if an error occurs. If 'raise', will exit non-zero. If "
         "'print' will print error to stderr, then continue with next file. If "
         "'ignore' directly continues with next file.",
+    )
+    parser.add_argument(
+        *("-q", "--quality"),
+        type=int,
+        default=42,  # see h265-videotoolbox.json
+        help="Quality of the output video. Higher is better but means larger file size."
+        " Quite sensitive. Corresponds to the value of VideoQualitySlider in "
+        "h265-videotoolbox.json. Cranking this up to 60 will result in larger output "
+        "than input file. Defaults to 42",
     )
     args = parser.parse_args()
 
