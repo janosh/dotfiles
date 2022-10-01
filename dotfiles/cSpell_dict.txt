@@ -74,6 +74,7 @@ boltztrap
 bootcamp
 bosonic
 botros
+bowsr
 BOWSR
 boxicons
 branin
@@ -85,6 +86,8 @@ bundesvorstand
 burnin
 calabi
 Canonicalization
+canonicalized
+canonicalizing
 captionsetup
 Castelli
 CASTEP
@@ -94,6 +97,7 @@ CGCNN
 chalcogen
 Changesets
 checkpointed
+checkpointing
 cheminformatics
 chmod
 christof
@@ -129,6 +133,7 @@ cornflowerblue
 Coronavirus
 coulombic
 Covid
+crystaltoolkit
 cuda
 cuprate
 cuprates
@@ -159,6 +164,7 @@ dielectricity
 diffeomorphism
 diffeomorphisms
 Dinh
+discretization
 discretized
 discretizing
 disqus
@@ -171,6 +177,7 @@ dotfiles
 draggable
 dropna
 Düsternbrooker
+EATCH
 EDIFF
 Edisonian
 elbo
@@ -232,6 +239,7 @@ fullscreen
 funcs
 functionals
 functools
+functorch
 fworker
 gallate
 Galtür
@@ -265,6 +273,7 @@ grimme
 Grueneisen
 gurobi
 gzipped
+hackingmaterials
 Hadamard
 hafnate
 Hartree
@@ -285,6 +294,7 @@ himem
 hmc's
 homoscedastic
 hoverable
+Hrushikesh
 hstack
 hydromechanic
 hypernets
@@ -311,6 +321,7 @@ INCAR
 inclusionary
 inequivalent
 initio
+Inkscape
 inpainting
 inplace
 inspectable
@@ -332,6 +343,7 @@ ipython
 Ising
 ISMEAR
 isolines
+isopointal
 isort
 itertuples
 jäckel
@@ -342,6 +354,7 @@ jarib
 jarvis
 joomla
 judgements
+jupyter
 Jupyter
 jürgen
 karpathy
@@ -363,13 +376,17 @@ kwargs
 Langevin
 LBNL
 leaderboard
+leaderboards
 leibler
 lightskyblue
 linebreak
+lithiated
 LORBIT
 Louizos
 LSTM
 macrophysics
+magmoms
+magnetizations
 magpy
 mailto
 Marchenko
@@ -395,6 +412,7 @@ Matsci
 matsubara
 mcmc
 mdsvex
+megnet
 memoization
 memoized
 Mesocosm
@@ -403,9 +421,11 @@ metallofullerene
 metallofullerenes
 microphysical
 milli
+minibatch
 miniconda
 minimizations
 minkowski
+miscalibration
 misspecification
 mkdir
 MNDO
@@ -433,6 +453,7 @@ Mylio
 Mylio's
 mypy
 nanoporous
+nbstripout
 ndarray
 NELMDL
 neovim
@@ -448,6 +469,7 @@ Octicon
 octicons
 octocat
 oligotrophic
+openbabel
 Openbabel
 openmp
 ÖPNV
@@ -461,16 +483,19 @@ orthonormalized
 orthorhombically
 OSZICAR
 OUTCAR
+outdir
 overengineered
 overfit
 overfitting
 overscroll
+ozonides
 parallelizable
 parallelization
 parametrizations
 Parametrizing
 passivation
 Pastur
+pearson
 perceptron
 percolative
 Perdew
@@ -501,6 +526,8 @@ polycrystallinity
 polydisperse
 polyfill
 polymorphs
+polysulfide
+polytope
 posteriori
 POTCARs
 Pourbaix
@@ -530,6 +557,7 @@ pymongo
 pyplot
 pyrochlore
 pytest
+pythonic
 pytorch
 pyupgrade
 pyyaml
@@ -597,6 +625,7 @@ scrollable
 scrollbar
 seaborn
 Seff
+selenides
 semimetals
 Shanno
 shortcodes
@@ -620,7 +649,7 @@ spglib
 springel
 srivastava
 srun
-Stackblitz
+StackBlitz
 stateful
 staticman
 stepsize
@@ -644,6 +673,7 @@ substitutor
 supercapacitor
 supercapacitors
 supercell
+supercells
 Supercon
 superhard
 superlattices
@@ -674,6 +704,7 @@ tensorflow
 tensorial
 Tera
 texlive
+Theano
 thermoelectic
 thermoelectrics
 thermopower
@@ -702,7 +733,9 @@ typeof
 UCSB
 ultrasoft
 umap
+unaries
 uncategorized
+underconfidence
 underexplored
 undersampled
 undoped
@@ -742,15 +775,19 @@ Vitest
 volker
 Voronoi
 waals
+walltime
+wandb
 WAVECAR
 Wavenet
 webp
 Wegener
+Wehenkel
 weigand
 Weng
 wetterich
 wiedemann
 winton
+wrenformer
 Wrenformer
 wyckoff
 Wyckoff

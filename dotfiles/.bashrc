@@ -24,7 +24,7 @@ alias glog='git log --oneline'
 # -A: show hidden files but not ..
 alias l='ls -lhA'
 # list queued SLURM jobs (docs at https://slurm.schedmd.com/squeue.html)
-alias sq="squeue --user jr769 --format '%18i %10P %28j %8T %8M %9l %6D'"
+alias sq="squeue --me --format '%18i %10P %28j %8T %8M %9l %6D'"
 # multiple stats about running and passed SLURM jobs in table form
 # (includes jobs since midnight today by default, use -S MMDD to specify other dates)
 # --allocations: only show statistics relevant to the job itself, not taking steps into consideration.
