@@ -10,11 +10,20 @@ authenticated, i.e. `gh auth status` must exit 0. By default asks for confirmati
 before merging each PR. Pass --yes to skip confirmation.
 
 Was written to auto-merge green pre-commit.ci auto-update PRs.
+
+Example invocation:
+python scripts/merge_bot_prs.py --ci-status any
+
+Or to auto-merge all PRs with passing checks (green CI):
+python scripts/merge_bot_prs.py --yes
 """
 
 
 def main(
-    bot: str, owner: str, yes: bool = False, ci: Literal["success", "any"] = "success"
+    bot: str,
+    owner: str,
+    yes: bool = False,
+    ci_status: Literal["success", "any"] = "success",
 ) -> int:
 
     # make sure gh auth status returns 0 which means user is logged in and hopefully
@@ -23,7 +32,7 @@ def main(
         raise PermissionError("Please run `gh auth login` and then `gh auth token`")
 
     search_prs_cmd = f"gh search prs --state=open --app={bot} --owner={owner}"
-    if ci == "success":
+    if ci_status == "success":
         search_prs_cmd += " --checks=success"
     pr_list = (
         subprocess.run(search_prs_cmd.split(), capture_output=True)
@@ -40,8 +49,6 @@ def main(
             repo_handle, pr_number, *_ = pr_header.split("\t")
             counter = f"{idx}/{len(pr_list)}"
 
-            if not repo_handle.lower().startswith(f"{owner}/"):
-                raise ValueError(f"{repo_handle=} does not start with {owner=}")
             if not pr_number.isdigit():
                 raise ValueError(f"{pr_number=} is not a number")
 
@@ -85,14 +92,13 @@ if __name__ == "__main__":
         "must be authorized to merge the org's PRs.",
     )
     parser.add_argument(
-        "-y",
-        "--yes",
+        *("-y", "--yes"),
         action="store_true",
         help="Skip confirmation prompt for each PR and automatically merge all "
         "matching PRs.",
     )
     parser.add_argument(
-        "--ci",
+        *("-s", "--ci-status"),
         choices=("success", "any"),
         default="success",
         help="Only merge PRs that have this status. 'success' will only merge green "
@@ -100,5 +106,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    ret_code = main(**vars(args))
+    try:
+        ret_code = main(**vars(args))
+    except KeyboardInterrupt:
+        ret_code = 1
     raise SystemExit(ret_code)
