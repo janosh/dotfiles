@@ -1,4 +1,4 @@
-# Notes to future self
+# Notes to self
 
 ## Mylio Setup
 
@@ -17,7 +17,7 @@ repos:
     hooks:
       - id: tsc
         name: TypeScript
-        entry: yarn tsc --noEmit
+        entry: pnpm tsc --noEmit
         language: system
         types: [ts]
 ```

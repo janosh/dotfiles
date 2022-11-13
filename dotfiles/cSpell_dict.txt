@@ -41,6 +41,7 @@ automatminer
 autoregressive
 autoregressivity
 autoupdate
+axline
 backpropagatable
 backpropagated
 backpropagation
@@ -56,6 +57,7 @@ berges
 betancourt
 betancourt's
 bfgs
+bibtex
 bijections
 bijective
 bijectivity
@@ -85,6 +87,7 @@ bucher
 bundesvorstand
 burnin
 calabi
+callability
 Canonicalization
 canonicalized
 canonicalizing
@@ -93,12 +96,15 @@ Castelli
 CASTEP
 Categoricals
 cclake
+cgcnn
 CGCNN
 chalcogen
 Changesets
 checkpointed
 checkpointing
 cheminformatics
+chemsys
+Chgcar
 chmod
 christof
 Christos
@@ -184,6 +190,7 @@ elbo
 electronegativities
 electronegativity
 Elpasolites
+encodability
 encodable
 ENCUT
 engel
@@ -214,6 +221,7 @@ featurized
 featurizer
 Featurizer
 featurizers
+featurizes
 featurizing
 femto
 ferroelectricity
@@ -243,6 +251,7 @@ functorch
 fworker
 gallate
 Galtür
+Ganose
 GANs
 gantt
 Gantt
@@ -261,6 +270,7 @@ Gespinnstmotte
 Giga
 Girton
 gitalk
+github
 gitignore
 gmail
 Goodfellow
@@ -271,6 +281,7 @@ graphql
 griffiths
 grimme
 Grueneisen
+gunicorn
 gurobi
 gzipped
 hackingmaterials
@@ -339,12 +350,14 @@ intralayer
 invariances
 invertibility
 IPCC
+ipynb
 ipython
 Ising
 ISMEAR
 isolines
 isopointal
 isort
+isovalent
 itertuples
 jäckel
 Jacobians
@@ -370,6 +383,7 @@ Kosiorek
 KPOINT
 kpoints
 KPOINTS
+Kubaschewski
 kullback
 kurzweil
 kwargs
@@ -381,6 +395,7 @@ leibler
 lightskyblue
 linebreak
 lithiated
+liveshare
 LORBIT
 Louizos
 LSTM
@@ -389,6 +404,8 @@ magmoms
 magnetizations
 magpy
 mailto
+MAML
+marchenko
 Marchenko
 MARD
 markdownlint
@@ -415,6 +432,7 @@ mdsvex
 megnet
 memoization
 memoized
+mergeable
 Mesocosm
 mesocosms
 metallofullerene
@@ -436,6 +454,7 @@ mongodb
 Monkhorst
 monoaluminate
 monoclinic
+monty
 MOSFET
 mousedown
 mphil
@@ -494,6 +513,7 @@ parallelization
 parametrizations
 Parametrizing
 passivation
+pastur
 Pastur
 pearson
 perceptron
@@ -528,13 +548,14 @@ polyfill
 polymorphs
 polysulfide
 polytope
+POSCAR
 posteriori
+potcar
+POTCAR
 POTCARs
 Pourbaix
 powerup
-prebuild
 prebundle
-predev
 preds
 prefactor
 prefetch
@@ -554,6 +575,7 @@ pylint
 pymatgen
 pymatviz
 pymongo
+pypi
 pyplot
 pyrochlore
 pytest
@@ -575,9 +597,11 @@ regularizations
 regularizers
 rehype
 reindex
+relabelings
 relu
 removeprefix
 removesuffix
+renderables
 renormalization
 renormalize
 renormalized
@@ -605,6 +629,7 @@ riemannian
 rlaunch
 rmse
 RNVP
+rocauc
 ROCAUC
 roggenkamp
 roostformer
@@ -631,12 +656,15 @@ Shanno
 shortcodes
 Shortname
 Shyam
+Shyue
 Signup
 SIGTERM
 silico
 sklearn
 skopt
 skylake
+SLSQP
+slurm
 SLURM
 socio
 socketio
@@ -665,6 +693,7 @@ stylesheet
 subclassing
 subnavs
 suboptimally
+subpackages
 subpreambles
 subprojects
 subschema
@@ -692,6 +721,7 @@ symlinked
 symlinking
 symlinks
 symplectic
+symprec
 synthesizability
 synthesizable
 sythesizable
@@ -714,6 +744,8 @@ titanates
 toberer
 toberer's
 Todos
+topotactic
+topotactically
 torchvision
 touchstart
 tqdm
@@ -764,7 +796,9 @@ VASP's
 vaspdb
 vasprun
 Vecteezy
+vectorize
 vectorizing
+venv
 Vercel
 videotoolbox
 Viridis
