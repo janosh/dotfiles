@@ -32,7 +32,10 @@ def handbrake_h265_vtb_encode(
     cmd += ["--preset", "H265 Videotoolbox"]
     cmd += ["--input", input_file, "--output", output_file, *args]
 
-    subprocess.run(cmd, capture_output=True, check=True)
+    result = subprocess.run(cmd, capture_output=True)
+
+    if result.stderr:
+        print(result.stderr.decode("utf-8"), file=sys.stderr)
 
 
 def copy_original_metadata(input_file: str, output_file: str) -> None:

@@ -88,6 +88,7 @@ bundesvorstand
 burnin
 calabi
 callability
+canonicalization
 Canonicalization
 canonicalized
 canonicalizing
@@ -548,6 +549,7 @@ polyfill
 polymorphs
 polysulfide
 polytope
+poscar
 POSCAR
 posteriori
 potcar
@@ -725,6 +727,7 @@ symprec
 synthesizability
 synthesizable
 sythesizable
+TAATA
 Taliarte
 TECs
 TEGs
@@ -807,6 +810,7 @@ vite
 vitest
 Vitest
 volker
+voronoi
 Voronoi
 waals
 walltime

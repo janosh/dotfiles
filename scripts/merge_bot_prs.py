@@ -6,16 +6,16 @@ __date__ = "2022-07-04"
 
 description = """
 Batch merge bot-created PRs. Uses the GitHub CLI (`brew install gh`) which must be
-authenticated, i.e. `gh auth status` must exit 0. By default asks for confirmation
+authenticated (`gh auth status` must exit 0). By default asks for confirmation
 before merging each PR. Pass --yes to skip confirmation.
 
-Was written to auto-merge green pre-commit.ci auto-update PRs.
+Written to auto-merge green pre-commit.ci auto-update PRs.
 
 Example invocation:
-python scripts/merge_bot_prs.py --ci-status any
+python -m merge_bot_prs --ci-status any
 
 Or to auto-merge all PRs with passing checks (green CI):
-python scripts/merge_bot_prs.py --yes
+python -m merge_bot_prs --yes
 """
 
 
@@ -79,9 +79,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=description)
 
-    parser = argparse.ArgumentParser(
-        description="Batch merge PRs from pre-commit-ci bot."
-    )
     parser.add_argument(
         "--bot", default="pre-commit-ci", help="Name of the bot to merge PRs from"
     )
@@ -89,16 +86,16 @@ if __name__ == "__main__":
         "--owner",
         default="@me",
         help="GitHub user handle of the repos' owner. Can be an org handle but you "
-        "must be authorized to merge the org's PRs.",
+        "must be privileged to merge org PRs.",
     )
     parser.add_argument(
-        *("-y", "--yes"),
+        "--yes",
         action="store_true",
         help="Skip confirmation prompt for each PR and automatically merge all "
         "matching PRs.",
     )
     parser.add_argument(
-        *("-s", "--ci-status"),
+        "--ci-status",
         choices=("success", "any"),
         default="success",
         help="Only merge PRs that have this status. 'success' will only merge green "
@@ -110,4 +107,5 @@ if __name__ == "__main__":
         ret_code = main(**vars(args))
     except KeyboardInterrupt:
         ret_code = 1
+
     raise SystemExit(ret_code)
