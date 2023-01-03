@@ -11,11 +11,12 @@ before merging each PR. Pass --yes to skip confirmation.
 
 Written to auto-merge green pre-commit.ci auto-update PRs.
 
-Example invocation:
-python -m merge_bot_prs --ci-status any
+Example invocation to merge all PRs regardless of CI status but prompt
+for confirmation on each one:
+python merge_bot_prs.py --ci-status any
 
 Or to auto-merge all PRs with passing checks (green CI):
-python -m merge_bot_prs --yes
+python merge_bot_prs.py --yes
 """
 
 

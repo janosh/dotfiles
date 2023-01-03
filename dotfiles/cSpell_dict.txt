@@ -139,12 +139,14 @@ Cori
 cornflowerblue
 Coronavirus
 coulombic
+covariate
 Covid
 crystaltoolkit
 cuda
 cuprate
 cuprates
 customizability
+Customizer
 darkorange
 dataframe
 dataframes
@@ -292,6 +294,7 @@ Hartree
 Hartrees
 headful
 HEAs
+heatmaps
 Hernienbehandlungen
 heteroscedastic
 heteroscedastically
@@ -572,6 +575,7 @@ prismjs
 Promotionsförderung
 pycache
 Pycharm
+pycodestyle
 pydocstyle
 pylint
 pymatgen
@@ -679,6 +683,7 @@ spglib
 springel
 srivastava
 srun
+stackblitz
 StackBlitz
 stateful
 staticman
@@ -772,6 +777,7 @@ unaries
 uncategorized
 underconfidence
 underexplored
+underperform
 undersampled
 undoped
 unintuitive
@@ -784,6 +790,7 @@ unrelaxed
 unrenormalized
 unshift
 unsqueeze
+unsubmittable
 unsynchronized
 untrusted
 Ununhexium
@@ -820,6 +827,7 @@ Wavenet
 webp
 Wegener
 Wehenkel
+Weickenmeier
 weigand
 Weng
 wetterich
