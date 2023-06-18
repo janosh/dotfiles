@@ -7,20 +7,17 @@ install() {
   source setup-steps/3-config.sh
   source setup-steps/4-cleanup.sh
 
-  caffeinate & # Prevent computer from going to sleep during setup.
   ask_details
-  update_system
+  # update_system # takes too long, do manually
 
   brew_install
 
   configure_zsh
   configure_git
-  symlink_custom_scripts
   configure_ssh
 
   brew cleanup
   cleanup_error_log
-  killall caffeinate # Allow computer to go back to sleep.
   final_message
 }
 

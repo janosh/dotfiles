@@ -1,13 +1,22 @@
+Host cori.nersc.gov
+  HostName cori.nersc.gov
+  User janosh
+
+Host desta
+  HostName desta.dhcp.lbl.gov
+  User janosh
+  IdentityFile ~/.ssh/id_ed25519_desta
+
 Host *
   AddKeysToAgent yes
   UseKeychain yes
 
 Host csd3
-  Hostname login.hpc.cam.ac.uk
+  HostName login.hpc.cam.ac.uk
 
 # https://unix.stackexchange.com/a/393850
 Host login-e-*
-  Hostname %h.hpc.cam.ac.uk
+  HostName %h.hpc.cam.ac.uk
 
 Host csd3* login-e-*
   User jr769

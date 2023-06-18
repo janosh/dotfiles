@@ -8,7 +8,6 @@ brew "git"
 brew "jq"
 brew "imagemagick"
 brew "mas" # required to install Mac App Store apps below
-brew "netlify-cli"
 brew "node"
 brew "pngquant"
 brew "pnpm"
@@ -27,20 +26,18 @@ brew "zsh-syntax-highlighting"
 # Apps
 cask "appcleaner"
 cask "brave-browser"
-cask "clipy"
 cask "coconutbattery"
 cask "daisydisk"
 cask "dropbox"
 cask "handbrake"
 cask "imageoptim"
-cask "iterm2"
+cask "maccy"
 cask "mylio"
 cask "nordvpn"
 cask "rectangle"
 cask "slack"
 cask "studio-3t"
 cask "telegram"
-cask "transmission"
 cask "visual-studio-code"
 cask "vlc"
 cask "zotero"
@@ -51,7 +48,6 @@ mas "1Password", id: 443987910
 mas "Affinity Designer", id: 824171161
 mas "Compressor", id: 424390742
 mas "Final Cut Pro", id: 424389933
-mas "Gemini", id: 463541543
 mas "Keynote", id: 409183694
 mas "MoneyMoney", id: 872698314
 mas "Numbers", id: 409203825

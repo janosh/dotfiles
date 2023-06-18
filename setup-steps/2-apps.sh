@@ -4,7 +4,7 @@ brew_install() {
   renew_sudo
 
   # Install Homebrew.
-  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   # Add brew command to current and future shell sessions.
   eval "$(/opt/homebrew/bin/brew shellenv)"
