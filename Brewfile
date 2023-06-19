@@ -39,7 +39,6 @@ cask "slack"
 cask "studio-3t"
 cask "telegram"
 cask "visual-studio-code"
-cask "vlc"
 cask "zotero"
 cask "zoom"
 

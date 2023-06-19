@@ -6,5 +6,5 @@ cleanup_error_log() {
 
 final_message() {
   echo "All automated scripts have finished. 'stderr' has been logged to '${ERROR_LOG}'."
-  echo "Remaining manual step: Run './post-install.sh'."
+  echo "Remaining manual step: Run './system-settings.sh'."
 }

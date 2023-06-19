@@ -42,7 +42,6 @@ def compress_png(file: str) -> None:
 
 
 def compress_jpg(file: str) -> None:
-
     img = Image.open(file)
     img.save(file, quality=75, optimize=True)
 
@@ -58,7 +57,6 @@ try:
             raise ImportError(f"Missing required binary: {cli}")
 
     for file in sys.argv[1:]:  # first arg is this script's name
-
         ext = os.path.splitext(file)[1]
         if ext.lower() != ext and ext.lower() in EXTS:
             if ext.lower() == ".jpeg":

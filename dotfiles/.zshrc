@@ -9,7 +9,7 @@ source ~/.oh-my-zsh/oh-my-zsh.sh
 
 # activate default virtualenv
 # shellcheck disable=SC1090
-source ~/.venv/py310/bin/activate
+source ~/.venv/py311/bin/activate
 
 alias ga='git add'
 alias gc='git commit'
