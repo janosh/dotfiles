@@ -175,12 +175,13 @@ configure_macos() {
   echo '- Set JPG as snapshot file type.'
   sed -i '' -E 's/#?snapshot-format=.*/snapshot-format=jpg/' ~/Library/Preferences/org.videolan.vlc/vlcrc
 
-  echo 'Install iTerm dynamic profile.'
-  # All the settings in 'Keyboard Map' correspond to the 'Natural Text Editing' preset.
-  mkdir -p ~/Library/Application\ Support/iTerm2/DynamicProfiles
-  ln -f dotfiles/iterm-profile.json ~/Library/Application\ Support/iTerm2/DynamicProfiles
-  echo '- Make custom profile the default.'
-  defaults write com.googlecode.iterm2 "Default Bookmark Guid" "73964F77-3452-4112-BE05-8A8F1ED9B50D"
+  # dropped iTerm in favor of Warp.app in early 2023
+  # echo 'Install iTerm dynamic profile.'
+  # # All the settings in 'Keyboard Map' correspond to the 'Natural Text Editing' preset.
+  # mkdir -p ~/Library/Application\ Support/iTerm2/DynamicProfiles
+  # ln -f dotfiles/iterm-profile.json ~/Library/Application\ Support/iTerm2/DynamicProfiles
+  # echo '- Make custom profile the default.'
+  # defaults write com.googlecode.iterm2 "Default Bookmark Guid" "73964F77-3452-4112-BE05-8A8F1ED9B50D"
 
   echo 'Disable hot corners.'
   for corner in tl tr br bl; do

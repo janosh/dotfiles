@@ -26,7 +26,22 @@ def main(
     yes: bool = False,
     ci_status: Literal["success", "any"] = "success",
 ) -> int:
+    """Merge bot-created PRs (e.g. pre-commit.ci auto-update PRs)
 
+    Args:
+        bot (str): Name of the bot user (e.g. pre-commit-ci)
+        owner (str): Name of the repo owner (e.g. @me)
+        yes (bool, optional): Auto-merge without confirmation. Defaults to False.
+        ci_status ('success' | 'any', optional): Only merge PRs with passing CI or any
+            CI status. Defaults to 'success'.
+
+    Raises:
+        PermissionError: If gh auth status returns non-zero.
+        ValueError: If pr_number is not a number.
+
+    Returns:
+        int: exit code (0 for success)
+    """
     # make sure gh auth status returns 0 which means user is logged in and hopefully
     # authorized to merge PRs
     if subprocess.run("gh auth status".split(), check=True).returncode != 0:

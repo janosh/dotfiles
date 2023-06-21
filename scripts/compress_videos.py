@@ -3,7 +3,10 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from typing import Literal, Sequence
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 __author__ = "Janosh Riebesell"
 __date__ = "2022-07-04"
@@ -53,8 +56,28 @@ def main(
     outdir: str,
     write_file_map: bool = False,
     on_error: Literal["raise", "print", "ignore"] = "raise",
-    quality: int = None,
+    quality: int | None = None,
 ) -> int:
+    """Compress videos using HandBrakeCLI and copy metadata using exiftool.
+
+    Args:
+        source_files (Sequence[str]): Video files to compress.
+        outdir (str): Directory to write compressed files to.
+        write_file_map (bool, optional): Write JSON file mapping input to output file paths
+            to outdir. Defaults to False.
+        on_error (Literal[&quot;raise&quot;, &quot;print&quot;, &quot;ignore&quot;], optional):
+            What to do if an error occurs. If 'raise', will exit non-zero. If 'print' will
+            print error to stderr, then continue with next file. If 'ignore' directly
+            continues with next file. Defaults to 'raise'.
+        quality (int | None, optional): Quality setting for HandBrakeCLI. Defaults to None.
+
+    Raises:
+        ValueError: If outdir is a file, not a directory or if no input files are received
+            or if on_error is not one of 'raise', 'print' or 'ignore'.
+
+    Returns:
+        int: exit code (0 if successful)
+    """
     if os.path.isfile(outdir):
         raise ValueError(
             f"{outdir=} must be a (possibly non-existent) directory, not a file"
@@ -77,10 +100,10 @@ def main(
         except Exception as exc:
             if on_error == "raise":
                 raise
-            elif on_error == "print":
+            if on_error == "print":
                 print(exc, file=sys.stderr)
                 continue
-            elif on_error == "ignore":
+            if on_error == "ignore":
                 continue
             raise ValueError(
                 f"Unexpected {on_error=}, should be 'raise', 'print' or 'ignore'"
