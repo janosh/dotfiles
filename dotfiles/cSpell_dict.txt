@@ -14,6 +14,7 @@ algoliasearch
 Alignn
 allowfullscreen
 altenkirch
+AMSET
 Ångstroms
 anharmonic
 anharmonicity
@@ -228,6 +229,7 @@ Ernzerhof
 Erstattungsformular
 esseneite
 evaluable
+Ewald
 exchangeability
 exifreader
 experimentalists
@@ -265,6 +267,7 @@ Frenkel
 frequentist
 friederike
 frontmatter
+frozendict
 fullname
 fullscreen
 funcs
@@ -433,8 +436,11 @@ LORBIT
 Louizos
 LSTM
 macrophysics
+magmom
 magmoms
 magnetizations
+magnetoelectric
+Magnetoresistance
 magpy
 mailto
 MAML
@@ -509,6 +515,7 @@ Mylio
 Mylio's
 mypy
 nanoporous
+nbqa
 nbstripout
 ndarray
 NELMDL
@@ -534,6 +541,7 @@ OPTIMADE
 optimizer
 optimizer's
 OQMD
+Orthogonalize
 orthogonalized
 orthonormalized
 orthorhombically
@@ -617,6 +625,7 @@ pseudopotentials
 pycache
 Pycharm
 pycodestyle
+Pydantic
 pydocstyle
 pylint
 pymatgen
@@ -758,6 +767,7 @@ supercapacitor
 supercapacitors
 supercell
 supercells
+supercomputing
 Supercon
 superhard
 superlattices
@@ -828,6 +838,7 @@ underconfidence
 underexplored
 underperform
 undersampled
+undisplaced
 undoped
 unintuitive
 unitless
@@ -874,6 +885,8 @@ waals
 walltime
 wandb
 WAVECAR
+wavefunction
+wavefunctions
 Wavenet
 webp
 Wegener
