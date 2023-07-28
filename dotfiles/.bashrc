@@ -1,5 +1,6 @@
-# CSD3 bashrc
-# https://docs.hpc.cam.ac.uk
+#!/bin/bash
+
+# NERSC bash config
 
 alias ga='git add'
 alias gc='git commit'
@@ -30,7 +31,7 @@ alias sq="squeue --me --format '%18i %10P %28j %8T %8M %9l %6D'"
 # --allocations: only show statistics relevant to the job itself, not taking steps into consideration.
 alias sacctx="sacct --allocations --format jobid,JobName%25,elapsed,state,reqmem"
 # show remaining computation budget
-alias path='echo -e "${PATH//:/\n}"'
+alias path='printf "%s\n" ${PATH//:/ }'
 
 # if no command specified and shell input is name of a directory, assume cd
 # https://gnu.org/software/bash/manual/html_node/The-Shopt-Builtin
@@ -41,7 +42,8 @@ set completion-ignore-case on
 
 # activate virtualenv
 # shellcheck disable=SC1090
-source ~/rds/hpc-work/.venv/py39/bin/activate
+module load python/3.11 > /dev/null 2>&1
+. ~/.venv/py311/bin/activate
 
 # shell prompt (PS1 = prompt string 1)
 parse_git_branch() {
@@ -60,16 +62,15 @@ export LANG=C  # https://stackoverflow.com/a/2510548
 shopt -s histappend
 PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 
-# firework config
-export FW_CONFIG_FILE=/home/jr769/rds/hpc-work/dielectric-frontier/fireworks_config/FW_config.yaml
-
 # VASP config see https://gist.github.com/janosh/a484f3842b600b60cd575440e99455c0#benchmarking
 export OMP_NUM_THREADS="1"
 
 # atomate2 config
-export ATOMATE2_CONFIG_FILE=/home/jr769/rds/hpc-work/vasp/vasp-on-m1/atomate2.yaml
-export JOBFLOW_CONFIG_FILE=/home/jr769/rds/hpc-work/vasp/vasp-on-m1/jobflow.yaml
-
+export ATOMATE2_CONFIG_FILE=/global/homes/j/janosh/matpes/config/atomate2.yaml
+export JOBFLOW_CONFIG_FILE=/global/homes/j/janosh/matpes/config/jobflow.yaml
+export FW_CONFIG_FILE=/global/homes/j/janosh/matpes/fireworks_config/gpu/FW_config.yaml
+# add bader executable to path
+export PATH=$PATH:/global/homes/j/janosh/matpes
 
 # https://superuser.com/a/686293 (see link in 2nd comment)
 if [[ $- == *i* ]]; then  # check if running in interactive shell that supports line editing
@@ -84,8 +85,10 @@ if [[ $- == *i* ]]; then  # check if running in interactive shell that supports 
     # enable alt + right/left arrow to move one word
     bind '"\e\e[D": backward-word'
     bind '"\e\e[C": forward-word'
-
-    if [ "$PWD" = "$HOME" ]; then
-        cd ~/rds/hpc-work || return
-    fi
 fi
+
+qlaunch_rf() {
+    pushd /global/cfs/projectdirs/matgen/janosh/ > /dev/null || exit
+    qlaunch rapidfire "$@"
+    popd > /dev/null || exit
+}
