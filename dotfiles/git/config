@@ -30,6 +30,8 @@
 	followTags = true
 	# https://git-scm.com/docs/git-config#Documentation/git-config.txt-pushautoSetupRemote
 	autoSetupRemote = true
+	# enable git push -u by default (thanks @nino)
+ 	default = current
 
 [pull]
   # git pull may only fast-forward, not commit https://stackoverflow.com/a/62653400

@@ -5,7 +5,8 @@ __date__ = "2022-12-27"
 # adapted from script posted by @jrs65 in
 # https://github.com/zenodo/zenodo/issues/1463#issuecomment-1007602828
 
-repo = "janosh/matbench-discovery"
+# repo = "janosh/matbench-discovery"
+repo = "materialsproject/atomate2"  # 2024-02-19
 # token appears to be the same for every repo and was copied from the end of the
 # payload url in the Zenodo webhook settings page:
 # https://github.com/janosh/pymatviz/settings/hooks/424898772
@@ -24,8 +25,8 @@ print(f"prior {len(releases)=}")
 
 # -- upload oldest release first --
 # for release in reversed(releases):
-# -- only upload oldest release --
-for release in [releases[-1]]:
+# -- to only upload newest release, use releases[0] --
+for release in [releases[0]]:
     payload = dict(
         action="published",
         release=release,
@@ -36,9 +37,7 @@ for release in [releases[-1]]:
         f"https://zenodo.org/api/hooks/receivers/github/events/?{access_token=!s}",
         json=payload,
     )
+    response.raise_for_status()
 
-    if response.status_code != 200:
-        msg = response.json()["message"]
-        raise ValueError(f"Failed to submit release to Zenodo.\n\tMessage: {msg}")
     print(f"uploaded {release['tag_name']}")
     print(response.json())
