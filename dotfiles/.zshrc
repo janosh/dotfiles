@@ -35,7 +35,7 @@ alias ssh="ssh -F ~/.ssh/config"  # https://stackoverflow.com/a/63935109
 # Source brew-installed zsh plugins.
 # shellcheck disable=SC1094,SC1091
 . /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC1094
 . /opt/homebrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh
 # shellcheck disable=SC1094,SC1091
 . /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

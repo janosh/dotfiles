@@ -2,10 +2,10 @@
 
 install() {
   # Source all install scripts.
-  source setup-steps/1-setup.sh
-  source setup-steps/2-apps.sh
-  source setup-steps/3-config.sh
-  source setup-steps/4-cleanup.sh
+  source setup/1-setup.sh
+  source setup/2-apps.sh
+  source setup/3-config.sh
+  source setup/4-cleanup.sh
 
   ask_details
   # update_system # takes too long, do manually

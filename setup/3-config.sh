@@ -194,5 +194,5 @@ configure_macos() {
   pnpm config --global set lockfile false
 
   # Now run steps requiring manual user-input in System Settings.app
-  . ./post-install-manual.sh
+  . setup/system-settings.sh
 }

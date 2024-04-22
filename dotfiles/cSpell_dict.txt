@@ -1,4 +1,5 @@
 absolufy
+acetonitrile
 actinoids
 adhoc
 afara
@@ -25,6 +26,7 @@ antisymmetry
 Anubhav
 approximator
 Aquacosm
+architecting
 argmax
 argmin
 arities
@@ -63,6 +65,8 @@ bandstructures
 barostat
 Bartel
 bashprofile
+batatia
+batzner
 Beaufsichtigungsvertrag
 Benner
 berges
@@ -87,6 +91,7 @@ boltz
 boltzmann
 boltztrap
 bootcamp
+borane
 bosonic
 botros
 Botti
@@ -111,10 +116,12 @@ canonicalized
 canonicalizing
 capsys
 captionsetup
+carburane
 Castelli
 CASTEP
 Categoricals
 cclake
+centrosymmetry
 cgcnn
 CGCNN
 chalcogen
@@ -149,6 +156,7 @@ combinatorially
 commoditize
 commoditized
 commoditizes
+Commoditizing
 commutativeness
 compactification
 compactified
@@ -189,6 +197,7 @@ dataframes
 dataset
 datasets
 Datasheet
+Debye
 decadal
 decorrelate
 decorrelated
@@ -212,6 +221,7 @@ DFPTFW
 dft’s
 diabatization
 diagonalization
+diatomics
 Dichalcogenides
 Dictable
 dielectricity
@@ -237,12 +247,16 @@ dopings
 dotenv
 dotfiles
 draggable
+drautz
 dropna
 Düsternbrooker
 EATCH
 EDIFF
 Edisonian
 eigendecomposition
+eigendisplacement
+eigendisplacements
+eigenfunctions
 Ekin
 elbo
 electrocatalysts
@@ -264,6 +278,7 @@ epsrc
 equatorward
 equivariance
 equivariant
+equivariantly
 erbe
 ergodicity
 Ernzerhof
@@ -294,13 +309,17 @@ featurizers
 featurizes
 featurizing
 femto
+fermionic
 ferrimagnetic
 ferroelectricity
 ferroelectrics
 ferromagnetically
+ffonon
 ffonons
 Figshare
 finanzen
+findability
+finetune
 Firetask
 Firetasks
 fireworker
@@ -371,12 +390,15 @@ gzipped
 hackingmaterials
 Hadamard
 hafnate
+halogenicity
 Hartree
 Hartrees
 headful
 HEAs
 heatmaps
+helsing
 Hernienbehandlungen
+heteronuclear
 heteroscedastic
 heteroscedastically
 heteroscedasticity
@@ -389,6 +411,7 @@ hexbin
 higgs
 himem
 hmc's
+Hohenberg
 homonuclear
 homoscedastic
 hoverable
@@ -411,6 +434,7 @@ hyperthreading
 IBRION
 icelake
 icsd
+idempotently
 ifcs
 iframe
 iframes
@@ -439,6 +463,7 @@ integro
 interactor
 interlayer
 intermetallics
+interphases
 interplanar
 interpretability
 interpunction
@@ -517,6 +542,7 @@ macrophysics
 magmom
 magmoms
 magnetizations
+Magnetocaloric
 magnetoelectric
 Magnetoresistance
 magpy
@@ -589,6 +615,7 @@ mpirun
 MPNN
 MPNNs
 msnbc
+msonable
 multigraphs
 multimodality
 multinomial
@@ -603,6 +630,7 @@ mypy
 nanocapillaries
 nanoconfined
 nanocrystal
+nanoparticles
 nanoporous
 nanoscale
 nanostructured
@@ -611,6 +639,7 @@ nbstripout
 ndarray
 NELMDL
 neovim
+Nequip
 NERSC
 netlify
 niobate
@@ -812,6 +841,7 @@ rlaunch
 rmse
 RNVP
 robocrystallographer
+roboticists
 rocauc
 ROCAUC
 roggenkamp
@@ -936,6 +966,7 @@ tensorboard
 tensorflow
 tensorial
 Tera
+Tersoff
 texlive
 Theano
 thermalized
@@ -979,12 +1010,14 @@ umap
 unaries
 uncategorized
 Unconverged
+underbinding
 underconfidence
 undercoordinated
 underdetermined
 underexplored
 underperform
 underpredict
+underpredicted
 underpredictions
 underpredicts
 undersampled
@@ -993,6 +1026,7 @@ undoped
 uniaxially
 unintuitive
 unitless
+Unmark
 unmount
 unnest
 unnormalized
@@ -1017,6 +1051,7 @@ Ununseptium
 Ununtrium
 VAEs
 variadic
+variationally
 VASP
 VASP's
 vaspdb
@@ -1039,6 +1074,7 @@ Vitest
 volker
 voronoi
 Voronoi
+voxelized
 waals
 walltime
 wandb

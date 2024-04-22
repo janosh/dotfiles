@@ -41,8 +41,8 @@ set show-all-if-ambiguous on
 set completion-ignore-case on
 
 # activate virtualenv
-# shellcheck disable=SC1090
 module load python/3.11 > /dev/null 2>&1
+# shellcheck disable=SC1090
 . ~/.venv/py311/bin/activate
 
 # shell prompt (PS1 = prompt string 1)

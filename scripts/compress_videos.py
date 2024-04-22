@@ -35,7 +35,7 @@ def handbrake_h265_vtb_encode(
     cmd += ["--preset", "H265 Videotoolbox"]
     cmd += ["--input", input_file, "--output", output_file, *args]
 
-    result = subprocess.run(cmd, capture_output=True)
+    result = subprocess.run(cmd, capture_output=True, check=False)
 
     if result.stderr:
         print(result.stderr.decode("utf-8"), file=sys.stderr)
@@ -53,7 +53,8 @@ def copy_original_metadata(input_file: str, output_file: str) -> None:
 
 def main(
     source_files: Sequence[str],
-    outdir: str,
+    outdir: str | None = None,
+    suffix: str | None = None,
     write_file_map: bool = False,
     on_error: Literal["raise", "print", "ignore"] = "raise",
     quality: int | None = None,
@@ -78,20 +79,30 @@ def main(
     Returns:
         int: exit code (0 if successful)
     """
-    if os.path.isfile(outdir):
-        raise ValueError(
-            f"{outdir=} must be a (possibly non-existent) directory, not a file"
-        )
     if len(source_files) == 0:
         raise ValueError("No input files received")
 
-    os.makedirs(outdir, exist_ok=True)
+    if not outdir and not suffix:
+        raise ValueError("Either outdir or suffix must be provided")
+
+    if outdir:
+        if os.path.isfile(outdir):
+            raise ValueError(
+                f"{outdir=} must be a (possibly non-existent) directory, not a file"
+            )
+        os.makedirs(outdir, exist_ok=True)
 
     in_out_map: dict[str, str] = {}
 
     for idx, file_path in enumerate(source_files, 1):
         basename = os.path.basename(file_path)
-        out_path = f"{outdir.removesuffix('/')}/{basename}"
+        if outdir:
+            out_path = f"{outdir.removesuffix('/')}/{basename}"
+        if suffix:
+            out_path = f"{os.path.splitext(file_path)[0]}{suffix}.mp4"
+        else:
+            raise ValueError("Either outdir or suffix must be provided")
+
         print(f"Compressing {idx}/{len(source_files)}: {file_path}->{out_path}")
 
         try:
@@ -105,9 +116,7 @@ def main(
                 continue
             if on_error == "ignore":
                 continue
-            raise ValueError(
-                f"Unexpected {on_error=}, should be 'raise', 'print' or 'ignore'"
-            )
+            raise ValueError(f"Unexpected {on_error=}, should be 'raise', 'print' or 'ignore'")
         in_out_map[file_path] = out_path
 
     if write_file_map:
@@ -132,10 +141,18 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("source_files", nargs="+", help="Video files to be compressed")
-    parser.add_argument(
+
+    out_group = parser.add_mutually_exclusive_group()
+    out_group.add_argument(
         *("-o", "--outdir"),
         help="Output directory where compressed files will be created. New files will "
         "have the same basename as the original file.",
+    )
+    out_group.add_argument(
+        *("-s", "--suffix"),
+        help="Suffix to append to the original filename to create the output filename. "
+        "E.g. --suffix '-compressed' gives 'input.mp4' -> 'input-compressed.mp4'.",
+        default="-compressed",
     )
     parser.add_argument(
         "--write-file-map",

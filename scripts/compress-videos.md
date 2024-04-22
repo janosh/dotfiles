@@ -5,7 +5,7 @@ Re-encode video files into H265 codec using `handbrakeCLI` (runs hardware-accele
 Requires `handbrakeCLI` and `exiftool`. `handbrakeCLI` is not on homebrew (as of 2022-07). Download from <https://handbrake.fr/downloads2.php>, mount disk image and move binary therein to a folder on `PATH`:
 
 ```sh
-sudo cp /Volumes/HandBrakeCLI-1.5.1/HandBrakeCLI /usr/local/bin
+sudo cp /Volumes/HandBrakeCLI-1.7.3/HandBrakeCLI /usr/local/bin
 ```
 
 `exiftool`, a Perl lib for reading and writing EXIF metadata, is on Homebrew:
