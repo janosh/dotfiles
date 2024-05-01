@@ -28,7 +28,6 @@ cask "appcleaner"
 cask "brave-browser"
 cask "coconutbattery"
 cask "daisydisk"
-cask "dropbox"
 cask "handbrake"
 cask "imageoptim"
 cask "maccy"
@@ -39,8 +38,9 @@ cask "slack"
 cask "studio-3t"
 cask "telegram"
 cask "visual-studio-code"
-cask "zotero"
+cask "warp"
 cask "zoom"
+cask "zotero"
 
 # Mac App Store
 mas "1Password", id: 443987910

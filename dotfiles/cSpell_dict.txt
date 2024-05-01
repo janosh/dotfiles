@@ -462,6 +462,7 @@ integrand
 integro
 interactor
 interlayer
+Intermetallic
 intermetallics
 interphases
 interplanar
@@ -687,6 +688,7 @@ Ovito
 ozonides
 pagebreak
 palettable
+Papaconstantopoulos
 parallelizable
 parallelization
 parametrizations
@@ -787,6 +789,7 @@ qlaunch
 QMOF
 quadrupolar
 quantile
+quasiharmonic
 qubit
 quinternaries
 quinternary
@@ -974,6 +977,7 @@ thermoelectic
 thermoelectrics
 thermopower
 Tian
+tieline
 tikz
 timo
 titanates
@@ -1071,6 +1075,7 @@ virtualenv
 vite
 vitest
 Vitest
+Voigt
 volker
 voronoi
 Voronoi
