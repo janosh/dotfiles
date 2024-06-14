@@ -6,7 +6,7 @@ configure_zsh() {
   ln -f dotfiles/.zshrc ~
 
   # Install Oh My Zsh.
-  sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/main.sh)"
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 }
 
 configure_git() {

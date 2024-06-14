@@ -9,7 +9,7 @@ source ~/.oh-my-zsh/oh-my-zsh.sh
 
 # activate default virtualenv
 # shellcheck disable=SC1090
-source ~/.venv/py311/bin/activate
+source ~/.venv/py312/bin/activate
 
 alias ga='git add'
 alias gc='git commit'
@@ -28,9 +28,12 @@ alias gco='git checkout'
 alias gm='git merge'
 alias grb='git rebase'
 alias glog='git log --oneline'
+alias grcl='git branch -D $(git branch | grep "pr/") && git remote | grep -v origin | xargs -n 1 git remote remove && git fetch --prune'
 
 alias path='echo "${PATH//:/\n}"'
 alias ssh="ssh -F ~/.ssh/config"  # https://stackoverflow.com/a/63935109
+alias pt='pytest'
+alias pip='uv pip'
 
 # Source brew-installed zsh plugins.
 # shellcheck disable=SC1094,SC1091
