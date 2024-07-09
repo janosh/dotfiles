@@ -33,3 +33,18 @@ Recovery: Following this [superuser answer](https://superuser.com/a/1723403), I 
 ```sh
 find . -name "*.py" -exec grep accuracy_dict {} +
 ```
+
+## `brew install/upgrade` breaks `uv` virtual env
+
+reason is that a `uv` venv only stores a symlink to the Python binary which gets removed if a brew upgrade automatically installs a more recent Python version (e.g. 12.3->12.4 on `brew install mongodb-community` for me on 2024-07-09). fix was to update the symlink to a less brittle path
+
+```sh
+pytest # 1st symptom that something in the venv broke
+>>> zsh: /Users/janosh/.venv/py312/bin/pytest: bad interpreter: /Users/janosh/.venv/py312/bin/python
+readlink /Users/janosh/.venv/py312/bin/python # figure out why Python binary is missing
+>>> /opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/3.12/bin/python3.12
+ln -f $(which python3) /Users/janosh/.venv/py312/bin/python # update the symlink to fix venv
+```
+
+the last command brought the venv back to life and used `/opt/homebrew/bin/python3` instead of `/opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/3.12/bin/python3.12` which should not break again in future updates.
+perhaps a better solution altogether would be to tell `uv` to copy the Python binary instead of linking it. `uv --link-mode=copy` appears to apply only to packages though.

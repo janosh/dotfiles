@@ -153,6 +153,7 @@ codopant
 coeff
 coldfusion
 collinearity
+colorscales
 columnwise
 combinatorially
 commoditize
@@ -417,6 +418,7 @@ Hohenberg
 homonuclear
 homoscedastic
 hoverable
+hovertemplate
 Hrushikesh
 hstack
 htmlify
@@ -726,6 +728,7 @@ phonopy
 photovoltaics
 physisorption
 Pickard
+picklability
 pico
 piezoelectrics
 pinterest
@@ -751,6 +754,7 @@ POTCAR
 POTCARs
 Pourbaix
 powerup
+powerups
 prebundle
 prec
 preds
@@ -768,6 +772,7 @@ prismjs
 promolecular
 Promotionsförderung
 Protos
+protostructures
 pseudopotential
 pseudopotentials
 pycache
