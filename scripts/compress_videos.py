@@ -94,7 +94,7 @@ def main(
 
     in_out_map: dict[str, str] = {}
 
-    for idx, file_path in enumerate(source_files, 1):
+    for idx, file_path in enumerate(source_files, start=1):
         basename = os.path.basename(file_path)
         if outdir:
             out_path = f"{outdir.removesuffix('/')}/{basename}"

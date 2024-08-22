@@ -51,7 +51,7 @@ def main(
     if ci_status == "success":
         search_prs_cmd += " --checks=success"
     pr_list = (
-        subprocess.run(search_prs_cmd.split(), capture_output=True)
+        subprocess.run(search_prs_cmd.split(), capture_output=True, check=False)
         .stdout.decode("utf-8")
         .split("\n")
     )
@@ -60,7 +60,7 @@ def main(
     if len(pr_list) == 0:
         print("No PRs found")
 
-    for idx, pr_header in enumerate(pr_list, 1):
+    for idx, pr_header in enumerate(pr_list, start=1):
         try:
             repo_handle, pr_number, *_ = pr_header.split("\t")
             counter = f"{idx}/{len(pr_list)}"

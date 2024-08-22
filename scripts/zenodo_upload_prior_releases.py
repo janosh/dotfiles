@@ -10,7 +10,7 @@ repo = "materialsproject/atomate2"  # 2024-02-19
 # token appears to be the same for every repo and was copied from the end of the
 # payload url in the Zenodo webhook settings page:
 # https://github.com/janosh/pymatviz/settings/hooks/424898772
-access_token = "**************"
+access_token = "AGG2VDNKpW7LxLTgbMMoaphlJ1WKZQEFYMGxZcuLKh8ypj6opfrwSQTR6FJ1"  # from atomate2
 
 headers = {"Accept": "application/vnd.github.v3+json"}
 
