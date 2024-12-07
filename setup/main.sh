@@ -12,10 +12,10 @@ install() {
 
   brew_install
 
-  configure_macos
   configure_zsh
   configure_git
   configure_ssh
+  configure_macos
 
   brew cleanup
   cleanup_error_log

@@ -328,6 +328,7 @@ Figshare
 finanzen
 findability
 finetune
+finetuning
 Firetask
 Firetasks
 fireworker
@@ -512,6 +513,7 @@ jürgen
 Kaplan
 karpathy
 katex
+Kavanagh
 keras
 kernelized
 keydown
@@ -785,7 +787,9 @@ prismjs
 promolecular
 Promotionsförderung
 Protos
+protostructure
 protostructures
+pseudization
 pseudopotential
 pseudopotentials
 pycache
@@ -1071,6 +1075,7 @@ unshift
 unsortable
 unsqueeze
 unsubmittable
+unsymmetrized
 unsynchronized
 unsynthesizable
 unsynthesized

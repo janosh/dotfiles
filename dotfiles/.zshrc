@@ -24,16 +24,20 @@ alias grv='git remote -v'
 alias gp='git push'
 alias gb='git branch'
 alias gsw='git switch'
+alias gcp='git cherry-pick'
 alias gco='git checkout'
 alias gm='git merge'
 alias grb='git rebase'
 alias glog='git log --oneline'
-alias grcl='git branch -D $(git branch | grep "pr/") && git remote | grep -v origin | xargs -n 1 git remote remove && git fetch --prune'
+# remove all branches starting with 'pr/' and all remotes except origin
+alias grcl='git branch | grep -q "pr/" && git branch -D $(git branch | grep "pr/") || echo "No PR branches to delete" && \
+git remote | grep -v origin | grep -q . && git remote | grep -v origin | xargs -n 1 git remote remove || echo "No remotes to remove" && git fetch --prune'
 
 alias path='echo "${PATH//:/\n}"'
 alias ssh="ssh -F ~/.ssh/config"  # https://stackoverflow.com/a/63935109
 alias pt='pytest'
 alias pip='uv pip'
+alias code='cursor'
 
 # Source brew-installed zsh plugins.
 # shellcheck disable=SC1094,SC1091

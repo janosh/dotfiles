@@ -6,5 +6,6 @@ cleanup_error_log() {
 
 final_message() {
   echo "All automated scripts have finished. 'stderr' has been logged to '${ERROR_LOG}'."
-  echo "Remaining manual step: Run './system-settings.sh'."
+  # system-settings.sh no longer works, just opens the default System Settings pane every time
+  # echo "Remaining manual step: Run './setup/system-settings.sh'."
 }

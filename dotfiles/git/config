@@ -14,7 +14,7 @@
 
 [core]
   # Use VSCode as git editor (for interactive rebase sessions, tag annotation, ...).
-	editor = code --wait
+	editor = cursor --wait
 	# set path to global .gitattributes file (has no default)
 	attributesfile = ~/.config/git/attributes
 
