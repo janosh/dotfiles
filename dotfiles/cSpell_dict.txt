@@ -1,11 +1,12 @@
+Abhijeet
 absolufy
 acetonitrile
 actinoids
+Adeesh
 adhoc
 afara
 affiliateship
 aflow
-AIMD
 AIRSS
 airtable
 aleatoric
@@ -16,12 +17,15 @@ Alignn
 Aliovalent
 allowfullscreen
 altenkirch
+altermagnets
+amorph
 AMSET
 Ångstroms
 anharmonic
 anharmonicity
 anonymized
 antibonding
+antipattern
 antisite
 antisymmetry
 Anubhav
@@ -36,6 +40,7 @@ artup
 arxiv
 atomate
 atomistically
+Atsushi
 atto
 authsource
 autocorrelation
@@ -67,6 +72,7 @@ barostat
 Bartel
 bashprofile
 batatia
+batchable
 batzner
 Beaufsichtigungsvertrag
 Benner
@@ -104,6 +110,7 @@ boxicons
 branin
 Bravais
 Bronstead
+browsable
 Broyden
 BSON
 bucher
@@ -144,6 +151,7 @@ CIFAR
 circumferentially
 civilizational
 cleveref
+clickability
 climeworks
 CLIs
 Cloudinary
@@ -157,6 +165,8 @@ coercivity
 coincidents
 coldfusion
 collinearity
+colorbar
+colorscale
 colorscales
 columnwise
 combinatorially
@@ -171,6 +181,7 @@ complexifying
 componentize
 composability
 compositionally
+concerningly
 conda
 conformal
 conformant
@@ -189,6 +200,7 @@ coulombic
 covariate
 Covid
 crystallinity
+crystallographically
 crystaltoolkit
 Csanyi
 Cubuk
@@ -215,6 +227,7 @@ Deduplicated
 delithiated
 delocalization
 delocalized
+denoising
 denormed
 deprotonate
 deprotonates
@@ -258,7 +271,7 @@ draggable
 drautz
 dropna
 Düsternbrooker
-EATCH
+dvar
 EDIFF
 Edisonian
 eigendecomposition
@@ -267,6 +280,7 @@ eigendisplacements
 eigenfunctions
 Ekin
 elbo
+Electride
 electrocatalysts
 electrocatalytic
 electronegativities
@@ -275,6 +289,7 @@ electrosorption
 Elijosius
 Elpasolites
 Elsevier
+Embrittlement
 encodability
 encodable
 ENCUT
@@ -284,6 +299,8 @@ Enzerhof
 EPFL
 epsrc
 equatorward
+Equiformer
+equimolar
 equivariance
 equivariant
 equivariantly
@@ -302,11 +319,14 @@ experimentalists
 explainability
 explorability
 exponentiated
+expt
 extrapolability
 extrapolatable
 extremize
 extremizing
 Faber
+fairchem
+Falletta
 favicon
 featurization
 featurize
@@ -348,6 +368,7 @@ Frenkel
 freqs
 frequentist
 friederike
+Frobenius
 frontmatter
 frozendict
 fullname
@@ -360,6 +381,7 @@ fworker
 Gabor
 gallate
 Galtür
+Gangan
 Ganose
 GANs
 gantt
@@ -402,6 +424,7 @@ hafnate
 halogenicity
 Hartree
 Hartrees
+hashability
 headful
 HEAs
 heatmaps
@@ -522,6 +545,7 @@ Kingsbury
 Kitaev
 Kleinicke
 kohn
+Kolluru
 Kosiorek
 KPOINT
 kpoints
@@ -542,15 +566,18 @@ LBNL
 leaderboard
 leaderboards
 leibler
+lennard
 lightskyblue
 linearities
 linebreak
 linestyle
 linewidth
+liquidus
 lithiated
 liveshare
 LMAXMIX
 Lobsterpy
+Loconte
 LORBIT
 Louizos
 LSTM
@@ -589,6 +616,7 @@ matplotlib
 Matscholar
 Matsci
 matsubara
+Mattergen
 Mauguin
 mcmc
 mdsvex
@@ -609,6 +637,7 @@ minibatch
 miniconda
 minimizations
 minkowski
+misaligns
 miscalibration
 misspecification
 mkdir
@@ -628,6 +657,7 @@ monoclinic
 monty
 MOSFET
 mousedown
+moyopy
 mphil
 mpiexec
 mpirun
@@ -650,6 +680,7 @@ mypy
 nanocapillaries
 nanoconfined
 nanocrystal
+nanocrystalline
 nanoparticles
 nanoporous
 nanoscale
@@ -675,6 +706,7 @@ octicons
 octocat
 oligomers
 oligotrophic
+omat
 openbabel
 Openbabel
 openmp
@@ -700,6 +732,7 @@ overpredict
 overpredicted
 overpredicting
 overpredictions
+overrepresentation
 overscroll
 overstabilized
 overstructured
@@ -717,6 +750,7 @@ passivation
 pastur
 Pastur
 Pawley
+pbar
 pearson
 Peichen
 perceptron
@@ -837,16 +871,15 @@ removeprefix
 removesuffix
 renderable
 renderables
+renormalizability
 renormalization
 renormalize
 renormalized
 renormalizes
-reparametrization
 reparametrizing
 repo
 repo's
 repolarization
-repondents
 repos
 Repurposable
 repurpose
@@ -868,6 +901,7 @@ Riebesell's
 riemannian
 Rietveld
 rlaunch
+RMSD
 rmse
 RNVP
 robocrystallographer
@@ -909,6 +943,7 @@ Signup
 SIGTERM
 silico
 Silvana
+Simoncelli
 sklearn
 skopt
 skylake
@@ -933,7 +968,9 @@ stackblitz
 StackBlitz
 stateful
 staticman
+Stefano
 stepsize
+Stillinger
 stochastically
 stochasticity
 stoichiometrically
@@ -954,6 +991,7 @@ subpackages
 subpreambles
 subprojects
 subsampled
+subsampling
 subschema
 subselection
 substituents
@@ -984,6 +1022,7 @@ Symlink
 symlinked
 symlinking
 symlinks
+symmetrizations
 symplectic
 symprec
 synthesizability
@@ -1029,10 +1068,12 @@ transitionary
 translationally
 transpiled
 transpiling
+treemap
 triaged
 triaging
 trialanine
 trimodal
+trippable
 Trotthle
 tsne
 tutorific
@@ -1043,6 +1084,7 @@ Ulrich
 ultrasoft
 umap
 unaries
+Uncapitalize
 uncategorized
 Unconverged
 underbinding
@@ -1050,6 +1092,7 @@ underconfidence
 undercoordinated
 underdetermined
 underexplored
+underfit
 underperform
 underpredict
 underpredicted
@@ -1062,6 +1105,7 @@ unhashable
 uniaxially
 unintuitive
 unitless
+Universität
 Unmark
 unmount
 unnest
@@ -1087,6 +1131,7 @@ Ununquadium
 Ununseptium
 Ununtrium
 upstreamed
+vacf
 VAEs
 variadic
 variationally
@@ -1101,6 +1146,7 @@ vectorizing
 venv
 Vercel
 verlet
+Vesin
 videotoolbox
 virial
 virials
@@ -1136,10 +1182,13 @@ winton
 wrenformer
 Wrenformer
 Wulff
+wurtzite
 wyckoff
 Wyckoff
+wyckoffs
 xanchor
 xerr
+Xiang
 xlabel
 yamllint
 ye
@@ -1155,9 +1204,12 @@ Zenodo
 zepto
 Zetta
 Zhong
+zincblende
 Zintl
 zirconate
+zoomable
 zopen
 zopfli
 zopflipng
 zorder
+zotero

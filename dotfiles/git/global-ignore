@@ -4,9 +4,13 @@
 # OS files
 .DS_Store
 
-# VS Code
-.vscode
-
 # temporary sandbox file
 t.py
 tmp/
+
+# code editor config
+.vscode
+.cursor
+
+# secrets
+.env

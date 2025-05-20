@@ -1,3 +1,5 @@
+# Add deno completions to search path
+if [[ ":$FPATH:" != *":/Users/janosh/completions:"* ]]; then export FPATH="/Users/janosh/completions:$FPATH"; fi
 # Set zsh theme to load.
 # https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 export ZSH_THEME="robbyrussell"
@@ -9,7 +11,7 @@ source ~/.oh-my-zsh/oh-my-zsh.sh
 
 # activate default virtualenv
 # shellcheck disable=SC1090
-source ~/.venv/py312/bin/activate
+source ~/.venv/py313/bin/activate
 
 alias ga='git add'
 alias gc='git commit'
@@ -49,3 +51,9 @@ alias code='cursor'
 
 # https://github.com/zsh-users/zsh-autosuggestions/issues/351
 ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(bracketed-paste)
+
+. "/Users/janosh/.deno/env"
+# Initialize zsh completions (added by deno install script)
+autoload -Uz compinit
+compinit
+export PATH="$HOME/.cargo/bin:$PATH"
