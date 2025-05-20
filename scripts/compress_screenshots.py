@@ -13,7 +13,7 @@ from PIL import Image
 # watches '~/Desktop' (pass inputs as arguments!) and runs this shell script:
 # ```sh
 # source ~/.zshrc # can be omitted if the system python3 is 3.9+
-# python3 ~/dev/macos-setup/scripts/compress-screenshots.py "$@"
+# python3 ~/dev/dotfiles/scripts/compress-screenshots.py "$@"
 # ```
 
 # Requires: brew install pngquant zopfli imagemagick && pip install Pillow
@@ -42,9 +42,9 @@ def compress_png(file: str) -> None:
         capture_output=True,
     )
 
-    run([*f"{mogrify} -resize '2000>'".split(), file], capture_output=True)
+    run([*f"{mogrify} -resize '2000>'".split(), file], capture_output=True, check=False)
 
-    run([*f"{zopflipng} -y".split(), file, file], capture_output=True)
+    run([*f"{zopflipng} -y".split(), file, file], capture_output=True, check=False)
 
 
 def compress_jpg(file: str) -> None:
@@ -85,6 +85,4 @@ except Exception:
     with open(f"{HOME}/Downloads/compress-screenshot.log", "a") as logs:
         now = datetime.now()
         PATH = os.environ["PATH"]
-        logs.write(
-            f"{now:%H:%M:%S}\n{sys.executable=}\n{PATH=}\n{traceback.format_exc()}\n"
-        )
+        logs.write(f"{now:%H:%M:%S}\n{sys.executable=}\n{PATH=}\n{traceback.format_exc()}\n")

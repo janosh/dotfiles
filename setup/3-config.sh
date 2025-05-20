@@ -66,7 +66,7 @@ configure_macos() {
   defaults write com.apple.systempreferences NSQuitAlwaysKeepsWindows -bool false
 
   echo '- Disable the prompt "Are you sure you want to open this application?".'
-  defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSQuaratine -bool false
+  defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSQuarantine -bool false
 
   echo '- Disable the Gatekeeper prompt "{appname} cannot be opened because it is from an unidentified developer".'
   sudo spctl --master-disable

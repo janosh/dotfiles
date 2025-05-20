@@ -16,7 +16,7 @@ DIRNAME = os.path.dirname(__file__)
 
 """
 Example invocation:
-python ~/dev/macos-setup/scripts/compress_videos.py src-dir/*.mp4 --outdir outdir
+python ~/dev/dotfiles/scripts/compress_videos.py src-dir/*.mp4 --outdir outdir
 """
 
 
