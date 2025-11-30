@@ -26,6 +26,9 @@ To customize OS settings and complete the setup, run:
 zsh -c "$(curl -sSL 'https://raw.github.com/janosh/setup/main/system-settings.sh')"
 ```
 
+**New Mac Setup Note:**
+When setting up new Macs with iCloud "Desktop & Documents" sync enabled, check [notes-to-self.md](notes-to-self.md) for steps to handle duplicate `Documents` folders.
+
 ## Organization
 
 The important files in this repo are:
