@@ -33,16 +33,11 @@ alias gco='git checkout'
 alias gm='git merge'
 alias grb='git rebase'
 alias glog='git log --oneline'
-# remove all branches starting with 'pr/' and all remotes except origin
-# shellcheck disable=SC2317
-grcl() {
-  git branch | grep -q "pr/" && git branch -D "$(git branch | grep "pr/")" || echo "No PR branches to delete"
-  git fetch --prune
-  git branch -vv | grep ": gone]" | awk '{print $1}' | while read -r branch; do
-    [ -n "$branch" ] && git branch -D "$branch" 2>/dev/null
-  done
-  git remote | grep -v origin | grep -q . && git remote | grep -v origin | xargs -n 1 git remote remove || echo "No remotes to remove"
-}
+# remove pr/ branches, branches with deleted remote tracking, and non-origin remotes
+alias grcl='git fetch --prune && \
+gone=$(git branch -vv | grep ": gone]" | awk "{print \$1}") && [ -n "$gone" ] && git branch -D $gone || echo "No gone branches to delete"; \
+git branch | grep -q "pr/" && git branch -D $(git branch | grep "pr/") || echo "No PR branches to delete"; \
+git remote | grep -v origin | grep -q . && git remote | grep -v origin | xargs -n 1 git remote remove || echo "No remotes to remove"'
 
 alias dt='deno task'
 alias path='echo "${PATH//:/\n}"'

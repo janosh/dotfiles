@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# NERSC bash config
-
 alias ga='git add'
 alias gc='git commit'
 alias gca='git commit --amend'
@@ -40,11 +38,6 @@ shopt -s autocd
 set show-all-if-ambiguous on
 set completion-ignore-case on
 
-# activate virtualenv
-module load python/3.11 > /dev/null 2>&1
-# shellcheck disable=SC1090
-. ~/.venv/py311/bin/activate
-
 # shell prompt (PS1 = prompt string 1)
 parse_git_branch() {
     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/'
@@ -62,16 +55,6 @@ export LANG=C  # https://stackoverflow.com/a/2510548
 shopt -s histappend
 PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 
-# VASP config see https://gist.github.com/janosh/a484f3842b600b60cd575440e99455c0#benchmarking
-export OMP_NUM_THREADS="1"
-
-# atomate2 config
-export ATOMATE2_CONFIG_FILE=/global/homes/j/janosh/matpes/config/atomate2.yaml
-export JOBFLOW_CONFIG_FILE=/global/homes/j/janosh/matpes/config/jobflow.yaml
-export FW_CONFIG_FILE=/global/homes/j/janosh/matpes/fireworks_config/gpu/FW_config.yaml
-# add bader executable to path
-export PATH=$PATH:/global/homes/j/janosh/matpes
-
 # https://superuser.com/a/686293 (see link in 2nd comment)
 if [[ $- == *i* ]]; then  # check if running in interactive shell that supports line editing
 
@@ -86,9 +69,3 @@ if [[ $- == *i* ]]; then  # check if running in interactive shell that supports 
     bind '"\e\e[D": backward-word'
     bind '"\e\e[C": forward-word'
 fi
-
-qlaunch_rf() {
-    pushd /global/cfs/projectdirs/matgen/janosh/ > /dev/null || exit
-    qlaunch rapidfire "$@"
-    popd > /dev/null || exit
-}

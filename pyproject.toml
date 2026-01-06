@@ -60,3 +60,8 @@ ignore = [
 ]
 pydocstyle.convention = "google"
 isort.split-on-trailing-comma = false
+
+[tool.typos.default.extend-words]
+atomate = "atomate"
+AIMD = "AIMD"
+ATOMATE = "ATOMATE"
