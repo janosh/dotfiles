@@ -4,9 +4,10 @@
 # OS files
 .DS_Store
 
-# temporary sandbox file
+# temporary files
 t.py
 tmp/
+pnpm-workspace.yaml
 
 # code editor config
 .vscode
@@ -14,3 +15,7 @@ tmp/
 
 # secrets
 .env
+
+# Cursor AI agent instructions (symlinked into every repo)
+AGENTS.md
+!agent-commands/AGENTS.md

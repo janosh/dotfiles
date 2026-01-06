@@ -1,12 +1,15 @@
 Abhijeet
 absolufy
+absorbates
 acetonitrile
 actinoids
+activedescendant
 Adeesh
 adhoc
 afara
 affiliateship
 aflow
+AIMD
 AIRSS
 airtable
 aleatoric
@@ -31,6 +34,7 @@ antisite
 antisymmetry
 Anubhav
 approximator
+approximators
 Aquacosm
 architecting
 argmax
@@ -78,6 +82,7 @@ batatia
 batchable
 batzner
 Beaufsichtigungsvertrag
+Behler
 Benner
 berges
 betancourt
@@ -123,6 +128,7 @@ Caglioti
 Cahill's
 calabi
 callability
+CALPHAD
 canonicalization
 Canonicalization
 canonicalize
@@ -193,7 +199,9 @@ conda
 conformal
 conformant
 confusables
+Congruential
 connectivities
+CONTCAR
 contentful
 convolutional
 Coolpix
@@ -214,6 +222,7 @@ crystaltoolkit
 Csanyi
 Cubuk
 cuda
+cuequivariance
 cuprate
 cuprates
 customizability
@@ -293,6 +302,7 @@ elbo
 Electride
 electrocatalysts
 electrocatalytic
+electroneg
 electronegativities
 electronegativity
 electrosorption
@@ -333,6 +343,7 @@ explorability
 Exponentiate
 exponentiated
 expt
+extensivity
 extrapolability
 extrapolatable
 extremize
@@ -367,6 +378,7 @@ Firetasks
 fireworker
 flexbox
 flörchinger
+fmax
 fock
 focusable
 fontsize
@@ -405,6 +417,7 @@ gaussians
 gdpr
 geht's
 gelman
+generalisation
 generalizability
 GEOMAR
 Geosciences
@@ -437,9 +450,11 @@ hackingmaterials
 Hadamard
 hafnate
 halogenicity
+Hamiltonians
 Hartree
 Hartrees
 hashability
+HDNNPs
 headful
 HEAs
 heatmaps
@@ -536,6 +551,7 @@ isolines
 isopointal
 isort
 isostructural
+isotropically
 isovalent
 itertuples
 jäckel
@@ -577,6 +593,7 @@ LAMMPS
 Langevin
 lanthanoid
 lanthanoids
+Laravel
 latexify
 lbfgs
 LBNL
@@ -653,6 +670,7 @@ mesoporous
 metallofullerene
 metallofullerenes
 metalloids
+Michaelides
 microcanonical
 microphysical
 milli
@@ -690,7 +708,9 @@ MPNNs
 msnbc
 msonable
 Mulliken
+Multifidelity
 multigraphs
+multimodal
 multimodality
 multinomial
 multiphysics
@@ -718,6 +738,7 @@ neovim
 Nequip
 NERSC
 netlify
+networkidle
 niobate
 nolas
 nonlinearities
@@ -734,7 +755,9 @@ oligotrophic
 omat
 openbabel
 Openbabel
+openequivariance
 openmp
+operationalizes
 ÖPNV
 optim
 OPTIMADE
@@ -759,12 +782,15 @@ overpredicted
 overpredicting
 overpredictions
 overrepresentation
+overscan
 overscroll
 oversmoothing
+oversquashing
 overstabilized
 overstructured
 Ovito
 ozonides
+Paesani
 pagebreak
 palettable
 Papaconstantopoulos
@@ -773,6 +799,7 @@ parallelization
 parameterizations
 parametrizations
 Parametrizing
+Parinello
 Parrinello
 passivation
 pastur
@@ -785,6 +812,9 @@ perceptron
 percolative
 Perdew
 periodicities
+peritectic
+peritectics
+peritectoid
 Perlmutter
 permittivities
 permutationally
@@ -855,6 +885,7 @@ pseudization
 pseudopotential
 pseudopotentials
 pycache
+pycalphad
 Pycharm
 pycodestyle
 Pydantic
@@ -965,6 +996,7 @@ scrollable
 scrollbar
 seaborn
 Seff
+SEGNN
 Seitz
 selenides
 semimetals
@@ -989,6 +1021,7 @@ socio
 socketio
 Socony
 softmax
+solvus
 SOTA
 spacegroup
 spacegroups
@@ -998,6 +1031,7 @@ spinors
 spintronics
 springel
 srivastava
+SRME
 srun
 stackblitz
 StackBlitz
@@ -1021,6 +1055,7 @@ subcategorize
 subclassing
 subfig
 subfigure
+subfigures
 sublattice
 Submitit
 subnavs
@@ -1042,6 +1077,7 @@ supercell
 supercells
 supercomputing
 Supercon
+Superforms
 superhard
 superionic
 superlattices
@@ -1061,6 +1097,7 @@ Symlink
 symlinked
 symlinking
 symlinks
+symmetrised
 symmetrizations
 symplectic
 symprec
@@ -1069,6 +1106,7 @@ synthesizable
 sythesizable
 szymanski
 TAATA
+Takachecko
 Taliarte
 tanimoto
 TECs
@@ -1106,6 +1144,8 @@ tracelessness
 trafo
 trafos
 trainability
+traj
+transactinides
 transdisciplinary
 transitionary
 translationally
@@ -1190,6 +1230,7 @@ vecs
 Vecteezy
 vectorize
 vectorizing
+Venkat
 venv
 Vercel
 verlet
@@ -1215,6 +1256,7 @@ WAVECAR
 wavefunction
 wavefunctions
 Wavenet
+wavevector
 webp
 Wegener
 Wehenkel
