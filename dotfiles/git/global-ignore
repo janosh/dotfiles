@@ -14,3 +14,7 @@ tmp/
 
 # secrets
 .env
+
+# Cursor AI agent instructions (symlinked into every repo)
+AGENTS.md
+!agent-commands/AGENTS.md
