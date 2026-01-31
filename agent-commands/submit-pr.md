@@ -17,6 +17,8 @@ Automate the process of ensuring a clean branch, committing changes, and creatin
     - Use `gh pr create`.
     - Generate a descriptive title and body based on the commit messages.
     - **No** `feat:`/`fix:` prefixes in the title.
+5. **Labels:** Check available labels (`gh label list`) and apply the most fitting ones to the PR.
+    - Same when opening issues with `gh issue create`.
 
 ## Tools
 
