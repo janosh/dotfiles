@@ -7,7 +7,8 @@ Automate the process of ensuring a clean branch, committing changes, and creatin
 ## Steps
 
 1. **Branch Check:** Ensure you are on a feature branch (not `main`).
-    - If on `main`, ask to create a new branch with a param-cased short descriptive name.
+    - If on `main`, auto-generate and create a descriptive param-case branch name without asking for confirmation.
+    - Branch names should be at most 5-6 words and ideally shorter when possible without sacrificing clarity.
 2. **Review Changes:** Review all uncommitted changes.
 3. **Commit:**
     - Group related changes into semantic commits.
@@ -17,6 +18,8 @@ Automate the process of ensuring a clean branch, committing changes, and creatin
     - Use `gh pr create`.
     - Generate a descriptive title and body based on the commit messages.
     - **No** `feat:`/`fix:` prefixes in the title.
+5. **Labels:** Check available labels (`gh label list`) and apply the most fitting ones to the PR.
+    - Same when opening issues with `gh issue create`.
 
 ## Tools
 
