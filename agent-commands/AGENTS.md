@@ -20,7 +20,9 @@ These rules apply to all projects in `~/dev/`.
 - Use `ty` for type checking, never `mypy`, `pyright`, or others
 - **NEVER use `__all__`!** We discourage star imports—they break static analysis of types and imports
 - No bare except: always catch specific exceptions
-- Always prefer `plotly` over `matplotlib` for plotting. use pymatviz widgets (`StructureWidget`, `ConvexHullWidget`, `TrajectoryWidget`, `PhaseDiagramWidget`, etc.) for interactive visuals where applicable.
+- Use `time.perf_counter()` instead of `time.time()` for wall-time measurements
+- Always prefer `plotly` over `matplotlib` for plotting.
+- **In `notebooks/`, prefer pymatviz widgets instead: `BarPlotWidget`, `HeatmapMatrixWidget`, `HistogramWidget`, `ScatterPlotWidget`, `StructureWidget`, `ConvexHullWidget`, `TrajectoryWidget`, `PhaseDiagramWidget`, etc. over `plotly` or `matplotlib` figures. Check existing demos/notebooks for usage and API patterns before writing new visualization code.
 - avoid `typing.cast` unless absolutely necessary
 
 ## TypeScript/Svelte Projects (*.ts,*.tsx, *.svelte)
@@ -61,7 +63,9 @@ These rules apply to all projects in `~/dev/`.
 - If `gh` commands fail with auth errors (e.g. "Unauthorized"), try switching accounts: `gh auth switch`
 - Don't commit without being asked
 - Never add `Co-authored-by: Cursor` or similar to commit messages
-- Amending unpushed commits is fine; amending pushed commits requires force push, so ask first before `git push --force` or `--force-with-lease`
+- Treat force push as a last resort, not a routine cleanup tool.
+- Prefer a new follow-up commit over amending/rebasing once work is pushed.
+- Never `git push --force` or `--force-with-lease` unless explicitly asked by the user for that specific branch and situation.
 
 ## CRITICAL: Protect Uncommitted Work
 
@@ -77,6 +81,8 @@ Multiple agents may be working on the same repo or files. Resetting/discarding c
 
 - **No single-letter or concatenated variable names!** Use proper snake_case: `idx` not `i`, `n_images` not `nimages`, `f_max` not `fmax`, `col_idx` not `colidx`
 - Prefer early returns over deep nesting
+- **No fallbacks or backward-compatible interfaces** unless explicitly told. Throw an error or fail early—silent catches, default shims, and compatibility wrappers mask bugs.
+- Remove dead code aggressively. Prefer a clean codebase over deprecation.
 - Log useful context with errors—include relevant variable values
 - Test names should describe behavior, not implementation
 - Prefer composition over inheritance
@@ -87,5 +93,7 @@ Multiple agents may be working on the same repo or files. Resetting/discarding c
 - Keep existing comments when editing files.
 - Use single-line section headers: `// === Section Name ===` not verbose multi-line box comments
 - Never create or commit lock files (no `uv.lock`, `pnpm-lock.yaml`, `package-lock.json`, `deno.lock`, etc.)
+- **Never commit handover docs, temp data files, or proof-of-concept artifacts** (no `HANDOVER.md`, sample `.jsonl`/`.lmdb` files, exploratory notebooks, etc.). These clutter the monorepo — keep them local or in `tmp/`.
 - Use `prek` (Rust port), never `pre-commit` (Python)
 - Run commands yourself to collect logs/errors—don't ask the user. Run tests (`pytest`, `vitest`, `playwright`), start dev servers, visit pages in browser, take actions to reproduce issues.
+- **Never create GitHub issues or PRs without asking first.** Always ask before running `gh issue create` or `gh pr create`. When asked to "draft" an issue or PR, output the title and body as markdown for the user to review — do NOT run the `gh` command until explicitly told to post it.
