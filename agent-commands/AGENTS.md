@@ -20,6 +20,7 @@ These rules apply to all projects in `~/dev/`.
 - Use `ty` for type checking, never `mypy`, `pyright`, or others
 - **NEVER use `__all__`!** We discourage star imports—they break static analysis of types and imports
 - No bare except: always catch specific exceptions
+- Use `time.perf_counter()` instead of `time.time()` for wall-time measurements
 - Always prefer `plotly` over `matplotlib` for plotting. use pymatviz widgets (`StructureWidget`, `ConvexHullWidget`, `TrajectoryWidget`, `PhaseDiagramWidget`, etc.) for interactive visuals where applicable.
 - avoid `typing.cast` unless absolutely necessary
 
