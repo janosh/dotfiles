@@ -11,7 +11,7 @@ pnpm-workspace.yaml
 
 # code editor config
 .vscode
-.cursor
+.cursor/*.log
 
 # secrets
 .env
