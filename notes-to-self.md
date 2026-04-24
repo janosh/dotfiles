@@ -72,10 +72,8 @@ ln -s ~/dev/dotfiles/agent-commands ~/.cursor/commands
 
 Agent commands (e.g. `/commit`, `/continue-session`) become available in all projects.
 
-For `AGENTS.md` rules to apply, they must be symlinked into each repo root (a common parent dir is not enough):
+`AGENTS.md` rules are inherited up the directory tree, so a single symlink at the common parent covers all repos:
 
 ```sh
-ln -s ~/dev/dotfiles/agent-commands/AGENTS.md ~/dev/repo1/AGENTS.md
-ln -s ~/dev/dotfiles/agent-commands/AGENTS.md ~/dev/repo2/AGENTS.md
-# repeat for each repo...
+ln -s ~/dev/dotfiles/agent-commands/AGENTS.md ~/dev/AGENTS.md
 ```

@@ -29,10 +29,12 @@ anharmonic
 anharmonicity
 anonymized
 antibonding
+antifluorite
 antipattern
 antisite
 antisymmetry
 Anubhav
+anywidget
 approximator
 approximators
 Aquacosm
@@ -43,6 +45,7 @@ arities
 arity
 artup
 arxiv
+ATAT
 atomate
 atomistically
 atomless
@@ -50,6 +53,7 @@ Atsushi
 atto
 authsource
 autobatching
+autoconvert
 autocorrelation
 autodiff
 autoencoder
@@ -89,6 +93,7 @@ betancourt
 betancourt's
 bfgs
 bibtex
+Bigi
 bijections
 bijective
 bijectivity
@@ -98,6 +103,8 @@ Bing
 BIOACID
 biogeochemists
 bioinformatics
+biomolecular
+biomolecules
 Blanco
 blickrichtung
 blickrichtungen
@@ -112,6 +119,7 @@ borane
 bosonic
 botros
 Botti
+bottlenecked
 bowsr
 BOWSR
 boxicons
@@ -142,7 +150,9 @@ Castelli
 CASTEP
 Categoricals
 cclake
+centidegrees
 centrosymmetry
+Ceriotti
 cgcnn
 CGCNN
 chalcogen
@@ -151,6 +161,7 @@ Checkpointable
 checkpointed
 checkpointing
 cheminformatics
+chempot
 chemsys
 Chgcar
 chgnet
@@ -162,6 +173,7 @@ chromodynamics
 CIFAR
 circumferentially
 civilizational
+Clebsch
 cleveref
 clickability
 clickhouse
@@ -201,6 +213,7 @@ conformant
 confusables
 Congruential
 connectivities
+conservativity
 CONTCAR
 contentful
 convolutional
@@ -212,6 +225,7 @@ Corkindale
 cornflowerblue
 Coronavirus
 coulombic
+covariantly
 covariate
 Covid
 cpus
@@ -242,6 +256,7 @@ decorrelate
 decorrelated
 decorrelating
 decorrelation
+dedup
 Deduplicated
 delithiated
 delocalization
@@ -252,7 +267,9 @@ deprotonate
 deprotonates
 Deprotonation
 deps
+desaturated
 descriptor's
+deselections
 deviatoric
 devs
 deweight
@@ -267,10 +284,12 @@ Dictable
 dielectricity
 diffeomorphism
 diffeomorphisms
+differentiably
 diffusiveness
 diffusivities
 dihydrogen
 Dinh
+dipeptides
 discretization
 discretize
 discretized
@@ -300,6 +319,8 @@ eigenfunctions
 Ekin
 elbo
 Electride
+electrocatalysis
+electrocatalyst
 electrocatalysts
 electrocatalytic
 electroneg
@@ -316,11 +337,13 @@ encodable
 ENCUT
 engel
 ensembling
+enumlib
 Enzerhof
 EPFL
 epsrc
 equatorward
 Equiformer
+equigrad
 equimolar
 equipartition
 equivariance
@@ -348,6 +371,7 @@ extrapolability
 extrapolatable
 extremize
 extremizing
+extxyz
 Faber
 fairchem
 Falletta
@@ -366,6 +390,7 @@ ferrimagnetic
 ferroelectricity
 ferroelectrics
 ferromagnetically
+Ferrox
 ffonon
 ffonons
 Figshare
@@ -385,6 +410,7 @@ fontsize
 fontweight
 footnotemark
 footnotetext
+Forcade
 formamide
 fragmenter
 franz
@@ -399,6 +425,7 @@ frozendict
 fullname
 fullscreen
 funcs
+functionalized
 functionals
 functools
 functorch
@@ -433,6 +460,7 @@ Glassdoor
 GLTF
 gmail
 Goodfellow
+Gordan
 Grammarly
 graphene
 graphiql
@@ -551,8 +579,11 @@ isolines
 isopointal
 isort
 isostructural
+isosurface
 isotropically
 isovalent
+isovalue
+isovalues
 itertuples
 jäckel
 Jacobians
@@ -577,9 +608,11 @@ Keyser
 Kingsbury
 Kitaev
 Kleinicke
+Klintebäck
 kohn
 Kolluru
 Kosiorek
+Kozynski
 KPOINT
 kpoints
 KPOINTS
@@ -589,6 +622,7 @@ Kubelka
 kullback
 kurzweil
 kwargs
+labelings
 LAMMPS
 Langevin
 lanthanoid
@@ -601,6 +635,7 @@ leaderboard
 leaderboards
 leibler
 lennard
+levenberg
 lightskyblue
 linearities
 linebreak
@@ -611,6 +646,7 @@ liquidus
 lithiated
 liveshare
 LMAXMIX
+lmdb
 Lobsterpy
 Loconte
 LORBIT
@@ -638,6 +674,7 @@ markdownlint
 markdownlintrc
 markerclustererplus
 markowitz
+marquardt
 matbench
 Matbench
 matchen
@@ -647,6 +684,7 @@ mathcal
 Mathematica
 Mathieu
 mathrm
+Matlantis
 matminer
 matmul
 matpes
@@ -657,7 +695,9 @@ matsubara
 Mattergen
 Mattersim
 Matterviz
+maturin
 Mauguin
+Mazitov
 mcmc
 mdsvex
 megnet
@@ -680,6 +720,7 @@ minimizations
 minkowski
 misaligns
 miscalibration
+misrank
 misspecification
 mkdir
 MLFF
@@ -708,13 +749,18 @@ MPNNs
 msnbc
 msonable
 Mulliken
+multicomponent
 Multifidelity
 multigraphs
+Multilattice
+multilattices
 multimodal
 multimodality
+multinary
 multinomial
 multiphysics
 multiplet
+multipole
 multiscale
 multiselect
 Munk
@@ -739,9 +785,11 @@ Nequip
 NERSC
 netlify
 networkidle
+Neuroevolution
 niobate
 nolas
 nonlinearities
+nonlocal
 npmignore
 nullability
 nullable
@@ -750,6 +798,7 @@ octahedrals
 Octicon
 octicons
 octocat
+ODAC
 oligomers
 oligotrophic
 omat
@@ -765,6 +814,7 @@ optimizer
 optimizer's
 OQMD
 Ornstein
+orthogonalization
 Orthogonalize
 orthogonalized
 orthonormalized
@@ -774,6 +824,7 @@ OUTCAR
 Outcars
 outdir
 overbinding
+overconstrain
 overengineered
 overfit
 overfitting
@@ -794,6 +845,7 @@ Paesani
 pagebreak
 palettable
 Papaconstantopoulos
+paracrystalline
 parallelizable
 parallelization
 parameterizations
@@ -806,9 +858,11 @@ pastur
 Pastur
 Pawley
 pbar
+PCET
 pearson
 Peichen
 perceptron
+perceptrons
 percolative
 Perdew
 periodicities
@@ -911,6 +965,7 @@ qpoints
 quadrupolar
 quantile
 quasiharmonic
+Quasirandom
 qubit
 Quickhull
 quinternaries
@@ -918,6 +973,7 @@ quinternary
 radford
 Rahman
 rapidfire
+Rebalances
 recanonicalized
 recentered
 regionalized
@@ -981,6 +1037,7 @@ Rosen
 rotamers
 rsync
 rtgs
+rustfft
 Rydbergs
 salmhofer
 Sanderson
@@ -999,8 +1056,10 @@ Seff
 SEGNN
 Seitz
 selenides
+semilocal
 semimetals
 sensical
+serde
 Shanno
 shortcodes
 Shortname
@@ -1022,6 +1081,7 @@ socketio
 Socony
 softmax
 solvus
+sorbent
 SOTA
 spacegroup
 spacegroups
@@ -1033,6 +1093,7 @@ springel
 srivastava
 SRME
 srun
+SSOT
 stackblitz
 StackBlitz
 stateful
@@ -1057,15 +1118,18 @@ subfig
 subfigure
 subfigures
 sublattice
+submatrices
 Submitit
 subnavs
 suboptimally
 subpackages
+subpages
 subpreambles
 subprojects
 subsampled
 subsampling
 subschema
+subselected
 subselection
 substate
 substituents
@@ -1080,10 +1144,12 @@ Supercon
 Superforms
 superhard
 superionic
+superlattice
 superlattices
 superoxide
 superoxides
 superparamagnetism
+superperiodic
 Surfverhalten
 Surjections
 surjective
@@ -1125,6 +1191,8 @@ thermoelectic
 thermoelectrics
 thermomechanical
 thermopower
+thermostatistical
+Threlte
 Tian
 tieline
 tikz
@@ -1144,12 +1212,14 @@ tracelessness
 trafo
 trafos
 trainability
+traitlet
 traj
 transactinides
 transdisciplinary
 transitionary
 translationally
 transpiled
+transpiles
 transpiling
 treemap
 triaged
@@ -1173,6 +1243,7 @@ uncategorized
 Unconverged
 underbinding
 underconfidence
+underconstraining
 undercoordinated
 underdescribes
 underdetermined
@@ -1182,11 +1253,14 @@ underperform
 underpredict
 underpredicted
 underpredicting
+underprediction
 underpredictions
 underpredicts
 undersampled
 undisplaced
 undoped
+unflipped
+ungapped
 unhashable
 uniaxially
 unintuitive
@@ -1243,6 +1317,7 @@ virtualenv
 vite
 vitest
 Vitest
+voidzero
 Voigt
 volker
 voronoi
@@ -1276,6 +1351,7 @@ wyckoff
 Wyckoff
 wyckoffs
 xanchor
+xdatcar
 xerr
 Xiang
 xlabel
