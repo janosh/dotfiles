@@ -33,11 +33,27 @@ alias gco='git checkout'
 alias gm='git merge'
 alias grb='git rebase'
 alias glog='git log --oneline'
-# remove pr/ branches, branches with deleted remote tracking, and non-origin remotes
-alias grcl='git fetch --prune && \
-gone=$(git branch -vv | grep ": gone]" | awk "{print \$1}") && [ -n "$gone" ] && git branch -D $gone || echo "No gone branches to delete"; \
-git branch | grep -q "pr/" && git branch -D $(git branch | grep "pr/") || echo "No PR branches to delete"; \
-git remote | grep -v origin | grep -q . && git remote | grep -v origin | xargs -n 1 git remote remove || echo "No remotes to remove"'
+# Clean stale branches and non-origin remotes.
+# shellcheck disable=SC2086
+grcl() {
+  local branch gone gh_merged prs remotes
+
+  git fetch --prune
+
+  gone=$(git branch -vv | awk '/: gone]/{print $1}')
+  [ -n "$gone" ] && git branch -D $gone || echo "No gone branches to delete"
+
+  for branch in $(git branch --format='%(refname:short)' | grep -vE '^(main|master)$'); do
+    gh pr list --state merged --head "$branch" --json number -q '.[0]' 2>/dev/null | grep -q . && gh_merged="$gh_merged $branch"
+  done
+  [ -n "$gh_merged" ] && git branch -D $gh_merged || echo "No GitHub-merged branches to delete"
+
+  prs=$(git branch --format='%(refname:short)' | grep '^pr/')
+  [ -n "$prs" ] && git branch -D $prs || echo "No PR branches to delete"
+
+  remotes=$(git remote | grep -vx origin)
+  [ -n "$remotes" ] && for remote in $remotes; do git remote remove "$remote"; done || echo "No remotes to remove"
+}
 
 alias dt='deno task'
 alias path='echo "${PATH//:/\n}"'

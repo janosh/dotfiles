@@ -21,14 +21,13 @@ These rules apply to all projects in `~/dev/`.
 - **NEVER use `__all__`!** We discourage star imports—they break static analysis of types and imports
 - No bare except: always catch specific exceptions
 - Use `time.perf_counter()` instead of `time.time()` for wall-time measurements
-- Always prefer `plotly` over `matplotlib` for plotting.
+- Always prefer `plotly` over `matplotlib` for plotting. When exporting to HTML, always use `include_plotlyjs="cdn"` for much smaller file sizes (3 KB vs 3 MB).
+- Prefer `fig.add_scatter(...)`, `fig.add_bar(...)`, etc. over `fig.add_trace(go.Scatter(...))`; avoids redundant `go` trace imports.
 - **In `notebooks/`, prefer pymatviz widgets instead: `BarPlotWidget`, `HeatmapMatrixWidget`, `HistogramWidget`, `ScatterPlotWidget`, `StructureWidget`, `ConvexHullWidget`, `TrajectoryWidget`, `PhaseDiagramWidget`, etc. over `plotly` or `matplotlib` figures. Check existing demos/notebooks for usage and API patterns before writing new visualization code.
 - avoid `typing.cast` unless absolutely necessary
 
 ## TypeScript/Svelte Projects (*.ts,*.tsx, *.svelte)
 
-- Always use `pnpm` for package management, never npm or yarn
-- Run tests with `pnpm vitest` or `pnpm playwright test`
 - Use snake_case for variables and functions, not camelCase
 - Prefer backticks to single or double quotes
 - Use `it.each([...])` and `test.each([...])` for parameterized vitest tests
@@ -63,22 +62,24 @@ These rules apply to all projects in `~/dev/`.
 - If `gh` commands fail with auth errors (e.g. "Unauthorized"), try switching accounts: `gh auth switch`
 - Don't commit without being asked
 - Never add `Co-authored-by: Cursor` or similar to commit messages
+- Never commit with `--no-verify` unless explicitly told; fix `prek` hook failures before committing.
 - Treat force push as a last resort, not a routine cleanup tool.
 - Prefer a new follow-up commit over amending/rebasing once work is pushed.
 - Never `git push --force` or `--force-with-lease` unless explicitly asked by the user for that specific branch and situation.
 
 ## CRITICAL: Protect Uncommitted Work
 
-**NEVER run `git reset`, `git checkout <file>`, or `git stash` on modified files without explicit approval!**
+**Never run destructive git ops (`reset`, `checkout -- <path>`, `restore`, `stash`, `clean`) on modified/untracked files without explicit approval.**
 
-Multiple agents may be working on the same repo or files. Resetting/discarding changes destroys their progress and testing. Always ask first.
+Multiple agents may have in-progress work. Ask before discarding anything, including files you did not modify.
 
+- If you need a clean working tree for your task, use `git worktree add` instead of stashing
 - Check with `ls -la` and `file <path>` before deleting—directories may be symlinks to working copies
-- When stashing, use `git stash -u` to include untracked files if needed for clean context switch
 - Cache dirs like `~/.cache/**/matterviz` may be symlinked to `~/dev/matterviz` with uncommitted changes!
 
 ## General
 
+- **Units notation**: don't use obscure glyphs like `ų`. Use ASCII `A^3`, `e/A^3`, `eV/A`; in Rust/Python docs, use standard `Å` forms: `Å³`, `e/Å³`, `eV/Å`.
 - **No single-letter or concatenated variable names!** Use proper snake_case: `idx` not `i`, `n_images` not `nimages`, `f_max` not `fmax`, `col_idx` not `colidx`
 - Prefer early returns over deep nesting
 - **No fallbacks or backward-compatible interfaces** unless explicitly told. Throw an error or fail early—silent catches, default shims, and compatibility wrappers mask bugs.
@@ -96,4 +97,5 @@ Multiple agents may be working on the same repo or files. Resetting/discarding c
 - **Never commit handover docs, temp data files, or proof-of-concept artifacts** (no `HANDOVER.md`, sample `.jsonl`/`.lmdb` files, exploratory notebooks, etc.). These clutter the monorepo — keep them local or in `tmp/`.
 - Use `prek` (Rust port), never `pre-commit` (Python)
 - Run commands yourself to collect logs/errors—don't ask the user. Run tests (`pytest`, `vitest`, `playwright`), start dev servers, visit pages in browser, take actions to reproduce issues.
+- When fixing a bug, ALWAYS add or update a unit test that would have caught it. Prefer extending an existing nearby test over creating a separate new test file when that keeps coverage concise and co-located.
 - **Never create GitHub issues or PRs without asking first.** Always ask before running `gh issue create` or `gh pr create`. When asked to "draft" an issue or PR, output the title and body as markdown for the user to review — do NOT run the `gh` command until explicitly told to post it.
