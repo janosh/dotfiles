@@ -1,5 +1,24 @@
 # Notes to self
 
+## Cursor/Codex Setup
+
+`AGENTS.md` rules are inherited up the directory tree, so a single symlink at the common parent covers all repos:
+
+```sh
+ln -sf $(cwd)$/.cursor/AGENTS.md ~/dev/AGENTS.md
+```
+
+Cursor uses `~/.cursor/skills/`, Codex uses `~/.agents/skills/`, and Claude Code uses `~/.claude/skills/` for global (cross-project) skills. The `SKILL.md` `name`/`description` frontmatter is shared across all three. Symlink dotfiles skills into all three:
+
+```sh
+for dest in ~/.cursor/skills ~/.agents/skills ~/.claude/skills; do
+    mkdir -p "$dest"
+    for skill in ~/dev/dotfiles/.cursor/skills/*/; do
+        ln -sf "$skill" "$dest/$(basename "$skill")"
+    done
+done
+```
+
 ## When having lost work in VS Code
 
 Incident on 2022-08-04: I had a `functorch_ensemble.ipynb` notebook which I renamed to a regular Python script `.py` and continued editing for 2 hours. After saving all files, I noticed 1 remaining blue dot indicating an unsaved file. This happens often when using the interactive window so I thought nothing of it, closed the workspace and left for lunch. I later reopened the folder and saw the `functorch_ensemble.py` had the original JSON content from the Jupyter notebook in it. All my edits were missing.
@@ -61,19 +80,3 @@ Ensure **"Optimize Mac Storage"** is **OFF** (System Settings > Apple ID > iClou
 
 * **ON:** macOS randomly offloads files to the cloud, leaving "ghost" files that need internet to open.
 * **OFF:** Keeps a full copy of all files on your local drive (safest for backups and offline work).
-
-## Cursor Setup
-
-To make agent commands available globally across all Cursor projects:
-
-```sh
-ln -s ~/dev/dotfiles/agent-commands ~/.cursor/commands
-```
-
-Agent commands (e.g. `/commit`, `/continue-session`) become available in all projects.
-
-`AGENTS.md` rules are inherited up the directory tree, so a single symlink at the common parent covers all repos:
-
-```sh
-ln -s ~/dev/dotfiles/agent-commands/AGENTS.md ~/dev/AGENTS.md
-```

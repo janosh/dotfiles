@@ -1,62 +1,39 @@
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 95
-select = [
-  "B",    # flake8-bugbear
-  "C4",   # flake8-comprehensions
-  "D",    # pydocstyle
-  "E",    # pycodestyle error
-  "EXE",  # flake8-executable
-  "F",    # pyflakes
-  "FA",   # flake8-future-annotations
-  "FLY",  # flynt
-  "I",    # isort
-  "ICN",  # flake8-import-conventions
-  "ISC",  # flake8-implicit-str-concat
-  "PD",   # pandas-vet
-  "PERF", # perflint
-  "PIE",  # flake8-pie
-  "PL",   # pylint
-  "PT",   # flake8-pytest-style
-  "PYI",  # flakes8-pyi
-  "Q",    # flake8-quotes
-  "RET",  # flake8-return
-  "RSE",  # flake8-raise
-  "RUF",  # Ruff-specific rules
-  "SIM",  # flake8-simplify
-  "SLOT", # flake8-slots
-  "TCH",  # flake8-type-checking
-  "TID",  # tidy imports
-  "TID",  # flake8-tidy-imports
-  "UP",   # pyupgrade
-  "W",    # pycodestyle warning
-  "YTT",  # flake8-2020
-]
+
+[tool.ruff.lint]
+select = ["ALL"]
 ignore = [
-  "B018",    # Found useless expression. Either assign it to a variable or remove it.
-  "B019",    # functools.lru_cache on methods can lead to memory leaks
-  "B023",    # Function definition does not bind loop variable
-  "B028",    # No explicit stacklevel keyword argument found
-  "B904",    # Within an except clause, raise exceptions with ...
-  "C408",    # unnecessary-collection-call
-  "D100",    # Missing docstring in public module
-  "D104",    # Missing docstring in public package
-  "D105",    # Missing docstring in magic method
-  "D107",    # Missing docstring in __init__
-  "D200",    # One-line docstring should fit on one line with quotes
-  "D205",    # 1 blank line required between summary line and description
-  "D212",    # Multi-line docstring summary should start at the first line
-  "D415",    # First line should end with a period, question mark, or exclamation point
-  "PD901",   # pandas-df-variable-name
-  "PLC0414", # useless-import-alias
-  "PLR",     # pylint refactor
-  "PLR2004", # Magic number
-  "PLW2901", # Outer for loop variable overwritten by inner assignment target
-  "PT011",   # pytest-raises-too-broad
-  "PT013",   # pytest-incorrect-pytest-import
-  "RET504",  # unnecessary-assign
-  "RUF012",  # mutable-class-default
-  "SIM105",  # Use contextlib.suppress(OSError) instead of try-except-pass
+  "ANN401",  # allow typing.Any in dynamic JSON helpers
+  "B904",    # raise ... from in except clauses
+  "BLE001",  # allow catching blind Exception in top-level script handlers
+  "C408",    # allow dict() calls instead of literals
+  "C901",    # allow complex functions
+  "COM812",  # missing-trailing-comma (conflicts with ruff formatter)
+  "D100",    # missing docstring in utility script modules
+  "D205",    # 1 blank line required between summary and description
+  "D415",    # first line of docstring need not end with punctuation
+  "D417",    # missing arg description in docstring
+  "DTZ005",  # allow datetime.now() without tz for local log timestamps
+  "EM101",   # allow string literal in exception
+  "EM102",   # allow f-string literal in exception
+  "ERA001",  # allow commented-out code
+  "FBT001",  # allow boolean positional arg in function definition
+  "FBT002",  # allow boolean default positional arg
+  "INP001",  # script dirs are not packages (no __init__.py)
+  "ISC001",  # single-line-implicit-string-concatenation (conflicts with ruff formatter)
+  "N816",    # allow mixedCase var in legacy script
+  "PLC0415", # allow function-level (lazy) imports
+  "PLR",     # pylint refactor (too-many-*, magic values, ...)
+  "PTH",     # prefer os.path over pathlib per project convention
+  "S101",    # allow assert
+  "S113",    # allow requests calls without timeout in personal scripts
+  "S603",    # subprocess call with trusted local input
+  "S607",    # subprocess call with partial executable path
+  "T201",    # allow print in CLI scripts
+  "TRY003",  # allow long messages outside exception class
+  "TRY301",  # allow raise within try block
 ]
 pydocstyle.convention = "google"
 isort.split-on-trailing-comma = false

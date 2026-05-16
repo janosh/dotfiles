@@ -1,5 +1,3 @@
-# Add deno completions to search path
-if [[ ":$FPATH:" != *":/Users/janosh/completions:"* ]]; then export FPATH="/Users/janosh/completions:$FPATH"; fi
 # Set zsh theme to load.
 # https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 export ZSH_THEME="robbyrussell"
@@ -7,11 +5,9 @@ export ZSH_THEME="robbyrussell"
 # shellcheck disable=SC1090
 source ~/.oh-my-zsh/oh-my-zsh.sh
 
-# --- User Configuration ---
-
 # activate default virtualenv
 # shellcheck disable=SC1090
-source ~/.venv/py313/bin/activate
+source ~/.venv/py314/bin/activate
 # shellcheck disable=SC1091
 . "$HOME"/.local/bin/env
 
@@ -25,7 +21,41 @@ alias gl='git pull'
 alias gf='git fetch'
 alias gr='git remote'
 alias grv='git remote -v'
-alias gp='git push'
+# `git push` (gp) and `gh pr create` with automatic gh-account failover:
+# on a 403/permission-denied error, retry across all other `gh auth` logins.
+_gh_failover() {
+  emulate -L zsh
+  setopt no_multios  # else `1>&3` alongside the pipe makes zsh duplicate stdout
+  local tmp; tmp=$(mktemp) || { "$@"; return $?; }
+  local perm_re='permission|403|denied|authentication failed'
+  local -i ret  # not `status`: that name is read-only in zsh (mirrors $?)
+  # run cmd with stdout/stdin on the tty, stderr shown live AND captured for inspection
+  { "$@" 2>&1 1>&3 | tee "$tmp" >&2; ret=${pipestatus[1]}; } 3>&1
+  if (( ret != 0 )) && grep -qiE "$perm_re" "$tmp"; then
+    local auth; auth=$(command gh auth status 2>/dev/null)
+    local active; active=$(print -r -- "$auth" | awk '/account /{u=$0;sub(/.*account /,"",u);sub(/ .*/,"",u)} /Active account: true/{print u; exit}')
+    local -a accts; accts=("${(@f)$(print -r -- "$auth" | sed -nE 's/.*account ([^ ]+).*/\1/p')}")
+    local acct
+    for acct in $accts; do
+      [[ -z $acct || $acct == $active ]] && continue
+      print -r -u2 -- "🔑 gh: '${active:-?}' denied — retrying as '$acct'…"
+      command gh auth switch --user "$acct" >/dev/null 2>&1 || continue
+      { "$@" 2>&1 1>&3 | tee "$tmp" >&2; ret=${pipestatus[1]}; } 3>&1
+      (( ret == 0 )) && break
+      grep -qiE "$perm_re" "$tmp" || break  # different error -> stop retrying
+    done
+  fi
+  rm -f "$tmp"
+  return $ret
+}
+gp() { _gh_failover git push "$@"; }
+gh() {
+  if [[ $1 == pr && $2 == create ]]; then
+    _gh_failover command gh "$@"
+  else
+    command gh "$@"
+  fi
+}
 alias gb='git branch'
 alias gsw='git switch'
 alias gcp='git cherry-pick'
@@ -55,7 +85,6 @@ grcl() {
   [ -n "$remotes" ] && for remote in $remotes; do git remote remove "$remote"; done || echo "No remotes to remove"
 }
 
-alias dt='deno task'
 alias path='echo "${PATH//:/\n}"'
 alias ssh="ssh -F ~/.ssh/config"  # https://stackoverflow.com/a/63935109
 alias pt='pytest'
@@ -73,8 +102,7 @@ alias code='cursor'
 # https://github.com/zsh-users/zsh-autosuggestions/issues/351
 ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(bracketed-paste)
 
-. "/Users/janosh/.deno/env"
-# Initialize zsh completions (added by deno install script)
+# Initialize zsh completions
 autoload -Uz compinit
 compinit
 export PATH="$HOME/.cargo/bin:$PATH"

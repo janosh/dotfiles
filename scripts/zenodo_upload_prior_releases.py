@@ -1,3 +1,6 @@
+import os
+import sys
+
 import requests
 
 __date__ = "2022-12-27"
@@ -7,10 +10,10 @@ __date__ = "2022-12-27"
 
 # repo = "janosh/matbench-discovery"
 repo = "materialsproject/atomate2"  # 2024-02-19
-# token appears to be the same for every repo and was copied from the end of the
-# payload url in the Zenodo webhook settings page:
-# https://github.com/janosh/pymatviz/settings/hooks/424898772
-access_token = "AGG2VDNKpW7LxLTgbMMoaphlJ1WKZQEFYMGxZcuLKh8ypj6opfrwSQTR6FJ1"  # from atomate2
+# Token: query string from Zenodo GitHub hook payload URL (GitHub repo → Settings → Webhooks).
+access_token = os.environ.get("ZENODO_GITHUB_HOOK_TOKEN")
+if not access_token:
+    sys.exit("Set ZENODO_GITHUB_HOOK_TOKEN to the Zenodo hook URL access token")
 
 headers = {"Accept": "application/vnd.github.v3+json"}
 
@@ -34,7 +37,7 @@ for release in [releases[0]]:
     )
 
     response = requests.post(
-        f"https://zenodo.org/api/hooks/receivers/github/events/?{access_token=!s}",
+        f"https://zenodo.org/api/hooks/receivers/github/events/?{access_token}",
         json=payload,
     )
     response.raise_for_status()

@@ -18,4 +18,4 @@ pnpm-workspace.yaml
 
 # Cursor AI agent instructions (symlinked into every repo)
 AGENTS.md
-!agent-commands/AGENTS.md
+!.cursor/AGENTS.md

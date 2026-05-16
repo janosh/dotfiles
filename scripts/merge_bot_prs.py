@@ -44,7 +44,7 @@ def main(
     """
     # make sure gh auth status returns 0 which means user is logged in and hopefully
     # authorized to merge PRs
-    if subprocess.run("gh auth status".split(), check=True).returncode != 0:
+    if subprocess.run(["gh", "auth", "status"], check=True).returncode != 0:
         raise PermissionError("Please run `gh auth login` and then `gh auth token`")
 
     search_prs_cmd = f"gh search prs --state=open --app={bot} --owner={owner}"
@@ -107,8 +107,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--yes",
         action="store_true",
-        help="Skip confirmation prompt for each PR and automatically merge all "
-        "matching PRs.",
+        help="Skip confirmation prompt for each PR and automatically merge all matching PRs.",
     )
     parser.add_argument(
         "--ci-status",
