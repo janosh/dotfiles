@@ -13,10 +13,10 @@ from PIL import Image
 # watches '~/Desktop' (pass inputs as arguments!) and runs this shell script:
 # ```sh
 # source ~/.zshrc # can be omitted if the system python3 is 3.9+
-# python3 ~/dev/dotfiles/scripts/compress-screenshots.py "$@"
+# python3 ~/dev/dotfiles/scripts/compress_screenshots.py "$@"
 # ```
 
-# Requires: brew install pngquant zopfli imagemagick && pip install Pillow
+# Requires: brew install pngquant zopfli imagemagick && pip install pillow
 
 # If folder action doesn't appear to trigger after setup, try toggling
 # "Enable Folder Actions" in "Folder Actions Setup.app" or add one of the

@@ -1,6 +1,25 @@
 default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.15
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+        types_or: [python, jupyter]
+      - id: ruff-format
+        types_or: [python, jupyter]
+
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty check
+        entry: ty check --ignore unused-ignore-comment
+        language: python
+        types: [python]
+        pass_filenames: false
+        additional_dependencies: [ty, pillow, requests]
+
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1
     hooks:
@@ -8,6 +27,8 @@ repos:
         # docs: https://github.com/koalaman/shellcheck/wiki
         # -x/--external-sources: Allow 'source' outside of FILES
         args: [-x, --shell=bash]
+        # shellcheck has no zsh support, so skip zsh files (e.g. .zshrc)
+        exclude_types: [zsh]
 
   - repo: builtin
     hooks:
@@ -37,7 +58,7 @@ repos:
         args: [--check-filenames, --ignore-words-list=atomate]
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.45.2
+    rev: v1.47.0
     hooks:
       - id: typos
         types: [text]

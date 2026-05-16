@@ -19,11 +19,6 @@ configure_git() {
   ln -f dotfiles/git/config ~/.gitconfig
 }
 
-configure_ssh() {
-  mkdir -p ~/.ssh
-  ln -f dotfiles/ssh_config ~/.ssh/config
-}
-
 set_file_association() {
   # helper function to set file association based on extension
   defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \

@@ -14,7 +14,6 @@ install() {
 
   configure_zsh
   configure_git
-  configure_ssh
   configure_macos
 
   brew cleanup

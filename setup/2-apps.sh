@@ -12,4 +12,6 @@ brew_install() {
   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
 
   brew bundle
+
+  curl -LsSf https://github.com/j178/prek/releases/latest/download/prek-installer.sh | sh
 }
