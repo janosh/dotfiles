@@ -1,0 +1,26 @@
+{
+  "name": "@janosh/vite-config",
+  "version": "0.1.0",
+  "description": "Shared oxlint (vite-plus) config for janosh's Svelte/Vite projects",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "peerDependencies": {
+    "vite-plus": "*"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/janosh/dotfiles"
+  }
+}
