@@ -16,3 +16,5 @@ Only after reviewing, immediately apply high-confidence polish fixes: remove blo
 Do not action speculative ideas, behavior changes, or anything that needs product judgment. Report those separately.
 
 Preserve behavior, keep edits targeted, and run focused tests/lints when cheap and relevant.
+
+Keep this fast — it's a pre-commit check. Only run a `cross-model-review` second-opinion pass when the user asks for one or the change is genuinely high-stakes (security, data loss, migrations, public API); skip it for routine edits.

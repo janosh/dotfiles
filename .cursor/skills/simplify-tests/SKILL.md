@@ -13,12 +13,13 @@ description: Refactor tests to be clearer and more concise while preserving cove
 ## Instructions
 
 1. Establish baseline by running tests.
-2. Refactor for clarity:
+2. For a large suite (roughly 7+ test files), fan out subagents partitioned by file/dir (one layer, disjoint partitions) to refactor in parallel; keep shared-helper/fixture changes in the parent.
+3. Refactor for clarity:
    - Parameterize repeated cases
    - Remove unnecessary setup and helper duplication
    - Clarify Arrange-Act-Assert flow
-3. Keep behavior checks intact.
-4. Re-run tests and confirm no coverage regression.
+4. Keep behavior checks intact.
+5. Re-run tests and confirm no coverage regression.
 
 ## Rules
 

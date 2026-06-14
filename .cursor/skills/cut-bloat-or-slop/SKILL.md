@@ -54,6 +54,7 @@ For each file and logical block, check:
 - Refactor aggressively when it clearly improves clarity and maintenance burden.
 - Add or strengthen tests where practical for each meaningful fix.
 - Verify changes locally (tests/lint/type checks as appropriate).
+- After risky logic changes (not mechanical cleanups), run a `check-correctness` pass on your own diff; focused tests suffice for the rest.
 
 ## Escalation policy
 

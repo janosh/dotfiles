@@ -18,7 +18,7 @@ description: Validate test robustness using mutation-style checks. Use when you 
    - If tests still pass, strengthen assertions or add cases
    - If tests fail, confirm failure is meaningful
 4. Revert mutation before next trial.
-5. Finish with original code and full passing suite.
+5. Finish clean: confirm via `git diff` that every mutation is reverted (source matches original), then re-run only the focused tests you touched.
 
 ## Rules
 

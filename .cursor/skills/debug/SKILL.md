@@ -17,7 +17,7 @@ description: Reproduce and fix bugs autonomously by gathering runtime evidence d
 3. Isolate minimal failing path and root cause.
 4. Validate hypotheses with small focused checks.
 5. Implement smallest correct fix.
-6. Remove instrumentation and add regression coverage.
+6. Remove instrumentation and add regression coverage; mutation-check the new test actually fails on the bug (see `verify-tests`).
 
 ## Rules
 

@@ -1,36 +1,19 @@
 [tool.ruff]
-target-version = "py313"
 line-length = 95
 
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-  "ANN401",  # allow typing.Any in dynamic JSON helpers
-  "B904",    # raise ... from in except clauses
-  "BLE001",  # allow catching blind Exception in top-level script handlers
-  "C408",    # allow dict() calls instead of literals
   "C901",    # allow complex functions
   "COM812",  # missing-trailing-comma (conflicts with ruff formatter)
-  "D100",    # missing docstring in utility script modules
   "D205",    # 1 blank line required between summary and description
-  "D415",    # first line of docstring need not end with punctuation
-  "D417",    # missing arg description in docstring
-  "DTZ005",  # allow datetime.now() without tz for local log timestamps
   "EM101",   # allow string literal in exception
   "EM102",   # allow f-string literal in exception
-  "ERA001",  # allow commented-out code
-  "FBT001",  # allow boolean positional arg in function definition
-  "FBT002",  # allow boolean default positional arg
   "INP001",  # script dirs are not packages (no __init__.py)
-  "ISC001",  # single-line-implicit-string-concatenation (conflicts with ruff formatter)
-  "N816",    # allow mixedCase var in legacy script
-  "PLC0415", # allow function-level (lazy) imports
-  "PLR",     # pylint refactor (too-many-*, magic values, ...)
+  "PLR0912", # too many branches
+  "PLR0913", # too many arguments
   "PTH",     # prefer os.path over pathlib per project convention
-  "S101",    # allow assert
-  "S113",    # allow requests calls without timeout in personal scripts
   "S603",    # subprocess call with trusted local input
-  "S607",    # subprocess call with partial executable path
   "T201",    # allow print in CLI scripts
   "TRY003",  # allow long messages outside exception class
   "TRY301",  # allow raise within try block

@@ -1,6 +1,6 @@
 ---
 name: rank-improvements
-description: Produce a prioritized, read-only list of improvement opportunities in current changes. Use for planning and triage.
+description: Rank improvement opportunities in changed code, implement the confident ones, and surface judgment calls. Use for review and cleanup.
 ---
 
 # Rank Improvement Ideas
@@ -21,10 +21,13 @@ description: Produce a prioritized, read-only list of improvement opportunities 
    - file/location
    - problem summary
    - concrete fix suggestion
+5. Act on findings, don't just list them:
+   - Immediately implement any fix you've verified is low-risk and behavior-preserving, regardless of severity.
+   - Report (don't auto-apply) high-risk, behavior-changing, design-level, or high-effort items — even Critical ones — each with a recommendation.
 
 ## Rules
 
-- Read-only unless user asks to implement
+- Auto-apply confident, low-risk fixes; report the rest — don't make the user re-request obvious wins
 - Keep scope to changed code
 - Omit empty severity sections
 - Apply best judgment on which improvements to implement versus leave undone.
