@@ -16,7 +16,7 @@ description: Simplify working code while preserving behavior. Use to remove bloa
 2. Simplify control flow and reduce nesting where possible.
 3. Improve naming and clarity with minimal edits.
 4. Keep error handling robust but proportionate.
-5. Run relevant tests to ensure behavior remains unchanged.
+5. Verify behavior is preserved: run focused tests/lints. Only for risky logic changes (not mechanical cleanups) run a `check-correctness` pass on your diff.
 
 ## Rules
 

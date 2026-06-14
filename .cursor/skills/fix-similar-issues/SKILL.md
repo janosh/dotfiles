@@ -14,9 +14,10 @@ description: Find and fix related variants of a recently fixed issue across the 
 
 1. Generalize the root pattern of the original issue.
 2. Search for exact and conceptual variants across the repo.
-3. Apply fixes consistently.
-4. If repeated 3+ times, consider shared abstraction only when it improves clarity.
-5. Run tests to guard against regressions.
+3. Search serially by default; when variants span many files / several packages, fan out subagents partitioned by area (one layer) to apply the generalized fix from step 1 in parallel — disjoint partitions, no shared files. Run one aggregated verification afterward.
+4. Apply fixes consistently.
+5. If repeated 3+ times, consider shared abstraction only when it improves clarity.
+6. Run tests to guard against regressions.
 
 ## Rules
 

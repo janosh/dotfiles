@@ -1,8 +1,13 @@
-#!/usr/bin/env python3
+"""Compress and downscale screenshots dropped into ~/Desktop via a macOS Folder Action.
+
+Resizes images wider than 2000px, then shrinks PNG files with pngquant/zopflipng and
+JPG files with Pillow, moving the processed files to ~/Downloads. See setup comments below.
+"""
+
 import os
 import sys
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from os.path import basename, expanduser
 from shutil import which
 from subprocess import run
@@ -67,13 +72,15 @@ try:
         if cli is None:
             raise ImportError(f"Missing required binary: {cli}")
 
-    for file in sys.argv[1:]:  # first arg is this script's name
+    for arg in sys.argv[1:]:  # first arg is this script's name
+        file = arg
         ext = os.path.splitext(file)[1]
         if ext.lower() != ext and ext.lower() in EXTS:
             if ext.lower() == ".jpeg":
                 ext = ".jpg"
-            newName = os.path.splitext(file)[0] + ext.lower()
-            os.replace(file, newName)
+            new_name = os.path.splitext(file)[0] + ext.lower()
+            os.replace(file, new_name)
+            file = new_name
 
         if not file.endswith(EXTS):
             continue
@@ -81,8 +88,8 @@ try:
         compress_png(file) if file.lower().endswith(".png") else compress_jpg(file)
         os.rename(file, f"{HOME}/Downloads/{basename(file)}")
 
-except Exception:
+except (ImportError, OSError, ValueError):
     with open(f"{HOME}/Downloads/compress-screenshot.log", "a") as logs:
-        now = datetime.now()
+        now = datetime.now(tz=timezone.utc).astimezone()
         PATH = os.environ["PATH"]
         logs.write(f"{now:%H:%M:%S}\n{sys.executable=}\n{PATH=}\n{traceback.format_exc()}\n")

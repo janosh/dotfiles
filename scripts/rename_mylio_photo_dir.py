@@ -1,13 +1,10 @@
-# Mylio's file renaming feature doesn't rename files in chronological order.
-# This Python script handles the use case of renaming media files and
-# assigning the same new name to the corresponding XMP file if one exists.
-# Mylio will auto-detect the new file names.
+"""Rename Mylio media files (and their XMP sidecars) into chronological order.
 
-# Requires Python 3.6+ and expects two command line args: the target directory
-# of files to be renamed and the prefix to be inserted in front of the
-# sequence counter. It also assumes the files are to be sequenced in
-# alphabetical order so best rename the files according to their creation date
-# before running this script in Mylio first).
+Mylio's built-in renaming doesn't order files chronologically. This renames media files
+and gives the matching XMP file (if any) the same new name; Mylio auto-detects the new
+names. Expects two args: the target directory and the prefix to insert before the sequence
+counter. Files are sequenced alphabetically, so rename them by creation date in Mylio first.
+"""
 
 import os
 import sys

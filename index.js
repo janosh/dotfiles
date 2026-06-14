@@ -127,10 +127,17 @@ const lint = {
     "eslint-plugin-unicorn/prefer-structured-clone": `error`,
     "eslint-plugin-unicorn/consistent-date-clone": `error`,
     "eslint-plugin-unicorn/relative-url-style": `error`,
+    // re-export directly (`export ... from`) instead of import-then-export
+    "eslint-plugin-unicorn/prefer-export-from": `error`,
     "eslint-plugin-import/first": `error`,
     "eslint-plugin-import/newline-after-import": `error`,
     "oxc/branches-sharing-code": `error`,
     "eslint-plugin-vitest/prefer-to-be": `error`,
+    "prefer-object-spread": `error`,
+    "@typescript-eslint/prefer-for-of": `error`,
+    "eslint-plugin-unicorn/prefer-string-raw": `error`,
+    "eslint-plugin-unicorn/prefer-modern-math-apis": `error`,
+    "eslint-plugin-unicorn/prefer-regexp-test": `error`,
     // === Tier 3: larger but worthwhile ===
     // `null: ignore` keeps the idiomatic `== null` nullish check (null OR undefined)
     eqeqeq: [`error`, `always`, { null: `ignore` }],
@@ -141,6 +148,8 @@ const lint = {
     radix: `error`,
     "prefer-exponentiation-operator": `error`,
     "no-implicit-coercion": `error`,
+    // named capture groups self-document regex matches; positional groups must be renamed
+    "prefer-named-capture-group": `error`,
     "eslint-plugin-vitest/prefer-to-have-length": `error`,
     "eslint-plugin-vitest/require-mock-type-parameters": `off`,
     // needs manual type annotations
@@ -164,8 +173,14 @@ const lint = {
     // benign barrel-file cycles (components import from their package `index.ts` that re-exports
     // them); resolving them conflicts with the `$lib/foo` barrel-import convention
     "eslint-plugin-import/no-cycle": `off`,
-    "eslint-plugin-vitest/valid-expect": [`error`, { maxArgs: 2 }]
+    "eslint-plugin-vitest/valid-expect": [`error`, { maxArgs: 2 }],
     // vitest supports expect(actual, message)
+    // count any *assert*/*expect* helper as an assertion so expect-expect doesn't flag tests
+    // that delegate to helpers (oxlint glob `*` matches one [a-z\d] run, so name them camelCase)
+    "eslint-plugin-vitest/expect-expect": [
+      `error`,
+      { assertFunctionNames: [`*assert*`, `*expect*`] }
+    ]
   },
   overrides: [
     {

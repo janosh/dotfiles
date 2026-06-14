@@ -1,5 +1,12 @@
+"""Batch-compress videos to H.265 using HandBrakeCLI with Apple's VideoToolbox encoder.
+
+Example invocation:
+python ~/dev/dotfiles/scripts/compress_videos.py src-dir/*.mp4 --outdir outdir
+"""
+
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -14,15 +21,9 @@ __date__ = "2022-07-04"
 DIRNAME = os.path.dirname(__file__)
 
 
-"""
-Example invocation:
-python ~/dev/dotfiles/scripts/compress_videos.py src-dir/*.mp4 --outdir outdir
-"""
-
-
 def handbrake_h265_vtb_encode(input_file: str, output_file: str, *args: str) -> None:
     """Compress input_file to output_file with HandBrakeCLI using vt_h265 (Apple's
-    Video Toolbox H265 encoder). https://developer.apple.com/documentation/videotoolbox
+    Video Toolbox H265 encoder). https://developer.apple.com/documentation/videotoolbox.
 
     Run handbrakeCLI --help for docs.
     """
@@ -53,6 +54,7 @@ def main(
     source_files: Sequence[str],
     outdir: str | None = None,
     suffix: str | None = None,
+    *,
     write_file_map: bool = False,
     on_error: Literal["raise", "print", "ignore"] = "raise",
     quality: int | None = None,
@@ -61,7 +63,8 @@ def main(
 
     Args:
         source_files (Sequence[str]): Video files to compress.
-        outdir (str): Directory to write compressed files to.
+        outdir (str | None): Directory to write compressed files to.
+        suffix (str | None): Suffix to append to the original filename to for output filename.
         write_file_map (bool, optional): Write JSON file mapping input to output file paths
             to outdir. Defaults to False.
         on_error (Literal[&quot;raise&quot;, &quot;print&quot;, &quot;ignore&quot;], optional):
@@ -114,12 +117,12 @@ def main(
                 continue
             if on_error == "ignore":
                 continue
-            raise ValueError(f"Unexpected {on_error=}, should be 'raise', 'print' or 'ignore'")
+            raise ValueError(
+                f"Unexpected {on_error=}, should be 'raise', 'print' or 'ignore'"
+            ) from exc
         in_out_map[file_path] = out_path
 
     if write_file_map:
-        import json
-
         file_map_path = f"{outdir}/file_map.json"
         with open(file_map_path, "w") as json_file:
             json.dump(in_out_map, json_file)

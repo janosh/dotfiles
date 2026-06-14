@@ -2,7 +2,7 @@ default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.15.17
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -58,7 +58,7 @@ repos:
         args: [--check-filenames, --ignore-words-list=atomate]
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.47.0
+    rev: v1.47.2
     hooks:
       - id: typos
         types: [text]

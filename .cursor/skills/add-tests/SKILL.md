@@ -23,6 +23,9 @@ description: Add high-value tests for changed code. Use when implementing featur
    - Use parameterization (`pytest.mark.parametrize`, `test.each`) for input matrices
    - Extract repeated setup into fixtures/helpers
 5. Run tests and ensure new behavior is validated, not just execution.
+6. Tighten and self-verify:
+   - Fold new tests into existing related tests to cut setup duplication (see `fold-tests`).
+   - Spot-check that the tests aren't vacuous: for each distinct non-trivial behavior, break the code under test and confirm the covering test fails, then restore. Scale to risk — zero/one check for simple additions, a few for complex or error-prone logic. Don't run an exhaustive mutation pass here (that's `verify-tests`).
 
 ## Rules
 
