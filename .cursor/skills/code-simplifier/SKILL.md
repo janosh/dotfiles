@@ -17,6 +17,7 @@ description: Simplify working code while preserving behavior. Use to remove bloa
 3. Improve naming and clarity with minimal edits.
 4. Keep error handling robust but proportionate.
 5. Verify behavior is preserved: run focused tests/lints. Only for risky logic changes (not mechanical cleanups) run a `check-correctness` pass on your diff.
+6. When done, ensure your changes reduced net lines of code. If not, revert unless convinced the added lines improve code quality enough to earn their keep. But bias towards revert.
 
 ## Rules
 

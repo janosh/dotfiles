@@ -63,6 +63,10 @@ alias gco='git checkout'
 alias gm='git merge'
 alias grb='git rebase'
 alias glog='git log --oneline'
+# Rank repo files by net lines added over git history.
+glines() {
+  python "$HOME/dev/dotfiles/scripts/git_line_rank.py" "$@"
+}
 # Clean stale branches and non-origin remotes.
 # shellcheck disable=SC2086
 grcl() {

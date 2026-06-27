@@ -10,15 +10,13 @@ repos:
       - id: ruff-format
         types_or: [python, jupyter]
 
-  - repo: local
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.54
     hooks:
       - id: ty
-        name: ty check
-        entry: ty check --ignore unused-ignore-comment
-        language: python
-        types: [python]
-        pass_filenames: false
-        additional_dependencies: [ty, pillow, requests]
+        # --isolated: don't create/update uv.lock or the local .venv
+        args: [--isolated, --group, lint]
+        env: { UV_FROZEN: "0" } # override global UV_FROZEN=1 which would require a uv.lock
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1
