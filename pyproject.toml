@@ -21,6 +21,12 @@ ignore = [
 pydocstyle.convention = "google"
 isort.split-on-trailing-comma = false
 
+[dependency-groups]
+lint = ["pillow", "pytest", "requests"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/test_*.py" = ["S101"] # allow assert in pytest tests
+
 [tool.typos.default.extend-words]
 atomate = "atomate"
 AIMD = "AIMD"
