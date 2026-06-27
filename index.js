@@ -81,6 +81,7 @@ const lint = {
     "eslint-plugin-unicorn/prefer-includes": `error`,
     "eslint-plugin-unicorn/prefer-default-parameters": `error`,
     "eslint-plugin-unicorn/prefer-logical-operator-over-ternary": `error`,
+    "eslint-plugin-unicorn/max-nested-calls": [`error`, { max: 3 }],
     "eslint-plugin-unicorn/no-instanceof-array": `error`,
     "eslint-plugin-unicorn/prefer-keyboard-event-key": `error`,
     "eslint-plugin-unicorn/error-message": `error`,
@@ -122,8 +123,13 @@ const lint = {
     "eslint-plugin-unicorn/no-hex-escape": `error`,
     "eslint-plugin-unicorn/prefer-import-meta-properties": `error`,
     "eslint-plugin-unicorn/prefer-native-coercion-functions": `error`,
+    "eslint-plugin-unicorn/prefer-number-coercion": `error`,
     "eslint-plugin-unicorn/prefer-math-trunc": `error`,
     "eslint-plugin-unicorn/no-useless-collection-argument": `error`,
+    "eslint-plugin-unicorn/numeric-separators-style": [
+      `error`,
+      { onlyIfContainsSeparator: true }
+    ],
     "eslint-plugin-unicorn/prefer-structured-clone": `error`,
     "eslint-plugin-unicorn/consistent-date-clone": `error`,
     "eslint-plugin-unicorn/relative-url-style": `error`,
@@ -195,13 +201,13 @@ const lint = {
     }
   ]
 };
-const fmt = { semi: false, singleQuote: true, printWidth: 90 };
+const fmt = { semi: false, singleQuote: true, printWidth: 90, svelte: true };
 const build = {
   // Default cssTarget is chrome111 which doesn't support light-dark(),
   cssTarget: `esnext` // causing LightningCSS to polyfill it with broken space toggles
 };
 const staged = {
-  "*.{js,ts,svelte,html,css,md,json,yaml}": `vp check --fix`,
+  "*.{js,ts,svelte,html,css,scss,less,md,json,yaml,graphql,gql}": `vp check --fix`,
   "*.{ts,svelte}": `sh -c 'npx svelte-kit sync && npx svelte-check-rs --threshold error'`
 };
 const config = { lint, fmt, build, staged };

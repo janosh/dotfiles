@@ -5,7 +5,7 @@
 `AGENTS.md` rules are inherited up the directory tree, so a single symlink at the common parent covers all repos:
 
 ```sh
-ln -sf $(cwd)$/.cursor/AGENTS.md ~/dev/AGENTS.md
+ln -sf $(cwd)$/agents/AGENTS.md ~/dev/AGENTS.md
 ```
 
 Cursor uses `~/.cursor/skills/`, Codex uses `~/.agents/skills/`, and Claude Code uses `~/.claude/skills/` for global (cross-project) skills. The `SKILL.md` `name`/`description` frontmatter is shared across all three. Symlink dotfiles skills into all three:
@@ -13,7 +13,7 @@ Cursor uses `~/.cursor/skills/`, Codex uses `~/.agents/skills/`, and Claude Code
 ```sh
 for dest in ~/.cursor/skills ~/.agents/skills ~/.claude/skills; do
     mkdir -p "$dest"
-    for skill in ~/dev/dotfiles/.cursor/skills/*/; do
+    for skill in ~/dev/dotfiles/agents/skills/*/; do
         ln -sf "$skill" "$dest/$(basename "$skill")"
     done
 done
