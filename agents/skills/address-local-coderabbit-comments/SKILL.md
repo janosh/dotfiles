@@ -20,10 +20,10 @@ Use this skill when a user asks for:
 
 ```bash
 # All comment types from latest review round
-python "/Users/janosh/dev/dotfiles/.cursor/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo" --stdout
+python "/Users/janosh/dev/dotfiles/agents/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo" --stdout
 
 # Assertive comments only from latest review round
-python "/Users/janosh/dev/dotfiles/.cursor/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo" --type assertive --stdout
+python "/Users/janosh/dev/dotfiles/agents/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo" --type assertive --stdout
 ```
 
 1. Report:

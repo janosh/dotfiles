@@ -31,8 +31,8 @@ When setting up new Macs with iCloud "Desktop & Documents" sync enabled, check [
 
 ```text
 .
-├── .cursor/AGENTS.md          # global agent rules (symlink to ~/dev/AGENTS.md)
-├── .cursor/skills/            # Cursor agent skills
+├── agents/AGENTS.md           # global agent rules (symlink to ~/dev/AGENTS.md)
+├── agents/skills/             # agent skills symlinked into Cursor/Codex/Claude
 ├── dotfiles/                  # shell, git, spell-check dict
 ├── notes/                     # personal runbooks (Mac setup, Cursor, etc.)
 ├── setup/                     # macOS bootstrap scripts
