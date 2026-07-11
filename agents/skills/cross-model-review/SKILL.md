@@ -29,6 +29,7 @@ A different model family catches different bugs, so the reviewer must NOT share 
 
 - Identify your own model family (e.g. OpenAI GPT, Anthropic Claude/Opus, Google Gemini).
 - Pick the strongest model from a *different* family, chosen from the model list the current harness actually exposes (e.g. Cursor's subagent model slugs). Prefer the newest available version; never invent or hardcode version names.
+- Prefer fast models. Avoid extra-high reasoning variants such as Fable 5 xhigh; too slow for this review loop.
 - Rough mapping: if you're GPT, review with the latest Opus/Claude; if you're Claude/Opus, review with the latest GPT. If the harness exposes no model override, or no different-family model is available, omit the override and note the review is same-family (or that cross-family dispatch is unavailable).
 
 ## Step 3: Dispatch the reviewer subagent(s)

@@ -1,6 +1,6 @@
 ---
 name: cut-bloat-or-slop
-description: Ruthless quality pass on uncommitted changes or PR diffs: cut bloat, improve design, raise correctness and tests.
+description: "Ruthless quality pass on uncommitted changes or PR diffs: cut bloat, improve design, raise correctness and tests."
 disable-model-invocation: true
 ---
 

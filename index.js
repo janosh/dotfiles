@@ -165,8 +165,11 @@ const lint = {
     "@typescript-eslint/no-unsafe-type-assertion": `off`,
     "@typescript-eslint/restrict-template-expressions": `off`,
     "no-await-in-loop": `off`,
-    "eslint-plugin-unicorn/no-array-sort": `off`,
-    // [...arr].sort() is idiomatic
+    // Permit sorting fresh/local arrays as a standalone statement.
+    "eslint-plugin-unicorn/no-array-sort": [
+      `error`,
+      { allowExpressionStatement: true }
+    ],
     "oxc/no-map-spread": `off`,
     "eslint-plugin-vitest/no-conditional-expect": `off`,
     // Vitest default rules — too noisy
