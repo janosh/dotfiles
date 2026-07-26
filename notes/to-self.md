@@ -2,11 +2,22 @@
 
 ## Cursor/Codex Setup
 
-`AGENTS.md` rules are inherited up the directory tree, so a single symlink at the common parent covers all repos:
+Codex and Claude Code inherit `AGENTS.md` up the directory tree, so one symlink at the common parent covers all repos:
 
 ```sh
-ln -sf $(cwd)$/agents/AGENTS.md ~/dev/AGENTS.md
+ln -sf ~/dev/dotfiles/agents/AGENTS.md ~/dev/AGENTS.md
 ```
+
+Cursor does **not** walk up past the workspace root — it only reads `AGENTS.md` at the root of the open folder and in subdirectories below it. Opening a single repo means `~/dev/AGENTS.md` is one level too high and no rules load at all. So every repo needs its own symlink (the global gitignore already excludes `AGENTS.md`, so these stay untracked):
+
+```sh
+for repo in ~/dev/*/; do
+    [[ -d $repo/.git && ! -e $repo/AGENTS.md ]] &&
+        ln -s ~/dev/dotfiles/agents/AGENTS.md "$repo/AGENTS.md"
+done
+```
+
+Re-run after cloning a new repo. Repos with their own `AGENTS.md` are left alone.
 
 Cursor uses `~/.cursor/skills/`, Codex uses `~/.agents/skills/`, and Claude Code uses `~/.claude/skills/` for global (cross-project) skills. The `SKILL.md` `name`/`description` frontmatter is shared across all three. Symlink dotfiles skills into all three:
 

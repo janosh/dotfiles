@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+# zsh, not bash: ask_details uses zsh's `read VAR'?prompt'` form below
 
 bold_echo() { # Helper function for bold text.
   echo "$(tput bold)${1}$(tput sgr0)"
