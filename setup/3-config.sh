@@ -1,22 +1,79 @@
 #!/bin/bash
 
 configure_zsh() {
-  # Link .zshrc from dotfiles to home directory.
-  # -f: Overwrite config if already exists.
-  ln -f dotfiles/.zshrc ~
+  # Install Oh My Zsh first so it does not overwrite our linked .zshrc.
+  # KEEP_ZSHRC: never replace an existing .zshrc. RUNZSH/CHSH: don't start a
+  # subshell or prompt for a login shell change mid-script.
+  if [[ ! -d "${HOME}/.oh-my-zsh" ]]; then
+    KEEP_ZSHRC=yes RUNZSH=no CHSH=no \
+      sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  fi
 
-  # Install Oh My Zsh.
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  # Symlink .zshrc from dotfiles to home directory.
+  # -sf: force replace existing file/symlink.
+  ln -sf "${DOTFILES_DIR}/dotfiles/.zshrc" ~/.zshrc
+}
+
+configure_agents() {
+  local dev_dir agents_md repo dest skill
+  dev_dir=$(dirname "${DOTFILES_DIR}")
+  agents_md="${DOTFILES_DIR}/agents/AGENTS.md"
+
+  # Codex and Claude Code inherit AGENTS.md up the directory tree, so one link at the
+  # common parent of all repos covers them.
+  ln -sfn "${agents_md}" "${dev_dir}/AGENTS.md"
+
+  # Cursor does not walk up past the workspace root, so every repo needs its own link.
+  # Repos that ship their own AGENTS.md are left alone.
+  # -e "${repo}.git": worktrees and submodules have a .git file, not a directory.
+  # -L on the target as well: -e alone is false for a dangling link, and ln would fail.
+  for repo in "${dev_dir}"/*/; do
+    if [[ -e "${repo}.git" && ! -e "${repo}AGENTS.md" && ! -L "${repo}AGENTS.md" ]]; then
+      ln -s "${agents_md}" "${repo}AGENTS.md"
+    fi
+  done
+
+  # Cursor, Codex and Claude Code read global skills from separate directories but share
+  # the SKILL.md format, so the same skill dirs can be linked into all three.
+  for dest in ~/.cursor/skills ~/.agents/skills ~/.claude/skills; do
+    mkdir -p "${dest}"
+    for skill in "${DOTFILES_DIR}"/agents/skills/*/; do
+      skill=${skill%/} # glob leaves a trailing slash, strip it to get the skill name
+      # -n: replace an existing skill symlink instead of linking inside the dir it points to.
+      ln -sfn "${skill}" "${dest}/${skill##*/}"
+    done
+  done
+}
+
+configure_login_items() {
+  # Rectangle/Maccy need login items; SMAppService has no CLI, so System Events
+  # (prompts once for Automation access).
+  local app_name app_path
+  for app_name in Rectangle Maccy; do
+    app_path="/Applications/${app_name}.app"
+    if [[ ! -d "${app_path}" ]]; then
+      echo "- Skipping ${app_name} login item, not installed at ${app_path}."
+      continue
+    fi
+    echo "- Adding ${app_name} to login items."
+    osascript \
+      -e 'tell application "System Events"' \
+      -e "if not (exists login item \"${app_name}\") then" \
+      -e "make login item at end with properties {path:\"${app_path}\", hidden:false}" \
+      -e 'end if' \
+      -e 'end tell' > /dev/null ||
+      echo "  failed: grant Automation access to System Events, then rerun."
+  done
 }
 
 configure_git() {
-  # Hard-link global gitignore file into default location.
+  # Symlink global gitignore/attributes into default location.
   mkdir -p ~/.config/git
-  ln -f dotfiles/git/global-ignore ~/.config/git/ignore
-  ln -f dotfiles/git/global-attributes ~/.config/git/attributes
+  ln -sf "${DOTFILES_DIR}/dotfiles/git/global-ignore" ~/.config/git/ignore
+  ln -sf "${DOTFILES_DIR}/dotfiles/git/global-attributes" ~/.config/git/attributes
 
-  # Hard-link git config into home directory.
-  ln -f dotfiles/git/config ~/.gitconfig
+  # Symlink git config into home directory.
+  ln -sf "${DOTFILES_DIR}/dotfiles/git/config" ~/.gitconfig
 }
 
 set_file_association() {
@@ -30,8 +87,9 @@ configure_macos() {
 
   # Ask for 'sudo' authentication.
   if sudo --non-interactive true 2> /dev/null; then
-    read -r -s -n0 -p "$(tput bold)Some commands require 'sudo', but it seems you have already authenticated. When you’re ready to continue, press ↵.$(tput sgr0)"
-    echo
+    # Plain `read` only: this file is sourced by zsh, whose read has no -n/-p.
+    echo -n "$(tput bold)Some commands require 'sudo', but it seems you have already authenticated. When you’re ready to continue, press ↵.$(tput sgr0)"
+    read -r _
   else
     echo -n "$(tput bold)When you’re ready to continue, insert your password. This is done upfront for the commands that require 'sudo'.$(tput sgr0) "
     sudo --validate
@@ -59,16 +117,6 @@ configure_macos() {
 
   echo '- Disable Resume after reboot system-wide.'
   defaults write com.apple.systempreferences NSQuitAlwaysKeepsWindows -bool false
-
-  echo '- Disable the prompt "Are you sure you want to open this application?".'
-  defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSQuarantine -bool false
-
-  echo '- Disable the Gatekeeper prompt "{appname} cannot be opened because it is from an unidentified developer".'
-  sudo spctl --master-disable
-
-  echo '- Prevent Gatekeeper from re-enabling itself after 30 days.'
-  # Changes System Preferences > Security & Privacy > General > Allow apps downloaded from.
-  sudo defaults write /Library/Preferences/com.apple.security GKAutoRearm -bool false
 
   echo '- Prevent Safari from auto-opening "safe" files after download.'
   defaults write com.apple.Safari AutoOpenSafeDownloads -bool false
@@ -148,27 +196,9 @@ configure_macos() {
   # See https://apple.stackexchange.com/a/123834.
   set_file_association net.daringfireball.markdown com.microsoft.vscode
   set_file_association public.plain-text com.microsoft.vscode
-  set_file_association public.mpeg-4 org.videolan.vlc
-  set_file_association public.html com.google.chrome
+  set_file_association public.html com.brave.Browser
   # /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework\
   # /Versions/A/Support/lsregister -kill -r -domain local -domain system -domain user
-
-  echo 'Customize VLC settings'
-  # Ensure the settings file exists (not created on install but on launch)
-  # by calling vlc with an invalid value for the interface option.
-  # Does nothing except create and populate the file
-  # ~/Library/Preferences/org.videolan.vlc/vlcrc
-  vlc -I none
-  echo '- Enable dark mode.'
-  sed -i '' -E 's/#?macosx-interfacestyle=0/macosx-interfacestyle=1/' ~/Library/Preferences/org.videolan.vlc/vlcrc
-  echo '- Disable icon changes (like Christmas icon).'
-  sed -i '' -E 's/#?macosx-icon-change=1/macosx-icon-change=0/' ~/Library/Preferences/org.videolan.vlc/vlcrc
-  # use sed with double quotes for variable replacement and pipe as separator
-  # since variable contains forward slashes (https://askubuntu.com/a/508174)
-  echo '- Set ~/Desktop as snapshot save location.'
-  sed -i '' -E "s|#?snapshot-path=.*|snapshot-path=$HOME/Desktop/|" ~/Library/Preferences/org.videolan.vlc/vlcrc
-  echo '- Set JPG as snapshot file type.'
-  sed -i '' -E 's/#?snapshot-format=.*/snapshot-format=jpg/' ~/Library/Preferences/org.videolan.vlc/vlcrc
 
   echo 'Disable hot corners.'
   for corner in tl tr br bl; do
@@ -188,6 +218,17 @@ configure_macos() {
   echo 'Disable PNPM writing lockfiles.'
   pnpm config --global set lockfile false
 
-  # Now run steps requiring manual user-input in System Settings.app
-  . setup/system-settings.sh
+  echo 'Disable the PNPM minimum release age gate.'
+  # pnpm 11 defaults minimumReleaseAge to 1440 min, refusing to resolve any release
+  # younger than a day. `pnpm config --global set` writes a legacy rc file that pnpm 11
+  # no longer reads, so write the config file it does read. Repos that set the value
+  # themselves (e.g. hardened work monorepos) still win over this.
+  pnpm_config="${HOME}/Library/Preferences/pnpm/config.yaml"
+  mkdir -p "$(dirname "${pnpm_config}")"
+  grep -q '^minimumReleaseAge:' "${pnpm_config}" 2> /dev/null ||
+    echo 'minimumReleaseAge: 0' >> "${pnpm_config}"
+
+  # Run (don't source) the manual System Settings steps: the script traps SIGINT to
+  # exit, which sourcing would leak into this shell and abort the whole setup on ⌃c.
+  "${DOTFILES_DIR}/setup/system-settings.sh"
 }

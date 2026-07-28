@@ -40,7 +40,7 @@ Multiple agents may work on the same branch concurrently. Editing a file that al
 - Use snake_case for variables and functions, not camelCase
 - Prefer backticks to single or double quotes, except inside TypeScript type definitions
 - Use `it.each([...])` and `test.each([...])` for parameterized vitest tests
-- Prefer single-line comments (`//`) over multiline (`/** */`), even for multi-line comments use multiple `//` lines
+- Never use `/**` or `/* */` for docs (JSDoc/TSDoc included). Always `//`, with consecutive `//` lines for multi-line notes. Reserve `/* */` for CSS and tool pragmas (`eslint-disable`, etc.)
 - In CSS/style blocks, don't leave blank lines between rules - the closing `}` is enough separation
 - Keep CSS simple: prefer nested selectors over many classes; inline styles if a class only has 1-2 rules. offer to remove CSS classes that aren't used at all.
 - Prefer [attachments](https://svelte.dev/docs/svelte/@attach) over the legacy [`use:` directive](https://svelte.dev/docs/svelte/use) for actions
@@ -78,6 +78,7 @@ Multiple agents work on the same repo concurrently. Any destructive git operatio
 
 ## General
 
+- Before any cluster or `matsci` database work, read `~/dev/dotfiles/tmp/cluster-db-access.md` (SSH aliases, partitions, containers, build setup, DB recipes)
 - **Units notation**: never use `ų` or other obscure Unicode glyphs for units. Write `A^3` (cubic angstrom), `e/A^3` (electron density), `eV/A` (force), etc. In Rust doc comments and Python docstrings use `Å³`, `e/Å³`, `eV/Å` with the standard Å character.
 - **No single-letter or concatenated variable names!** Use proper snake_case: `idx` not `i`, `n_images` not `nimages`, `f_max` not `fmax`, `col_idx` not `colidx`
 - **No fallbacks or backward-compatible interfaces** unless explicitly told. Throw an error or fail early—silent catches, default shims, and compatibility wrappers mask bugs.
@@ -87,6 +88,7 @@ Multiple agents work on the same repo concurrently. Any destructive git operatio
 - Prefer editing existing files over creating new ones.
 - Keep existing comments when editing files unless they are stale or low value.
 - Use single-line section headers: `// === Section Name ===` not verbose multi-line box comments
+- **Never hard-wrap markdown.** There is no max line length: write each paragraph and list item as one long line and let the renderer wrap it. Reflowing prose to a column makes later edits produce noisy diffs. The only exception is inside code fences, where line breaks are content. This applies to prose you write for humans too, e.g. Slack messages, PR descriptions, commit bodies.
 - Never create or commit lock files (no `uv.lock`, `pnpm-lock.yaml`, `package-lock.json`, `deno.lock`, etc.)
 - **Never commit handover docs, temp data files, or proof-of-concept artifacts** (no `HANDOVER.md`, sample `.jsonl`/`.lmdb` files, exploratory notebooks, etc.). These clutter the monorepo — keep them local or in `tmp/`.
 - Use `prek` (Rust port), never `pre-commit` (Python)

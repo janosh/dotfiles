@@ -1,15 +1,23 @@
+# Deduplicate PATH: each entry below is prepended once per interactive shell.
+typeset -U PATH path
+
 # Set zsh theme to load.
 # https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 export ZSH_THEME="robbyrussell"
 
+# guarded so a missing/broken Oh My Zsh doesn't break every new shell
 # shellcheck disable=SC1090
-source ~/.oh-my-zsh/oh-my-zsh.sh
+[[ -r ~/.oh-my-zsh/oh-my-zsh.sh ]] && source ~/.oh-my-zsh/oh-my-zsh.sh
 
-# activate default virtualenv
-# shellcheck disable=SC1090
-source ~/.venv/py314/bin/activate
+# Shared py314 venv (no per-project .venv). Export VIRTUAL_ENV so `uv run` reuses it
+# instead of a bare uv-managed interpreter. Check -x on python, not -d on the dir:
+# a brew Python upgrade can leave a dangling symlink (see notes/to-self.md).
+if [[ -x ~/.venv/py314/bin/python ]]; then
+  export VIRTUAL_ENV="$HOME/.venv/py314"
+  export PATH="$VIRTUAL_ENV/bin:$PATH"
+fi
 # shellcheck disable=SC1091
-. "$HOME"/.local/bin/env
+[[ -f "$HOME"/.local/bin/env ]] && . "$HOME"/.local/bin/env
 
 alias ga='git add'
 alias gc='git commit'
@@ -22,12 +30,14 @@ alias gf='git fetch'
 alias gr='git remote'
 alias grv='git remote -v'
 # `git push` (gp) and `gh pr create` with automatic gh-account failover:
-# on a 403/permission-denied error, retry across all other `gh auth` logins.
+# on a permission error, retry across all other `gh auth` logins.
 _gh_failover() {
   emulate -L zsh
   setopt no_multios  # else `1>&3` alongside the pipe makes zsh duplicate stdout
   local tmp; tmp=$(mktemp) || { "$@"; return $?; }
-  local perm_re='permission|403|denied|authentication failed'
+  # GitHub masks 403 as 404 on private repos so as not to leak their existence, so an
+  # unauthorized account reports "Repository not found" and never looks like a denial.
+  local perm_re='permission|403|denied|authentication failed|repository not found'
   local -i ret  # not `status`: that name is read-only in zsh (mirrors $?)
   # run cmd with stdout/stdin on the tty, stderr shown live AND captured for inspection
   { "$@" 2>&1 1>&3 | tee "$tmp" >&2; ret=${pipestatus[1]}; } 3>&1
@@ -48,7 +58,12 @@ _gh_failover() {
   rm -f "$tmp"
   return $ret
 }
-gp() { _gh_failover git push "$@"; }
+# Push through gh's credential helper, not osxkeychain: the keychain pins one account
+# and ignores `gh auth switch`, so the failover would retry with the same rejected
+# credential. The empty value clears the inherited helper list before adding gh's.
+gp() {
+  _gh_failover git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push "$@"
+}
 gh() {
   if [[ $1 == pr && $2 == create ]]; then
     _gh_failover command gh "$@"
@@ -64,8 +79,11 @@ alias gm='git merge'
 alias grb='git rebase'
 alias glog='git log --oneline'
 # Rank repo files by net lines added over git history.
+# Resolve repo via ~/.zshrc symlink. --no-project + unset UV_FROZEN: stdlib-only script
+# must not sync a .venv from the cwd's pyproject (UV_FROZEN warns without a project).
 glines() {
-  python "$HOME/dev/dotfiles/scripts/git_line_rank.py" "$@"
+  local repo=${${functions_source[glines]}:A:h:h}
+  env -u UV_FROZEN uv run --no-project "${repo}/scripts/git_line_rank.py" "$@"
 }
 # Clean stale branches and non-origin remotes.
 # shellcheck disable=SC2086
@@ -90,7 +108,10 @@ grcl() {
 }
 
 alias path='echo "${PATH//:/\n}"'
-alias ssh="ssh -F ~/.ssh/config"  # https://stackoverflow.com/a/63935109
+# guarded: ssh -F on a missing file aborts with "Can't open user config file",
+# which would break every ssh invocation on a machine without one
+# https://stackoverflow.com/a/63935109
+[[ -f ~/.ssh/config ]] && alias ssh="ssh -F ~/.ssh/config"
 alias pt='pytest'
 alias pip='uv pip'
 alias code='cursor'
@@ -114,12 +135,19 @@ export UV_FROZEN=1 # equiv to --frozen, prevent uv from automatically updating t
 alias pwt='pnpm playwright test'
 alias pvt='pnpm vitest'
 
-# Alt + arrow keys for word navigation
-bindkey "^[[1;3C" forward-word      # Alt + Right Arrow
-bindkey "^[[1;3D" backward-word     # Alt + Left Arrow
-# Alternative bindings (if the above don't work)
-bindkey "^[^[[C" forward-word       # Alt + Right Arrow (alternative)
-bindkey "^[^[[D" backward-word      # Alt + Left Arrow (alternative)
+# Option+←/→/Delete word motion (Terminal "Use Option as Meta key"). bindkey -e:
+# emacs mode already has ^[b/^[f/^[^?; these are the terminal-specific sequences.
+bindkey -e
+() {
+  local seq
+  for seq in '\e\e[D' '\e\eOD' '^[[1;3D' '^[[1;9D'; do bindkey "$seq" backward-word; done
+  for seq in '\e\e[C' '\e\eOC' '^[[1;3C' '^[[1;9C'; do bindkey "$seq" forward-word; done
+}
+bindkey '^[[3;3~' kill-word
+bindkey '^U' backward-kill-line # Cmd+Delete (Terminal sends Ctrl+U)
 
-# Cmd + Backspace to delete whole line
-bindkey "^U" backward-kill-line
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+# shellcheck disable=SC1090
+[[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"

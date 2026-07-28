@@ -10,8 +10,8 @@ renew_sudo() { # Helper function used whenever the ensuing command needs `sudo`.
 }
 
 ask_details() {
-  # check that SUDO_PASSWORD is not already set
-  if [ -n "$SUDO_PASSWORD" ]; then
+  # Prompt for sudo unless SUDO_PASSWORD is already set.
+  if [ -z "$SUDO_PASSWORD" ]; then
     # Ask for the administrator password upfront (to run commands that require `sudo`).
     bold_echo 'Provide sudo password (will not be echoed).'
     until sudo --non-interactive true 2> /dev/null; do # If password is wrong, keep asking.
@@ -21,8 +21,8 @@ ask_details() {
     done
   fi
 
-  # only set LoginwindowText if read excits non-zero (meaning not set yet)
-  if defaults read /Library/Preferences/com.apple.loginwindow LoginwindowText &> /dev/null; then
+  # Only set LoginwindowText if read exits non-zero (meaning not set yet).
+  if ! defaults read /Library/Preferences/com.apple.loginwindow LoginwindowText &> /dev/null; then
     echo
     bold_echo 'User details (for lost device message lock screen):'
     read -r FULLNAME'?Full name: '

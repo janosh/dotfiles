@@ -1,72 +1,32 @@
 #!/bin/bash
 
-# --- Helper functions ---
+# Guided manual steps in System Settings (macOS Ventura+).
+# Opens each pane via x-apple.systempreferences URL, then waits until System Settings is closed.
 
 trap 'exit 0' SIGINT # exit cleanly if aborted with ⌃c
 
-request() { # Output a message and open an app.
-  local message="${1}"
-  local app="${2}"
-  shift 2
+request_settings() { # Print a prompt, open a System Settings pane, wait until the app quits.
+  local message=$1 pane=$2
 
   echo "$(tput setaf 5)•$(tput sgr0) ${message}"
-  open -Wa "${app}" --args "$@" # Don't continue until app closes.
+  open "x-apple.systempreferences:${pane}"
+  open -Wa 'System Settings'
 }
 
-request_preferences() { # 'request' for System Preferences.
-  request "${1}" 'System Preferences'
-}
+# Close any already-open System Settings so pane opens are not overridden.
+osascript -e 'tell application "System Settings" to quit' &> /dev/null
 
-preferences_pane() { # Open 'System Preferences' in specified pane.
-  osascript -e "tell application \"System Preferences\"
-    reveal pane \"${1}\"
-    activate
-  end tell" &> /dev/null
-}
+echo 'This script requires manual interaction. It opens one System Settings pane at a time and
+says what to change. Close the app when done and the script continues with the next pane.
+'
 
-preferences_pane_anchor() { # Open 'System Preferences' in specified pane and tab.
-  osascript -e "tell application \"System Preferences\"
-    reveal anchor \"${1}\" of pane \"${2}\"
-    activate
-  end tell" &> /dev/null
-}
-
-# Auto-close any open System Preferences panes, to prevent them from
-# overriding settings we’re about to change
-osascript -e 'tell application "System Preferences" to quit'
-
-# --- Main script ---
-echo "This scripts requires manual interaction. It opens the appropriate System Settings panels, informs what needs to be done, and pauses until System Settings is closed.
-  Unless prefixed with the message 'ALL TABS', all changes can be performed in the opened tab.
-  After the changes are done, close the app and the script will continue.
-" | sed -E 's/ {2}//'
-
-preferences_pane 'com.apple.preferences.Bluetooth'
-request_preferences 'Add Bluetooth peripherals and show Bluetooth in menu bar.'
-
-preferences_pane 'com.apple.preference.trackpad'
-request_preferences 'Set Trackpad preferences.'
-
-preferences_pane 'com.apple.preference.mouse'
-request_preferences 'Set Mouse preferences.'
-
-preferences_pane_anchor 'Mouse' 'com.apple.preference.universalaccess'
-request_preferences 'Under "Trackpad Options…", enable three finger drag.'
-
-preferences_pane_anchor 'Dictation' 'com.apple.preference.keyboard'
-request_preferences 'Download other languages.'
-
-preferences_pane 'com.apple.preferences.AppleIDPrefPane'
-request_preferences "Check what you want synced to iCloud."
-
-preferences_pane 'com.apple.preferences.internetaccounts'
-request_preferences 'Remove Game Center.'
-
-preferences_pane 'com.apple.preferences.users'
-request_preferences 'Turn off Guest User account.'
-
-preferences_pane 'com.apple.preference.printfax'
-request_preferences 'Add printers.'
-
-preferences_pane 'com.apple.preference.security'
-request_preferences 'Set delay after sleep before prompting for password on wake.'
+request_settings 'Add Bluetooth peripherals and show Bluetooth in menu bar.' com.apple.BluetoothSettings
+request_settings 'Set Trackpad preferences.' com.apple.Trackpad-Settings.extension
+request_settings 'Set Mouse preferences.' com.apple.Mouse-Settings.extension
+request_settings 'Enable three finger drag under Pointer Control → Trackpad Options….' com.apple.Accessibility-Settings.extension
+request_settings 'Download other languages under Dictation.' com.apple.Keyboard-Settings.extension
+request_settings 'Check what you want synced to iCloud.' com.apple.systempreferences.AppleIDSettings
+request_settings 'Sign out of Game Center if unused.' com.apple.Game-Center-Settings.extension
+request_settings 'Turn off Guest User account.' com.apple.Users-Groups-Settings.extension
+request_settings 'Add printers.' com.apple.Print-Scan-Settings.extension
+request_settings 'Set delay after sleep before prompting for password on wake.' com.apple.Lock-Screen-Settings.extension

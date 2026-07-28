@@ -210,6 +210,10 @@ def test_parse_numstat_rows_sorts_by_requested_metric(
     [
         ("test_app.py", "test"),
         ("src/app.test.ts", "test"),
+        ("src-tauri/src/tests.rs", "test"),
+        ("pkg/test.go", "test"),
+        ("tests/removed.py", "test"),
+        ("src-tauri/src/lib.rs", "code"),
         ("readme.md", ""),
     ],
 )

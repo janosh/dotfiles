@@ -356,14 +356,16 @@ def print_table(rows: Sequence[LineRankRow]) -> None:
 def file_kind(file_path: str) -> str:
     """Return the display category for a file path."""
     file_name = os.path.basename(file_path)
+    stem, ext = os.path.splitext(file_name)
     if (
         file_path.startswith("tests/")
         or file_name.startswith("test_")
+        or stem in {"test", "tests"}
         or ".test." in file_name
         or ".spec." in file_name
     ):
         return "test"
-    return "code" if CODE_EXT_PATTERN.fullmatch(os.path.splitext(file_name)[1]) else ""
+    return "code" if CODE_EXT_PATTERN.fullmatch(ext) else ""
 
 
 def main(args: Sequence[str] | None = None) -> int:  # noqa: PLR0915

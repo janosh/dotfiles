@@ -17,6 +17,9 @@
 	editor = cursor --wait
 	# set path to global .gitattributes file (has no default)
 	attributesfile = ~/.config/git/attributes
+	# same path git already defaults to, but set explicitly so the global ignore keeps
+	# working if XDG_CONFIG_HOME is ever set to something other than ~/.config
+	excludesfile = ~/.config/git/ignore
 
 [rebase]
   # Automatically create temporary stash entry before rebase begins. Reapply afterwards.

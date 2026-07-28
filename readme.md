@@ -6,22 +6,18 @@ Shell scripts and config to bootstrap a fresh macOS install (Homebrew, dotfiles,
 
 ## Usage
 
-To run all automatic scripts in this repo:
+To run all automatic scripts in this repo, from a fresh machine or an existing checkout:
 
 ```sh
-zsh -c "$(curl -sSL 'https://raw.github.com/janosh/dotfiles/main/setup/main.sh')"
+zsh -c "$(curl -fsSL 'https://raw.githubusercontent.com/janosh/dotfiles/main/setup/main.sh')"
 ```
 
-Or, if you've already cloned the repo locally, simply run:
-
-```sh
-./setup/main.sh
-```
+It clones into `~/dev/dotfiles` (or updates an existing clone) and runs from there.
 
 To customize OS settings and complete the setup, run:
 
 ```sh
-zsh -c "$(curl -sSL 'https://raw.github.com/janosh/dotfiles/main/setup/system-settings.sh')"
+zsh -c "$(curl -fsSL 'https://raw.githubusercontent.com/janosh/dotfiles/main/setup/system-settings.sh')"
 ```
 
 **New Mac Setup Note:**
@@ -41,4 +37,11 @@ When setting up new Macs with iCloud "Desktop & Documents" sync enabled, check [
 
 Setup scripts are prefixed with numbers and define functions only. `setup/main.sh` sources them and runs the install sequence.
 
-If you wish to run only parts of the setup process, source the appropriate script(s) and call the respective functions, e.g. `source setup/2-apps.sh && brew_install`.
+If you wish to run only parts of the setup process, source the appropriate script(s) and call the respective functions. They locate the repo via `DOTFILES_DIR`, which `main.sh` normally sets, and helpers like `renew_sudo` live in `1-setup.sh`:
+
+```sh
+export DOTFILES_DIR=~/dev/dotfiles
+source setup/1-setup.sh
+source setup/2-apps.sh
+ask_details && brew_install
+```
