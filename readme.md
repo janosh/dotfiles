@@ -14,7 +14,7 @@ zsh -c "$(curl -fsSL 'https://raw.githubusercontent.com/janosh/dotfiles/main/set
 
 It clones into `~/dev/dotfiles` (or updates an existing clone) and runs from there.
 
-To customize OS settings and complete the setup, run:
+Human-only leftovers (Bluetooth pairing, iCloud, printers, …):
 
 ```sh
 zsh -c "$(curl -fsSL 'https://raw.githubusercontent.com/janosh/dotfiles/main/setup/system-settings.sh')"

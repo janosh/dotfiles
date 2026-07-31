@@ -1,13 +1,39 @@
 # Deduplicate PATH: each entry below is prepended once per interactive shell.
 typeset -U PATH path
 
-# Set zsh theme to load.
-# https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-export ZSH_THEME="robbyrussell"
+# === Prompt (robbyrussell-style, no Oh My Zsh) ===
+autoload -U colors && colors
+setopt prompt_subst
+_git_prompt() {
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return
+  local ref dirty
+  ref=$(git symbolic-ref --short HEAD 2>/dev/null) \
+    || ref=$(git rev-parse --short HEAD 2>/dev/null) \
+    || return
+  [[ -n $(git status --porcelain --ignore-submodules=dirty 2>/dev/null) ]] && dirty=1
+  print -n "%{$fg_bold[blue]%}git:(%{$fg[red]%}${ref//\%/%%}%{$fg[blue]%})"
+  (( dirty )) && print -n " %{$fg[yellow]%}%1{✗%}"
+  print -n "%{$reset_color%} "
+}
+PROMPT="%(?:%{$fg_bold[green]%}%1{➜%} :%{$fg_bold[red]%}%1{➜%} ) %{$fg[cyan]%}%c%{$reset_color%} \$(_git_prompt)"
 
-# guarded so a missing/broken Oh My Zsh doesn't break every new shell
-# shellcheck disable=SC1090
-[[ -r ~/.oh-my-zsh/oh-my-zsh.sh ]] && source ~/.oh-my-zsh/oh-my-zsh.sh
+# If input is not a command but matches a directory name, cd into it (bash: shopt -s autocd)
+setopt autocd
+
+# === Completion (OMZ-equivalent tweaks) ===
+zmodload -i zsh/complist
+WORDCHARS=''
+unsetopt menu_complete flowcontrol
+setopt auto_menu complete_in_word always_to_end
+zstyle ':completion:*:*:*:*:*' menu select
+zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' special-dirs true
+zstyle ':completion:*' use-cache yes
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completions"
+zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
+mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completions"
+autoload -Uz compinit && compinit
+autoload -U +X bashcompinit && bashcompinit
 
 # Shared py314 venv (no per-project .venv). Export VIRTUAL_ENV so `uv run` reuses it
 # instead of a bare uv-managed interpreter. Check -x on python, not -d on the dir:
@@ -58,12 +84,8 @@ _gh_failover() {
   rm -f "$tmp"
   return $ret
 }
-# Push through gh's credential helper, not osxkeychain: the keychain pins one account
-# and ignores `gh auth switch`, so the failover would retry with the same rejected
-# credential. The empty value clears the inherited helper list before adding gh's.
-gp() {
-  _gh_failover git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push "$@"
-}
+# Credential helper for github.com/gist is set in git/config (gh, not osxkeychain).
+gp() { _gh_failover git push "$@"; }
 gh() {
   if [[ $1 == pr && $2 == create ]]; then
     _gh_failover command gh "$@"
@@ -108,15 +130,11 @@ grcl() {
 }
 
 alias path='echo "${PATH//:/\n}"'
-# guarded: ssh -F on a missing file aborts with "Can't open user config file",
-# which would break every ssh invocation on a machine without one
-# https://stackoverflow.com/a/63935109
-[[ -f ~/.ssh/config ]] && alias ssh="ssh -F ~/.ssh/config"
 alias pt='pytest'
 alias pip='uv pip'
 alias code='cursor'
 
-# Source brew-installed zsh plugins.
+# Source brew-installed zsh plugins (syntax-highlighting last).
 # shellcheck disable=SC1094,SC1091
 . /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 # shellcheck disable=SC1091,SC1094
@@ -127,13 +145,9 @@ alias code='cursor'
 # https://github.com/zsh-users/zsh-autosuggestions/issues/351
 ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(bracketed-paste)
 
-# Initialize zsh completions
-autoload -Uz compinit
-compinit
 export PATH="$HOME/.cargo/bin:$PATH"
 export UV_FROZEN=1 # equiv to --frozen, prevent uv from automatically updating the uv.lock file
-alias pwt='pnpm playwright test'
-alias pvt='pnpm vitest'
+export PNPM_CONFIG_LOCKFILE=false # don't read or write pnpm-lock.yaml
 
 # Option+←/→/Delete word motion (Terminal "Use Option as Meta key"). bindkey -e:
 # emacs mode already has ^[b/^[f/^[^?; these are the terminal-specific sequences.
@@ -145,9 +159,10 @@ bindkey -e
 }
 bindkey '^[[3;3~' kill-word
 bindkey '^U' backward-kill-line # Cmd+Delete (Terminal sends Ctrl+U)
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+[[ -n $terminfo[kcuu1] ]] && bindkey "$terminfo[kcuu1]" history-substring-search-up
+[[ -n $terminfo[kcud1] ]] && bindkey "$terminfo[kcud1]" history-substring-search-down
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-# shellcheck disable=SC1090
-[[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"
+# Vite+ bin (https://viteplus.dev)
+. "$HOME/.vite-plus/env"

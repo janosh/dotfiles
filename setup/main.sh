@@ -46,26 +46,24 @@ install() {
   cd "${DOTFILES_DIR}" || exit 1
 
   # The numbered scripts define functions only, so source them all before running any.
-  for script in 1-setup.sh 2-apps.sh 3-config.sh 4-cleanup.sh; do
+  for script in 1-setup.sh 2-apps.sh 3-config.sh; do
     source "${setup_dir}/${script}" || exit 1
   done
 
   ask_details
-  # update_system # takes too long, do manually
 
   brew_install
   brew_bundle_checklist
   gh_auth_login
 
-  configure_zsh
-  configure_git
+  link_dotfiles
   configure_agents
   configure_login_items
   configure_macos
 
   brew cleanup
-  cleanup_error_log
-  final_message
+  sed -i '' -E '/^Password: /d;/#.*%/d;/\* \[new/d;/Cloning into/d;/Execute post install script?/d' "${ERROR_LOG}"
+  echo "All automated scripts have finished. 'stderr' has been logged to '${ERROR_LOG}'."
 }
 
 # Run and log errors to file (but still show them when they happen).

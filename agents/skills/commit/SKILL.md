@@ -1,26 +1,29 @@
 ---
 name: commit
-description: Stage and commit local changes in logical chunks with high-quality commit messages.
+description: Stage, commit, and push local changes. Modifiers: nv (--no-verify), mine (own edits only), local (no push).
 disable-model-invocation: true
 ---
 
 # Commit Changes
 
-## When to use
+## Default (`/commit`)
 
-- User explicitly requests creating commit(s)
+Stage **all** edits → commit with hooks → push. Coherent commits; short imperative summary + body focused on rationale.
 
-## Instructions
+## Modifiers
 
-1. Review uncommitted diff and untracked files.
-2. Group related edits into coherent commit units.
-3. Stage appropriately (partial staging when necessary).
-4. Write descriptive commit messages:
-   - short imperative summary
-   - optional body focused on rationale
+Space-separated after `/commit`; combine freely.
+
+| Token | Effect |
+| --- | --- |
+| `nv` | `--no-verify` |
+| `mine` | stage only this agent's in-session paths (`git add <paths>`, not `-A`) |
+| `local` | skip push |
 
 ## Rules
 
-- Never commit unless user explicitly asks
-- Exclude debug code and commented-out instrumentation
-- Prefer fewer coherent commits over fragmented micro-commits
+- Only when user asks (invoking this skill counts)
+- Warn before committing if the diff looks unfinished, unpolished, or needlessly bloated
+- No debug/commented-out instrumentation
+- No force-push, amend, or stash/reset/checkout of others' dirty files unless user explicitly says so
+- No upstream → stop; don't invent `-u`

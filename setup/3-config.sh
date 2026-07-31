@@ -1,19 +1,5 @@
 #!/bin/bash
 
-configure_zsh() {
-  # Install Oh My Zsh first so it does not overwrite our linked .zshrc.
-  # KEEP_ZSHRC: never replace an existing .zshrc. RUNZSH/CHSH: don't start a
-  # subshell or prompt for a login shell change mid-script.
-  if [[ ! -d "${HOME}/.oh-my-zsh" ]]; then
-    KEEP_ZSHRC=yes RUNZSH=no CHSH=no \
-      sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-  fi
-
-  # Symlink .zshrc from dotfiles to home directory.
-  # -sf: force replace existing file/symlink.
-  ln -sf "${DOTFILES_DIR}/dotfiles/.zshrc" ~/.zshrc
-}
-
 configure_agents() {
   local dev_dir agents_md repo dest skill
   dev_dir=$(dirname "${DOTFILES_DIR}")
@@ -66,20 +52,25 @@ configure_login_items() {
   done
 }
 
-configure_git() {
-  # Symlink global gitignore/attributes into default location.
+link_dotfiles() {
+  # -sf: force replace existing file/symlink.
+  ln -sf "${DOTFILES_DIR}/dotfiles/.zshrc" ~/.zshrc
+
   mkdir -p ~/.config/git
   ln -sf "${DOTFILES_DIR}/dotfiles/git/global-ignore" ~/.config/git/ignore
   ln -sf "${DOTFILES_DIR}/dotfiles/git/global-attributes" ~/.config/git/attributes
-
-  # Symlink git config into home directory.
   ln -sf "${DOTFILES_DIR}/dotfiles/git/config" ~/.gitconfig
 }
 
 set_file_association() {
-  # helper function to set file association based on extension
   defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \
-  "{LSHandlerContentType=${1};LSHandlerRoleAll=${2};}"
+    "{LSHandlerContentType=${1};LSHandlerRoleAll=${2};}"
+}
+
+# Write the same key to built-in and Bluetooth trackpad domains.
+write_trackpad() {
+  defaults write com.apple.AppleMultitouchTrackpad "$@"
+  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad "$@"
 }
 
 configure_macos() {
@@ -128,15 +119,43 @@ configure_macos() {
   defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
   echo '- Trackpad: enable tap to click for this user and for the login screen.'
-  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+  write_trackpad Clicking -bool true
   defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
   defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 
   echo '- Trackpad: map bottom right corner to right-click.'
-  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadCornerSecondaryClick -int 2
-  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true
+  write_trackpad TrackpadCornerSecondaryClick -int 2
+  write_trackpad TrackpadRightClick -bool true
   defaults -currentHost write NSGlobalDomain com.apple.trackpad.trackpadCornerClickBehavior -int 1
   defaults -currentHost write NSGlobalDomain com.apple.trackpad.enableSecondaryClick -bool true
+
+  echo '- Trackpad: three-finger drag (clears conflicting drag/swipe gestures).'
+  write_trackpad TrackpadThreeFingerDrag -bool true
+  write_trackpad Dragging -bool false
+  write_trackpad DragLock -bool false
+  write_trackpad TrackpadThreeFingerHorizSwipeGesture -int 0
+  write_trackpad TrackpadThreeFingerVertSwipeGesture -int 0
+
+  echo '- Show Bluetooth in the menu bar; require password immediately on wake.'
+  defaults -currentHost write com.apple.controlcenter Bluetooth -int 18
+  defaults write com.apple.screensaver askForPassword -int 1
+  defaults write com.apple.screensaver askForPasswordDelay -int 0
+
+  echo '- Disable the Guest User account.'
+  sudo sysadminctl -guestAccount off
+
+  echo '- Enable Touch ID for sudo (via update-safe sudo_local, not sudo itself).'
+  # Template ships on Sonoma+; without it (or a prior sudo_local) there is nothing to edit.
+  if [[ ! -f /etc/pam.d/sudo_local ]]; then
+    if [[ ! -f /etc/pam.d/sudo_local.template ]]; then
+      echo '  skipped: /etc/pam.d/sudo_local.template missing (macOS Sonoma+ required).'
+    elif ! sudo cp /etc/pam.d/sudo_local.template /etc/pam.d/sudo_local; then
+      echo '  failed: could not create /etc/pam.d/sudo_local from template.'
+    fi
+  fi
+  if [[ -f /etc/pam.d/sudo_local ]]; then
+    sudo sed -i '' 's/^#auth/auth/' /etc/pam.d/sudo_local
+  fi
 
   echo '- Set Home as the default location for new Finder windows.'
   defaults write com.apple.finder NewWindowTarget -string 'PfLo'
@@ -154,6 +173,10 @@ configure_macos() {
   echo '- Show path bar at bottom edge of Finder windows.'
   defaults write com.apple.finder ShowPathbar -bool true
 
+  echo '- Finder: open folders in new windows, not tabs.'
+  defaults write com.apple.finder FinderSpawnTab -bool false
+  defaults write com.apple.finder AppleWindowTabbingMode -string manual
+
   echo '- Avoid creating .DS_Store files on network or USB volumes.'
   defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
   defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
@@ -163,8 +186,12 @@ configure_macos() {
   defaults write com.apple.frameworks.diskimages skip-verify-locked -bool true
   defaults write com.apple.frameworks.diskimages skip-verify-remote -bool true
 
-  echo '- Do not show recent applications in Dock.'
+  echo '- Dock: hide recents; keep Spaces in fixed order.'
   defaults write com.apple.dock show-recents -bool false
+  defaults write com.apple.dock mru-spaces -bool false
+
+  echo '- Disable click wallpaper to show desktop (Sonoma+).'
+  defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
 
   echo '- Copy email addresses as foo@bar.com instead of Foo Bar <foo@bar.com> in Mail.app.'
   defaults write com.apple.mail AddressesIncludeNameOnPasteboard -bool false
@@ -176,11 +203,10 @@ configure_macos() {
   # Four-letter codes for the other view modes: 'icnv', 'Nlsv', 'Flwv'
   defaults write com.apple.finder FXPreferredViewStyle -string 'clmv'
 
-  echo '- Disable box shadow around screenshots of windows.'
+  echo '- Screenshots: save to Downloads, no window shadow, no floating thumbnail.'
+  defaults write com.apple.screencapture location -string "${HOME}/Downloads"
   defaults write com.apple.screencapture disable-shadow -bool true
-
-  echo '- Disable showing screenshots as floating thumbnails before saving as file.'
-  defaults write com.apple.screencapture show-thumbnail -bool FALSE
+  defaults write com.apple.screencapture show-thumbnail -bool false
 
   echo '- Set languages and metric units.'
   defaults write NSGlobalDomain AppleLanguages -array "en_US" "de_DE"
@@ -197,38 +223,33 @@ configure_macos() {
   set_file_association net.daringfireball.markdown com.microsoft.vscode
   set_file_association public.plain-text com.microsoft.vscode
   set_file_association public.html com.brave.Browser
-  # /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework\
-  # /Versions/A/Support/lsregister -kill -r -domain local -domain system -domain user
 
   echo 'Disable hot corners.'
   for corner in tl tr br bl; do
     defaults write com.apple.dock "wvous-$corner-corner" -int 0
   done
 
-  echo '- Disable power chime (the sound effect on connecting to power source).'
+  echo '- Disable power chime on connecting to power.'
   defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
   killall PowerChime
-  # use following command to re-enable:
-  # defaults write com.apple.PowerChime ChimeOnAllHardware -bool true
-  # open /System/Library/CoreServices/PowerChime.app &
 
-  # restart Dock and Finder for above 'defaults write' changes to take effect.
-  killall Dock Finder
+  # Restart UI agents so defaults take effect (three-finger drag may still need logout).
+  killall Dock Finder ControlCenter 2> /dev/null || true
+
+  echo '- Disable Homebrew analytics.'
+  brew analytics off
 
   echo 'Disable PNPM writing lockfiles.'
   pnpm config --global set lockfile false
 
   echo 'Disable the PNPM minimum release age gate.'
-  # pnpm 11 defaults minimumReleaseAge to 1440 min, refusing to resolve any release
-  # younger than a day. `pnpm config --global set` writes a legacy rc file that pnpm 11
-  # no longer reads, so write the config file it does read. Repos that set the value
-  # themselves (e.g. hardened work monorepos) still win over this.
+  # pnpm 11 defaults minimumReleaseAge to 1440 min; `pnpm config --global set` writes a
+  # legacy rc that pnpm 11 ignores, so write config.yaml directly. Repo-local values win.
   pnpm_config="${HOME}/Library/Preferences/pnpm/config.yaml"
   mkdir -p "$(dirname "${pnpm_config}")"
   grep -q '^minimumReleaseAge:' "${pnpm_config}" 2> /dev/null ||
     echo 'minimumReleaseAge: 0' >> "${pnpm_config}"
 
-  # Run (don't source) the manual System Settings steps: the script traps SIGINT to
-  # exit, which sourcing would leak into this shell and abort the whole setup on ⌃c.
+  # Run (don't source): system-settings.sh traps SIGINT; sourcing would abort setup on ⌃c.
   "${DOTFILES_DIR}/setup/system-settings.sh"
 }

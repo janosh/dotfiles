@@ -44,3 +44,13 @@
 
 [init]
 	defaultBranch = main
+
+# osxkeychain pins one account and ignores `gh auth switch`. Empty helper clears the
+# inherited list; gh then supplies the active token. `gp` already injects this per push —
+# this covers bare `git push` and other HTTPS GitHub ops.
+[credential "https://github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
