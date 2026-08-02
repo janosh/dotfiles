@@ -2,7 +2,7 @@ default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.17
+    rev: v0.16.1
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -11,12 +11,14 @@ repos:
         types_or: [python, jupyter]
 
   - repo: https://github.com/astral-sh/ty-pre-commit
-    rev: v0.0.54
+    rev: v0.0.65
     hooks:
       - id: ty
-        # --isolated: don't create/update uv.lock or the local .venv
+        # --isolated: resolve lint deps in a temp env; do not write uv.lock / .venv
         args: [--isolated, --group, lint]
-        env: { UV_FROZEN: "0" } # override global UV_FROZEN=1 which would require a uv.lock
+        # Global UV_FROZEN=1 errors when uv.lock is absent; unset only for this hook.
+        # Do not set UV_NO_SYNC here: --isolated still needs to install the lint group.
+        env: { UV_FROZEN: "0" }
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1
@@ -40,7 +42,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.48.0
+    rev: v0.49.1
     hooks:
       - id: markdownlint
         # MD013: line too long
@@ -49,14 +51,14 @@ repos:
         args: [--disable, MD013, MD033, MD041, '--']
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
+    rev: v2.4.3
     hooks:
       - id: codespell
         stages: [pre-commit, commit-msg]
         args: [--check-filenames, --ignore-words-list=atomate]
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.47.2
+    rev: v1.48.0
     hooks:
       - id: typos
         types: [text]

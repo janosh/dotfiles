@@ -90,7 +90,7 @@ Multiple agents work on the same repo concurrently. Any destructive git operatio
 - Use single-line section headers: `// === Section Name ===` not verbose multi-line box comments
 - **Never hard-wrap markdown.** There is no max line length: write each paragraph and list item as one long line and let the renderer wrap it. Reflowing prose to a column makes later edits produce noisy diffs. The only exception is inside code fences, where line breaks are content. This applies to prose you write for humans too, e.g. Slack messages, PR descriptions, commit bodies.
 - Never add an `Unreleased` section to a changelog unless the user explicitly asks for one.
-- Never create or commit lock files (no `uv.lock`, `pnpm-lock.yaml`, `package-lock.json`, `deno.lock`, etc.)
+- Never create or commit lock files (no `uv.lock`, `pnpm-lock.yaml`, `package-lock.json`, `deno.lock`, etc.). Prefer `uv run --no-project` (or keep `UV_FROZEN=1` / `UV_NO_SYNC=1`); do not run `uv lock` / `uv sync` in repos that omit a lockfile.
 - **Never commit handover docs, temp data files, or proof-of-concept artifacts** (no `HANDOVER.md`, sample `.jsonl`/`.lmdb` files, exploratory notebooks, etc.). These clutter the monorepo — keep them local or in `tmp/`.
 - Use `prek` (Rust port), never `pre-commit` (Python)
 - **Never take an unrequested irreversible or externally-visible action** — opening PRs/issues, pushing branches, deleting remote refs, posting to Slack, commenting on GitHub. When a task stalls, report and ask; don't improvise a workaround that creates something the user has to undo.

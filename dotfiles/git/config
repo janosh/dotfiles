@@ -5,52 +5,49 @@
 [github]
 	user = janosh
 
+# === Credentials ===
 [credential]
 	helper = osxkeychain
-
-# on Linux
-# [credential]
-# 	helper = store
-
-[core]
-  # Use VSCode as git editor (for interactive rebase sessions, tag annotation, ...).
-	editor = cursor --wait
-	# set path to global .gitattributes file (has no default)
-	attributesfile = ~/.config/git/attributes
-	# same path git already defaults to, but set explicitly so the global ignore keeps
-	# working if XDG_CONFIG_HOME is ever set to something other than ~/.config
-	excludesfile = ~/.config/git/ignore
-
-[rebase]
-  # Automatically create temporary stash entry before rebase begins. Reapply afterwards.
-  # https://git-scm.com/docs/git-config#Documentation/git-config.txt-rebaseautoStash
-	autoStash = true
-  # Automatically move fixup commits to the correct line during interactive rebase.
-	autoSquash = true
-
-[push]
-  # https://stackoverflow.com/a/3745250
-	followTags = true
-	# https://git-scm.com/docs/git-config#Documentation/git-config.txt-pushautoSetupRemote
-	autoSetupRemote = true
-	# enable git push -u by default (thanks @nino)
- 	default = current
-
-[pull]
-  # git pull may only fast-forward, not commit https://stackoverflow.com/a/62653400
-	ff = only
-  # How to reconcile divergent branches when pulling. Default is false, i.e. perform a merge.
-	rebase = true
-
-[init]
-	defaultBranch = main
-
 # osxkeychain pins one account and ignores `gh auth switch`. Empty helper clears the
-# inherited list; gh then supplies the active token. `gp` already injects this per push —
-# this covers bare `git push` and other HTTPS GitHub ops.
+# inherited list; gh then supplies the active token for HTTPS GitHub ops.
 [credential "https://github.com"]
 	helper =
 	helper = !/opt/homebrew/bin/gh auth git-credential
 [credential "https://gist.github.com"]
 	helper =
 	helper = !/opt/homebrew/bin/gh auth git-credential
+# Linux alternative:
+# [credential]
+# 	helper = store
+
+# === Core ===
+[core]
+	# Cursor as git editor (interactive rebase, tag annotation, ...)
+	editor = cursor --wait
+	# No default for attributesfile; set explicitly.
+	attributesfile = ~/.config/git/attributes
+	# Same path git defaults to; set explicitly so ignore still works if XDG_CONFIG_HOME changes.
+	excludesfile = ~/.config/git/ignore
+
+[init]
+	defaultBranch = main
+
+# === Rebase / push / pull ===
+[rebase]
+	# Stash before rebase, reapply after. https://git-scm.com/docs/git-config#Documentation/git-config.txt-rebaseautoStash
+	autoStash = true
+	# Move fixup commits to the correct line during interactive rebase.
+	autoSquash = true
+
+[push]
+	# https://stackoverflow.com/a/3745250
+	followTags = true
+	# https://git-scm.com/docs/git-config#Documentation/git-config.txt-pushautoSetupRemote
+	autoSetupRemote = true
+	# `git push -u` by default
+	default = current
+
+[pull]
+	# Fast-forward only; no merge commits. https://stackoverflow.com/a/62653400
+	ff = only
+	rebase = true

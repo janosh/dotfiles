@@ -86,9 +86,9 @@ configure_macos() {
     sudo --validate
   fi
 
-  # --- 1st part ---
   # More options at https://github.com/mathiasbynens/dotfiles/blob/main/.macos.
 
+  # === General UI ===
   echo '- Expand save panel by default.'
   defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
   defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
@@ -115,9 +115,17 @@ configure_macos() {
   echo '- Set Help Viewer windows to non-floating mode.'
   defaults write com.apple.helpviewer DevMode -bool true
 
-  echo '- Enable full keyboard access for all controls. In particular, enable Tab in modal dialogs.'
+  echo '- Enable full keyboard access for all controls (Tab in modal dialogs).'
   defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
+  echo '- Set languages and metric units.'
+  defaults write NSGlobalDomain AppleLanguages -array "en_US" "de_DE"
+  defaults write NSGlobalDomain AppleMetricUnits -bool true
+
+  echo '- Show language menu in the top right corner of the boot screen.'
+  sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool true
+
+  # === Trackpad ===
   echo '- Trackpad: enable tap to click for this user and for the login screen.'
   write_trackpad Clicking -bool true
   defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
@@ -136,6 +144,7 @@ configure_macos() {
   write_trackpad TrackpadThreeFingerHorizSwipeGesture -int 0
   write_trackpad TrackpadThreeFingerVertSwipeGesture -int 0
 
+  # === Security / accounts ===
   echo '- Show Bluetooth in the menu bar; require password immediately on wake.'
   defaults -currentHost write com.apple.controlcenter Bluetooth -int 18
   defaults write com.apple.screensaver askForPassword -int 1
@@ -157,6 +166,7 @@ configure_macos() {
     sudo sed -i '' 's/^#auth/auth/' /etc/pam.d/sudo_local
   fi
 
+  # === Finder ===
   echo '- Set Home as the default location for new Finder windows.'
   defaults write com.apple.finder NewWindowTarget -string 'PfLo'
   defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
@@ -177,6 +187,10 @@ configure_macos() {
   defaults write com.apple.finder FinderSpawnTab -bool false
   defaults write com.apple.finder AppleWindowTabbingMode -string manual
 
+  echo '- Use columns view in all Finder windows by default.'
+  # Other view modes: 'icnv', 'Nlsv', 'Flwv'
+  defaults write com.apple.finder FXPreferredViewStyle -string 'clmv'
+
   echo '- Avoid creating .DS_Store files on network or USB volumes.'
   defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
   defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
@@ -186,6 +200,7 @@ configure_macos() {
   defaults write com.apple.frameworks.diskimages skip-verify-locked -bool true
   defaults write com.apple.frameworks.diskimages skip-verify-remote -bool true
 
+  # === Dock / desktop ===
   echo '- Dock: hide recents; keep Spaces in fixed order.'
   defaults write com.apple.dock show-recents -bool false
   defaults write com.apple.dock mru-spaces -bool false
@@ -193,41 +208,32 @@ configure_macos() {
   echo '- Disable click wallpaper to show desktop (Sonoma+).'
   defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
 
+  echo 'Disable hot corners.'
+  for corner in tl tr br bl; do
+    defaults write com.apple.dock "wvous-$corner-corner" -int 0
+  done
+
+  # === Mail / screenshots ===
   echo '- Copy email addresses as foo@bar.com instead of Foo Bar <foo@bar.com> in Mail.app.'
   defaults write com.apple.mail AddressesIncludeNameOnPasteboard -bool false
 
   echo '- Disable inline mail attachments (just show the icons).'
   defaults write com.apple.mail DisableInlineAttachmentViewing -bool true
 
-  echo '- Use columns view in all Finder windows by default.'
-  # Four-letter codes for the other view modes: 'icnv', 'Nlsv', 'Flwv'
-  defaults write com.apple.finder FXPreferredViewStyle -string 'clmv'
-
   echo '- Screenshots: save to Downloads, no window shadow, no floating thumbnail.'
   defaults write com.apple.screencapture location -string "${HOME}/Downloads"
   defaults write com.apple.screencapture disable-shadow -bool true
   defaults write com.apple.screencapture show-thumbnail -bool false
 
-  echo '- Set languages and metric units.'
-  defaults write NSGlobalDomain AppleLanguages -array "en_US" "de_DE"
-  defaults write NSGlobalDomain AppleMetricUnits -bool true
-
-  echo '- Show language menu in the top right corner of the boot screen.'
-  sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool true
-
+  # === Launch Services ===
   echo '- Disable the "Are you sure you want to open this application?" dialog.'
   defaults write com.apple.LaunchServices LSQuarantine -bool false
 
-  # Change default file associations (requires restart).
-  # See https://apple.stackexchange.com/a/123834.
-  set_file_association net.daringfireball.markdown com.microsoft.vscode
-  set_file_association public.plain-text com.microsoft.vscode
+  # File associations (requires restart). https://apple.stackexchange.com/a/123834
+  # Cursor's CFBundleIdentifier; matches `alias code=cursor` in .zshrc.
+  set_file_association net.daringfireball.markdown com.todesktop.230313mzl4w4u92
+  set_file_association public.plain-text com.todesktop.230313mzl4w4u92
   set_file_association public.html com.brave.Browser
-
-  echo 'Disable hot corners.'
-  for corner in tl tr br bl; do
-    defaults write com.apple.dock "wvous-$corner-corner" -int 0
-  done
 
   echo '- Disable power chime on connecting to power.'
   defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
@@ -236,17 +242,21 @@ configure_macos() {
   # Restart UI agents so defaults take effect (three-finger drag may still need logout).
   killall Dock Finder ControlCenter 2> /dev/null || true
 
+  # === Tooling ===
   echo '- Disable Homebrew analytics.'
   brew analytics off
 
-  echo 'Disable PNPM writing lockfiles.'
-  pnpm config --global set lockfile false
+  echo '- Fix brew share perms so zsh compinit does not warn about insecure directories.'
+  # https://docs.brew.sh/Shell-Completion#configuring-completions-in-zsh
+  [[ -d /opt/homebrew/share ]] && chmod go-w /opt/homebrew/share
+  [[ -d /opt/homebrew/share/zsh ]] && chmod -R go-w /opt/homebrew/share/zsh
 
-  echo 'Disable the PNPM minimum release age gate.'
-  # pnpm 11 defaults minimumReleaseAge to 1440 min; `pnpm config --global set` writes a
-  # legacy rc that pnpm 11 ignores, so write config.yaml directly. Repo-local values win.
+  echo '- Disable PNPM lockfiles and the minimum release age gate.'
+  # pnpm 11 ignores `pnpm config --global set` (legacy rc); write config.yaml it reads.
+  # Repo-local values still win. Interactive shells also set PNPM_CONFIG_LOCKFILE in .zshrc.
   pnpm_config="${HOME}/Library/Preferences/pnpm/config.yaml"
   mkdir -p "$(dirname "${pnpm_config}")"
+  grep -q '^lockfile:' "${pnpm_config}" 2> /dev/null || echo 'lockfile: false' >> "${pnpm_config}"
   grep -q '^minimumReleaseAge:' "${pnpm_config}" 2> /dev/null ||
     echo 'minimumReleaseAge: 0' >> "${pnpm_config}"
 

@@ -25,11 +25,11 @@ def handbrake_h265_vtb_encode(input_file: str, output_file: str, *args: str) -> 
     """Compress input_file to output_file with HandBrakeCLI using vt_h265 (Apple's
     Video Toolbox H265 encoder). https://developer.apple.com/documentation/videotoolbox.
 
-    Run handbrakeCLI --help for docs.
+    Run HandBrakeCLI --help for docs.
     """
     # uses 'H265 Videotoolbox' encode preset exported as JSON from Handbrake GUI
     # https://superuser.com/a/1031023
-    cmd = ["handbrakeCLI", "--preset-import-file", f"{DIRNAME}/h265-videotoolbox.json"]
+    cmd = ["HandBrakeCLI", "--preset-import-file", f"{DIRNAME}/h265-videotoolbox.json"]
     # preset must be explicitly set even after importing
     cmd += ["--preset", "H265 Videotoolbox"]
     cmd += ["--input", input_file, "--output", output_file, *args]

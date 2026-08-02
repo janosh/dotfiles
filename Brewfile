@@ -1,9 +1,11 @@
 # Used by the brew_install() function.
 
 # CLIs
+brew "exiftool"
 brew "ffmpeg"
 brew "gh"
 brew "git"
+brew "handbrake" # HandBrakeCLI (GUI is handbrake-app cask)
 brew "jq"
 brew "imagemagick"
 brew "mas" # required to install Mac App Store apps below
@@ -37,7 +39,6 @@ cask "nordvpn"
 cask "rectangle"
 cask "slack"
 cask "telegram"
-cask "visual-studio-code"
 cask "ghostty"
 cask "zoom"
 cask "zotero"

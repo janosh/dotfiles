@@ -9,35 +9,42 @@ description: Extract CodeRabbit comments for the most recent review round in the
 
 Use this skill when a user asks for:
 
-- current CodeRabbit nitpicks/comments for the active repo
+- current CodeRabbit nitpicks or main review comments for the active repo
 - triaging or addressing the latest CodeRabbit feedback
 - the current review round status, not historical rounds
+
+## Mode toggle
+
+Pick one mode before running the helper:
+
+| Mode | Flag | Source | Use when |
+| --- | --- | --- | --- |
+| Nitpicks (default) | `--mode nitpicks` or omit | `assertiveComments` (usually severity `trivial`) | User asks for nitpicks / assertive / low-prio suggestions |
+| Main | `--mode main` | `fileReviewMap` actionable comments (usually `minor`/`major`) | User asks for main / high-priority / actionable review findings |
+
+Do not mix modes in one pass unless the user asks for both; then run twice.
 
 ## Quick workflow
 
 1. Identify the target workspace path (usually current repo).
-2. Run the helper script with `--stdout`:
+1. Choose mode (table above), then run:
 
 ```bash
-# All comment types from latest review round
-python "/Users/janosh/dev/dotfiles/agents/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo" --stdout
+# Nitpicks (default)
+uv run --no-project "/Users/janosh/dev/dotfiles/agents/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo"
 
-# Assertive comments only from latest review round
-python "/Users/janosh/dev/dotfiles/agents/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo" --type assertive --stdout
+# Main / higher-priority actionable comments
+uv run --no-project "/Users/janosh/dev/dotfiles/agents/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo" --mode main
 ```
 
-1. Report:
+1. Triage from the printed comments (`file:lines` + body).
 
-- selected review id/title/timestamp
-- source cache file used
-- extracted comment count by type
-- concise triage summary (file, lines, issue, recommendation)
+`--type all` widens nitpicks; `--json` dumps the full cache-shaped payload (keeps `<details>` bodies).
 
 ## Critical behavior
 
-- The extractor always selects the most recent review round for the active workspace.
-- It does not fall back to older rounds just because they have more comments.
-- If the latest round has zero assertive comments, report zero instead of using older nitpicks.
+- Defaults: `--mode nitpicks`, nitpick `--type assertive`, compact plain text (details chrome stripped).
+- Always use the latest review round for the workspace; never fall back to older rounds or the other mode when the chosen mode is empty.
 
 ## Review style guardrails
 

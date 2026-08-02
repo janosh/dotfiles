@@ -6,6 +6,7 @@ select = ["ALL"]
 ignore = [
   "C901",    # allow complex functions
   "COM812",  # missing-trailing-comma (conflicts with ruff formatter)
+  "CPY001",  # copyright notice not required
   "D205",    # 1 blank line required between summary and description
   "EM101",   # allow string literal in exception
   "EM102",   # allow f-string literal in exception

@@ -14,7 +14,7 @@ zsh -c "$(curl -fsSL 'https://raw.githubusercontent.com/janosh/dotfiles/main/set
 
 It clones into `~/dev/dotfiles` (or updates an existing clone) and runs from there.
 
-Human-only leftovers (Bluetooth pairing, iCloud, printers, …):
+Human-only leftovers (Bluetooth pairing, iCloud, printers):
 
 ```sh
 zsh -c "$(curl -fsSL 'https://raw.githubusercontent.com/janosh/dotfiles/main/setup/system-settings.sh')"
@@ -27,9 +27,9 @@ When setting up new Macs with iCloud "Desktop & Documents" sync enabled, check [
 
 ```text
 .
-├── agents/AGENTS.md           # global agent rules (symlink to ~/dev/AGENTS.md)
+├── agents/AGENTS.md           # global agent rules (source for ~/dev/AGENTS.md symlink)
 ├── agents/skills/             # agent skills symlinked into Cursor/Codex/Claude
-├── dotfiles/                  # shell, git, spell-check dict
+├── dotfiles/                  # .zshrc (macOS), .bashrc + shared aliases/gh-failover (cluster), git, cspell
 ├── notes/                     # personal runbooks (Mac setup, Cursor, etc.)
 ├── setup/                     # macOS bootstrap scripts
 └── scripts/                   # one-off utilities

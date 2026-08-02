@@ -6,12 +6,16 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 from datetime import datetime
 from typing import Any
 
+DETAILS_BLOCK_RE = re.compile(r"<details\b[^>]*>.*?</details>", re.DOTALL | re.IGNORECASE)
+
 type JsonValue = dict[str, JsonValue] | list[JsonValue] | str | int | float | bool | None
 
+MODES = ("nitpicks", "main")
 COMMENT_TYPES = ("assertive", "additional", "outsideDiffRange", "duplicate")
 CACHE_KEYS = {
     "assertive": "assertiveComments",
@@ -41,24 +45,34 @@ def parse_args() -> argparse.Namespace:
         help="Optional explicit CodeRabbit review ID to extract",
     )
     parser.add_argument(
+        "--mode",
+        choices=MODES,
+        default="nitpicks",
+        help=(
+            "Comment set to extract: nitpicks (assertiveComments) or "
+            "main (higher-priority fileReviewMap actionable comments). "
+            "Default: nitpicks"
+        ),
+    )
+    parser.add_argument(
         "--type",
         dest="comment_types",
-        default="all",
+        default="assertive",
         help=(
-            "Comma-separated comment types to extract: "
+            "Nitpicks mode only. Comma-separated types: "
             "assertive, additional, outsideDiffRange, duplicate, all "
-            "(default: all)"
+            "(default: assertive)"
         ),
     )
     parser.add_argument(
         "--output",
         default="",
-        help="Output JSON file path (omit to print JSON to stdout)",
+        help="Output file path (omit to print to stdout)",
     )
     parser.add_argument(
-        "--stdout",
+        "--json",
         action="store_true",
-        help="Print JSON to stdout instead of writing a file",
+        help="Emit full JSON instead of compact plain text",
     )
     return parser.parse_args()
 
@@ -67,14 +81,15 @@ def resolve_comment_types(raw_types: str) -> list[str]:
     """Resolve requested comment types from CLI input."""
     if raw_types.strip() == "all":
         return list(COMMENT_TYPES)
-    requested_types = [comment_type.strip() for comment_type in raw_types.split(",")]
-    filtered_types = [comment_type for comment_type in requested_types if comment_type]
     valid_types: list[str] = []
-    for comment_type in filtered_types:
+    for raw_type in raw_types.split(","):
+        comment_type = raw_type.strip()
+        if not comment_type:
+            continue
         if comment_type in COMMENT_TYPES:
             valid_types.append(comment_type)
-            continue
-        print(f"warning: unknown comment type '{comment_type}', skipping", file=sys.stderr)
+        else:
+            print(f"warning: unknown comment type '{comment_type}', skipping", file=sys.stderr)
     return valid_types
 
 
@@ -140,25 +155,30 @@ def parse_iso_datetime(timestamp_text: str) -> datetime | None:
 
 def review_timestamp_epoch(review: dict[str, Any]) -> float:
     """Return best available review timestamp as epoch seconds."""
-    parsed_timestamps: list[datetime] = []
-    for timestamp_key in TIMESTAMP_KEYS:
-        timestamp_value = review.get(timestamp_key)
-        if not isinstance(timestamp_value, str):
-            continue
-        parsed_timestamp = parse_iso_datetime(timestamp_value)
-        if parsed_timestamp is not None:
-            parsed_timestamps.append(parsed_timestamp)
-    if not parsed_timestamps:
-        return 0.0
-    return max(parsed_timestamps).timestamp()
+    parsed_timestamps = [
+        parsed
+        for key in TIMESTAMP_KEYS
+        if isinstance((value := review.get(key)), str)
+        and (parsed := parse_iso_datetime(value)) is not None
+    ]
+    return max(parsed_timestamps).timestamp() if parsed_timestamps else 0.0
 
 
-def flatten_comments(
-    comments_by_file: dict[str, Any], comment_type: str
+def flatten_file_comments(
+    by_file: dict[str, Any],
+    *,
+    comment_type: str | None = None,
+    nested_key: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Flatten comments-by-file mapping into a sorted flat list."""
+    """Flatten per-file comment lists (optionally nested under nested_key)."""
     flattened_comments: list[dict[str, Any]] = []
-    for filename, comments in comments_by_file.items():
+    for filename, entry in by_file.items():
+        if nested_key is not None:
+            if not isinstance(entry, dict):
+                continue
+            comments = entry.get(nested_key)
+        else:
+            comments = entry
         if not isinstance(comments, list):
             continue
         for comment in comments:
@@ -166,22 +186,92 @@ def flatten_comments(
                 continue
             flattened_comments.append(
                 {
-                    "filename": filename,
+                    "filename": comment.get("filename") or filename,
                     "start_line": comment.get("startLine"),
                     "end_line": comment.get("endLine"),
                     "severity": comment.get("severity"),
-                    "type": comment_type,
+                    "type": comment_type or comment.get("type") or "actionable",
                     "comment": comment.get("comment"),
                 }
             )
-    flattened_comments.sort(
-        key=lambda item: (
-            str(item["filename"]),
-            int(item["start_line"] or 0),
-            int(item["end_line"] or 0),
-        )
-    )
     return flattened_comments
+
+
+def comment_sort_key(comment: dict[str, Any]) -> tuple[str, int, int]:
+    """Sort comments by filename then line range."""
+    return (
+        str(comment["filename"]),
+        int(comment["start_line"] or 0),
+        int(comment["end_line"] or 0),
+    )
+
+
+def extract_comments_for_mode(
+    review: dict[str, Any], mode: str, requested_types: list[str]
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    """Extract comments for nitpicks or main mode; return comments and counts."""
+    if mode == "main":
+        file_review_map = review.get("fileReviewMap")
+        comments = flatten_file_comments(
+            file_review_map if isinstance(file_review_map, dict) else {},
+            nested_key="comments",
+        )
+        return comments, {"main": len(comments)}
+
+    additional_details = review.get("additionalDetails")
+    if not isinstance(additional_details, dict):
+        additional_details = {}
+    comments: list[dict[str, Any]] = []
+    counts_by_type: dict[str, int] = {}
+    for comment_type in requested_types:
+        comments_by_file = additional_details.get(CACHE_KEYS[comment_type])
+        flattened = flatten_file_comments(
+            comments_by_file if isinstance(comments_by_file, dict) else {},
+            comment_type=comment_type,
+        )
+        counts_by_type[comment_type] = len(flattened)
+        comments.extend(flattened)
+    return comments, counts_by_type
+
+
+def format_location(
+    filename: str, start_line: int | str | None, end_line: int | str | None
+) -> str:
+    """Format file path with start/end line numbers for compact display."""
+    if start_line is None:
+        return filename if end_line is None else f"{filename}:{end_line}"
+    if end_line is None or end_line == start_line:
+        return f"{filename}:{start_line}"
+    return f"{filename}:{start_line}-{end_line}"
+
+
+def format_comments_text(
+    comments: list[dict[str, Any]], *, review_title: str, mode: str
+) -> str:
+    """Render comments as compact plain text for agent context."""
+    title = review_title.strip() or "(untitled review)"
+    label = "nitpick(s)" if mode == "nitpicks" else "main comment(s)"
+    header = f"# {len(comments)} {label} · {title}"
+    if not comments:
+        return f"{header}\n\n(none)\n"
+
+    blocks: list[str] = []
+    for comment in comments:
+        location = format_location(
+            str(comment["filename"]),
+            comment.get("start_line"),
+            comment.get("end_line"),
+        )
+        severity = comment.get("severity")
+        if severity and severity != "none":
+            location = f"{location} [{severity}]"
+        body = comment.get("comment")
+        if body:
+            body_text = re.sub(r"\n{3,}", "\n\n", DETAILS_BLOCK_RE.sub("", str(body))).strip()
+        else:
+            body_text = "(empty comment)"
+        blocks.append(f"{location}\n{body_text}")
+    return f"{header}\n\n" + "\n\n---\n\n".join(blocks) + "\n"
 
 
 def select_review(cache_files: list[str], review_id: str) -> tuple[dict[str, Any], str, float]:
@@ -215,11 +305,11 @@ def select_review(cache_files: list[str], review_id: str) -> tuple[dict[str, Any
 
 
 def main() -> None:
-    """Extract CodeRabbit comments for selected review and emit JSON."""
+    """Extract CodeRabbit comments for selected review and emit text or JSON."""
     args = parse_args()
     workspace = os.path.abspath(args.workspace)
     requested_types = resolve_comment_types(args.comment_types)
-    if not requested_types:
+    if args.mode == "nitpicks" and not requested_types:
         raise RuntimeError("No valid comment types specified.")
 
     workspace_ids = discover_workspace_ids(args.cursor_user_dir, workspace)
@@ -237,52 +327,48 @@ def main() -> None:
         review_id=args.review_id,
     )
 
-    additional_details = selected_review.get("additionalDetails")
-    if not isinstance(additional_details, dict):
-        additional_details = {}
-
-    extracted_comments: list[dict[str, Any]] = []
-    counts_by_type: dict[str, int] = {}
-    for comment_type in requested_types:
-        cache_key = CACHE_KEYS[comment_type]
-        comments_by_file = additional_details.get(cache_key)
-        if not isinstance(comments_by_file, dict):
-            comments_by_file = {}
-        flattened_comments = flatten_comments(comments_by_file, comment_type)
-        counts_by_type[comment_type] = len(flattened_comments)
-        extracted_comments.extend(flattened_comments)
-
-    extracted_comments.sort(
-        key=lambda item: (
-            str(item["filename"]),
-            int(item["start_line"] or 0),
-            int(item["end_line"] or 0),
-        )
+    extracted_comments, counts_by_type = extract_comments_for_mode(
+        selected_review, args.mode, requested_types
     )
+    extracted_comments.sort(key=comment_sort_key)
 
-    result = {
-        "workspace": workspace,
-        "workspace_ids": workspace_ids,
-        "source_cache_file": source_cache_file,
-        "selected_review_id": selected_review.get("id"),
-        "selected_review_title": selected_review.get("title"),
-        "selected_review_timestamp_epoch": selected_timestamp_epoch,
-        "requested_types": requested_types,
-        "counts_by_type": counts_by_type,
-        "comment_count": len(extracted_comments),
-        "comments": extracted_comments,
-    }
+    review_title = selected_review.get("title")
+    review_title = review_title if isinstance(review_title, str) else ""
 
-    if args.stdout or not args.output:
-        print(json.dumps(result, indent=2, ensure_ascii=False))
+    if args.json:
+        payload = json.dumps(
+            {
+                "workspace": workspace,
+                "workspace_ids": workspace_ids,
+                "source_cache_file": source_cache_file,
+                "selected_review_id": selected_review.get("id"),
+                "selected_review_title": review_title,
+                "selected_review_timestamp_epoch": selected_timestamp_epoch,
+                "mode": args.mode,
+                "requested_types": requested_types if args.mode == "nitpicks" else ["main"],
+                "counts_by_type": counts_by_type,
+                "comment_count": len(extracted_comments),
+                "comments": extracted_comments,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    else:
+        payload = format_comments_text(
+            extracted_comments, review_title=review_title, mode=args.mode
+        )
+    if not payload.endswith("\n"):
+        payload += "\n"
+
+    if args.output:
+        output_path = os.path.abspath(args.output)
+        with open(output_path, "w", encoding="utf-8") as file_handle:
+            file_handle.write(payload)
+        print(output_path, file=sys.stderr)
+        print(f"comment_count={len(extracted_comments)}", file=sys.stderr)
+        print(f"source_cache_file={source_cache_file}", file=sys.stderr)
         return
-
-    output_path = os.path.abspath(args.output)
-    with open(output_path, "w", encoding="utf-8") as file_handle:
-        json.dump(result, file_handle, indent=2, ensure_ascii=False)
-    print(output_path)
-    print(f"comment_count={len(extracted_comments)}")
-    print(f"source_cache_file={source_cache_file}")
+    print(payload, end="")
 
 
 if __name__ == "__main__":
