@@ -11,14 +11,17 @@ repos:
         types_or: [python, jupyter]
 
   - repo: https://github.com/astral-sh/ty-pre-commit
-    rev: v0.0.65
+    rev: v0.0.66
     hooks:
       - id: ty
-        # --isolated: resolve lint deps in a temp env; do not write uv.lock / .venv
-        args: [--isolated, --group, lint]
-        # Global UV_FROZEN=1 errors when uv.lock is absent; unset only for this hook.
-        # Do not set UV_NO_SYNC here: --isolated still needs to install the lint group.
-        env: { UV_FROZEN: "0" }
+        # uvx installs ty + --with deps into one tool env (no uv.lock / .venv).
+        # Avoid `uv run --isolated --with`: that layers --with pkgs via a .pth
+        # site.addsitedir overlay, which ty cannot see (astral-sh/ty#320).
+        # Unset VIRTUAL_ENV so an active global venv is not used as extends-environment.
+        entry: env -u UV_FROZEN -u VIRTUAL_ENV uvx --from ty --with pillow --with pytest --with requests ty check
+        args: []
+        pass_filenames: true
+        stages: [pre-commit]
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1
@@ -58,7 +61,7 @@ repos:
         args: [--check-filenames, --ignore-words-list=atomate]
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.48.0
+    rev: v1.49.0
     hooks:
       - id: typos
         types: [text]

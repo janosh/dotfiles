@@ -26,6 +26,7 @@ if [[ $- == *i* ]]; then # https://superuser.com/a/686293
   bind '"\eOB": history-search-forward'
   bind '"\e\e[D": backward-word'
   bind '"\e\e[C": forward-word'
+  bind '"\C-u": unix-line-discard' # delete to start of line
 fi
 
 # === Shared aliases / gp failover (realpath follows symlinks) ===

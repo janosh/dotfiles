@@ -3,6 +3,7 @@
 # CLIs
 brew "exiftool"
 brew "ffmpeg"
+brew "gpac" # provides MP4Box for preserving non-video tracks and metadata
 brew "gh"
 brew "git"
 brew "handbrake" # HandBrakeCLI (GUI is handbrake-app cask)
@@ -18,7 +19,6 @@ brew "rsync"
 brew "shellcheck"
 brew "trash"
 brew "typst"
-brew "zopfli"
 brew "zsh-autosuggestions"
 brew "zsh-completions"
 brew "zsh-history-substring-search"
@@ -39,7 +39,6 @@ cask "nordvpn"
 cask "rectangle"
 cask "slack"
 cask "telegram"
-cask "ghostty"
 cask "zoom"
 cask "zotero"
 

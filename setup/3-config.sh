@@ -1,9 +1,10 @@
 #!/bin/bash
 
 configure_agents() {
-  local dev_dir agents_md repo dest skill
+  local dev_dir agents_md cursor_skills repo dest skill
   dev_dir=$(dirname "${DOTFILES_DIR}")
   agents_md="${DOTFILES_DIR}/agents/AGENTS.md"
+  cursor_skills="${DOTFILES_DIR}/.cursor/skills"
 
   # Codex and Claude Code inherit AGENTS.md up the directory tree, so one link at the
   # common parent of all repos covers them.
@@ -19,9 +20,14 @@ configure_agents() {
     fi
   done
 
-  # Cursor, Codex and Claude Code read global skills from separate directories but share
-  # the SKILL.md format, so the same skill dirs can be linked into all three.
-  for dest in ~/.cursor/skills ~/.agents/skills ~/.claude/skills; do
+  # Cursor discovers repo skills at .cursor/skills; keep the source in agents/skills.
+  mkdir -p "${DOTFILES_DIR}/.cursor" ~/.cursor
+  ln -sfn "../agents/skills" "${cursor_skills}"
+  ln -sfn "${cursor_skills}" ~/.cursor/skills
+
+  # Codex and Claude Code read global skills from separate directories but share
+  # the SKILL.md format, so the same skill dirs can be linked into both.
+  for dest in ~/.agents/skills ~/.claude/skills; do
     mkdir -p "${dest}"
     for skill in "${DOTFILES_DIR}"/agents/skills/*/; do
       skill=${skill%/} # glob leaves a trailing slash, strip it to get the skill name
@@ -73,6 +79,28 @@ write_trackpad() {
   defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad "$@"
 }
 
+# Sync Keyboard text replacements (defaults + KeyboardServices DB; DB wins on Tahoe).
+configure_text_replacements() {
+  echo '- Keyboard: sync text replacements.'
+  python3 - "${DOTFILES_DIR}/dotfiles/text-replacements.json" <<'PY'
+import json, plistlib, sqlite3, subprocess, sys, time, uuid
+from pathlib import Path
+repls = json.loads(Path(sys.argv[1]).read_text())
+tmp = Path("/tmp/tr-import.plist")
+tmp.write_bytes(plistlib.dumps({"NSUserDictionaryReplacementItems": [
+  {"on": 1, "replace": k, "with": v} for k, v in repls.items()]}))
+subprocess.check_call(["defaults", "import", "-g", str(tmp)]); tmp.unlink()
+ts = time.time() - 978307200  # CFAbsoluteTime
+with sqlite3.connect(Path.home() / "Library/KeyboardServices/TextReplacements.db") as con:
+  con.execute(f"DELETE FROM ZTEXTREPLACEMENTENTRY WHERE ZSHORTCUT IN ({','.join('?' * len(repls))})", tuple(repls))
+  pk0 = con.execute("SELECT IFNULL(MAX(Z_PK), 0) FROM ZTEXTREPLACEMENTENTRY").fetchone()[0]
+  rows = [(pk0 + i, 1, 1, 1, 0, ts, v, k, str(uuid.uuid4()).upper(), None) for i, (k, v) in enumerate(repls.items(), 1)]
+  con.executemany("INSERT INTO ZTEXTREPLACEMENTENTRY VALUES (?,?,?,?,?,?,?,?,?,?)", rows)
+  con.execute("UPDATE Z_PRIMARYKEY SET Z_MAX = ? WHERE Z_ENT = 1", (pk0 + len(rows),))
+subprocess.call(["killall", "keyboardservicesd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+PY
+}
+
 configure_macos() {
   echo "This function configures macOS defaults."
 
@@ -87,6 +115,11 @@ configure_macos() {
   fi
 
   # More options at https://github.com/mathiasbynens/dotfiles/blob/main/.macos.
+
+  # === Terminal ===
+  echo '- Terminal: use the dark Pro profile for startup and new windows.'
+  defaults write com.apple.Terminal 'Default Window Settings' -string 'Pro'
+  defaults write com.apple.Terminal 'Startup Window Settings' -string 'Pro'
 
   # === General UI ===
   echo '- Expand save panel by default.'
@@ -105,6 +138,8 @@ configure_macos() {
 
   echo '- Disable smart quotes.'
   defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+
+  configure_text_replacements
 
   echo '- Disable Resume after reboot system-wide.'
   defaults write com.apple.systempreferences NSQuitAlwaysKeepsWindows -bool false
@@ -143,6 +178,14 @@ configure_macos() {
   write_trackpad DragLock -bool false
   write_trackpad TrackpadThreeFingerHorizSwipeGesture -int 0
   write_trackpad TrackpadThreeFingerVertSwipeGesture -int 0
+
+  # Four-finger vertical swipe: down = App Exposé, up = Mission Control. Three-finger
+  # vert is 0 above so four-finger wins. Dock flags gate whether each action runs.
+  echo '- Trackpad: four-finger swipe down for App Exposé (up for Mission Control).'
+  write_trackpad TrackpadFourFingerVertSwipeGesture -int 2
+  defaults -currentHost write NSGlobalDomain com.apple.trackpad.fourFingerVertSwipeGesture -int 2
+  defaults write com.apple.dock showAppExposeGestureEnabled -bool true
+  defaults write com.apple.dock showMissionControlGestureEnabled -bool true
 
   # === Security / accounts ===
   echo '- Show Bluetooth in the menu bar; require password immediately on wake.'

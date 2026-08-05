@@ -4,6 +4,11 @@ typeset -U PATH path
 # === Options ===
 setopt autocd prompt_subst
 
+# Start Apple Terminal in ~/dev without overriding an explicitly inherited directory.
+if [[ $TERM_PROGRAM == Apple_Terminal && $PWD == $HOME && -d $HOME/dev ]]; then
+  cd "$HOME/dev"
+fi
+
 # === Prompt (robbyrussell-style) ===
 autoload -U colors && colors
 _git_prompt() {
@@ -68,7 +73,7 @@ bindkey -e # Option as Meta: terminal sequences below (emacs mode already has ^[
   for seq in '\e\e[C' '\e\eOC' '^[[1;3C' '^[[1;9C'; do bindkey "$seq" forward-word; done
 }
 bindkey '^[[3;3~' kill-word
-bindkey '^U' backward-kill-line # Cmd+Delete
+bindkey '^U' backward-kill-line # delete to start of line
 if (( $+functions[history-substring-search-up] )); then
   bindkey '^[[A' history-substring-search-up
   bindkey '^[[B' history-substring-search-down

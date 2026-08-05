@@ -1,21 +1,54 @@
 # Video Compression Script
 
-Re-encode video files to H.265 with `HandBrakeCLI` (Apple VideoToolbox) and copy metadata with `exiftool`.
+Re-encode only the primary picture track as HEVC with Apple's hardware
+VideoToolbox encoder, then use `MP4Box` to swap that track back into the original
+MP4 structure. This preserves audio, subtitles, chapters, thumbnails, DJI timed
+metadata (`djmd` gyro/orientation and `dbgi`), MP4 creation times, camera tags,
+user-data boxes, embedded cover images, resolution, frame rate, pixel format,
+color range/metadata, and filesystem creation/access/modification times,
+permissions, ownership, flags, and macOS extended attributes.
+
+Before atomically publishing an output file, the script verifies those properties.
+Only the encoded video payload and encoder tag are expected to change.
+
+## Install
 
 ```sh
-brew install handbrake exiftool
+brew install ffmpeg gpac
 ```
 
-## Tips
+## Usage
 
-If videos are already compressed and originals remain, batch-copy creation times from `input_dir` to `output_dir` (from [this comment](https://github.com/HandBrake/HandBrake/issues/345#issuecomment-689477853)):
+Write next to each source with the default `-compressed` suffix:
 
 ```sh
-exiftool -all= -tagsfromfile ./input_dir/%f.mp4 -ext mp4 -all:all --matrixstructure -overwrite_original -FileModifyDate ./output_dir
+python ~/dev/dotfiles/scripts/compress_videos.py input/*.MP4
 ```
 
-For a single video:
+Or preserve source basenames in a separate directory:
 
 ```sh
-exiftool -tagsFromFile path/to/input.mp4 -extractEmbedded -all:all -FileModifyDate -overwrite_original path/to/output.mp4
+python ~/dev/dotfiles/scripts/compress_videos.py input/*.MP4 --outdir output
 ```
+
+Existing outputs are kept unless `--overwrite` is passed.
+
+## Quality and speed
+
+Default: `--quality 62` with VideoToolbox speed-priority mode. On an M4 Pro with
+DJI Mini 4 Pro 4K/29.97 HEVC footage:
+
+- encoding ran at about 3.3–3.4x real-time
+- representative normal-detail clips scored 96.8–99.9 VMAF
+- full metadata-preserving outputs were 42–44% smaller on representative daylight
+  clips
+
+Savings vary with camera noise and scene complexity. Use `--quality 64` or
+`--quality-priority` for safer quality, `--quality 60` when size matters more, and
+test representative scenes before large batches because two quality points can
+materially increase file size.
+
+The old ExifTool-after-HandBrake approach could not restore unknown/timed tracks
+HandBrake had discarded, including DJI metadata, and `all:all` could write
+incompatible tags into a rebuilt container. Keeping the source container and
+replacing only its video track avoids both problems.
