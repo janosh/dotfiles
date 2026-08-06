@@ -23,35 +23,29 @@ DEFAULT_QUALITY = 62
 MAX_QUALITY = 100
 DISPLAY_MATRIX_VALUES = 9
 FRAME_RATE_TOLERANCE = 0.01
-COLOR_PRIMARIES = {
+_COMMON_COLOR_CODES = {
     "bt709": 1,
-    "bt470m": 4,
     "bt470bg": 5,
     "smpte170m": 6,
     "smpte240m": 7,
+}
+COLOR_PRIMARIES = _COMMON_COLOR_CODES | {
+    "bt470m": 4,
     "bt2020": 9,
     "smpte431": 11,
     "smpte432": 12,
 }
-COLOR_TRANSFERS = {
-    "bt709": 1,
+COLOR_TRANSFERS = _COMMON_COLOR_CODES | {
     "bt470m": 4,
-    "bt470bg": 5,
-    "smpte170m": 6,
-    "smpte240m": 7,
     "iec61966-2-1": 13,
     "bt2020-10": 14,
     "bt2020-12": 15,
     "smpte2084": 16,
     "arib-std-b67": 18,
 }
-COLOR_MATRICES = {
+COLOR_MATRICES = _COMMON_COLOR_CODES | {
     "rgb": 0,
-    "bt709": 1,
     "fcc": 4,
-    "bt470bg": 5,
-    "smpte170m": 6,
-    "smpte240m": 7,
     "bt2020nc": 9,
     "bt2020c": 10,
 }
@@ -67,38 +61,27 @@ def require_tool(name: str) -> str:
     )
 
 
-def run_checked(command: Sequence[str], *, capture_output: bool = False) -> None:
-    """Run a command and include captured diagnostics in failures."""
+def run_command(command: Sequence[str], *, capture_output: bool = False) -> str:
+    """Run a command, returning stdout and including captured diagnostics in failures."""
     result = subprocess.run(
         command,
         capture_output=capture_output,
         check=False,
         text=True,
     )
-    if result.returncode == 0:
-        return
-
-    diagnostics = "\n".join(part.strip() for part in (result.stdout, result.stderr) if part)
-    message = f"Command failed ({result.returncode}): {' '.join(command)}"
-    if diagnostics:
-        message += f"\n{diagnostics}"
-    raise RuntimeError(message)
-
-
-def command_output(command: Sequence[str]) -> str:
-    """Run a command and return its stdout."""
-    return subprocess.run(
-        command,
-        capture_output=True,
-        check=True,
-        text=True,
-    ).stdout
+    if result.returncode:
+        diagnostics = "\n".join(
+            part.strip() for part in (result.stdout, result.stderr) if part
+        )
+        message = f"Command failed ({result.returncode}): {' '.join(command)}"
+        raise RuntimeError(f"{message}\n{diagnostics}" if diagnostics else message)
+    return result.stdout or ""
 
 
 def probe_video(ffprobe: str, file_path: str) -> dict[str, Any]:
     """Return all stream and container metadata reported by FFprobe."""
     return json.loads(
-        command_output(
+        run_command(
             [
                 ffprobe,
                 "-v",
@@ -108,7 +91,8 @@ def probe_video(ffprobe: str, file_path: str) -> dict[str, Any]:
                 "-of",
                 "json",
                 file_path,
-            ]
+            ],
+            capture_output=True,
         )
     )
 
@@ -213,7 +197,7 @@ def encode_video(
     if color_metadata:
         command.extend(("-bsf:v", f"hevc_metadata={':'.join(color_metadata)}"))
     command.append(output_file)
-    run_checked(command)
+    run_command(command)
 
 
 def replace_video_track(
@@ -224,19 +208,17 @@ def replace_video_track(
     *,
     source_probe: dict[str, Any],
     stream_position: int,
-    source_track_id: int,
 ) -> None:
     """Replace only the primary video track, retaining every other MP4 box and track."""
+    source_track_id = track_id(source_probe["streams"][stream_position])
     existing_ids = [
-        int(str(stream["id"]), 0)
-        for stream in source_probe["streams"]
-        if stream.get("id") is not None
+        track_id(stream) for stream in source_probe["streams"] if stream.get("id") is not None
     ]
     temporary_track_id = max(existing_ids, default=0) + 1
     imported_track = (
         f"{encoded_file}#trackID=1:ID={temporary_track_id}:tkidx={stream_position + 1}"
     )
-    run_checked(
+    run_command(
         [
             mp4box,
             "-add",
@@ -255,7 +237,7 @@ def replace_video_track(
     )
     matrix = display_matrix(source_probe["streams"][stream_position])
     if matrix:
-        run_checked(
+        run_command(
             [mp4box, "-mx", f"{source_track_id}={matrix}", output_file],
             capture_output=True,
         )
@@ -273,13 +255,13 @@ def copy_macos_metadata(input_file: str, output_file: str) -> None:
     )
 
     if sys.platform == "darwin" and (xattr := shutil.which("xattr")):
-        for name in command_output([xattr, input_file]).splitlines():
+        for name in run_command([xattr, input_file], capture_output=True).splitlines():
             value = (
-                command_output([xattr, "-px", name, input_file])
+                run_command([xattr, "-px", name, input_file], capture_output=True)
                 .replace(" ", "")
                 .replace("\n", "")
             )
-            run_checked([xattr, "-wx", name, value, output_file], capture_output=True)
+            run_command([xattr, "-wx", name, value, output_file], capture_output=True)
 
     # Extended-attribute tools can update these, so restore access/modify times next.
     os.utime(
@@ -295,8 +277,10 @@ def copy_macos_metadata(input_file: str, output_file: str) -> None:
         and (get_file_info := shutil.which("GetFileInfo"))
         and (set_file := shutil.which("SetFile"))
     ):
-        creation_date = command_output([get_file_info, "-d", input_file]).strip()
-        run_checked([set_file, "-d", creation_date, output_file], capture_output=True)
+        creation_date = run_command(
+            [get_file_info, "-d", input_file], capture_output=True
+        ).strip()
+        run_command([set_file, "-d", creation_date, output_file], capture_output=True)
 
 
 def stream_signature(stream: dict[str, Any]) -> dict[str, Any]:
@@ -429,7 +413,6 @@ def compress_video(
 
     source_probe = probe_video(ffprobe, input_file)
     stream_position, video_stream = primary_video_stream(source_probe)
-    source_track_id = track_id(video_stream)
     output_dir = os.path.dirname(os.path.abspath(output_file))
     os.makedirs(output_dir, exist_ok=True)
 
@@ -453,7 +436,6 @@ def compress_video(
             rebuilt_file,
             source_probe=source_probe,
             stream_position=stream_position,
-            source_track_id=source_track_id,
         )
         verify_output(source_probe, probe_video(ffprobe, rebuilt_file), stream_position)
         os.replace(rebuilt_file, output_file)

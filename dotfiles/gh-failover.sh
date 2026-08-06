@@ -41,6 +41,10 @@ _gh_failover() {
   return "$ret"
 }
 
+unalias gl gf 2>/dev/null
+gl() { _gh_failover git pull "$@"; }
+gf() { _gh_failover git fetch "$@"; }
+gcl() { _gh_failover git clone "$@"; }
 gp() { _gh_failover git push "$@"; }
 gh() {
   if [ "$1" = pr ] && [ "$2" = create ]; then

@@ -15,7 +15,6 @@ DETAILS_BLOCK_RE = re.compile(r"<details\b[^>]*>.*?</details>", re.DOTALL | re.I
 
 type JsonValue = dict[str, JsonValue] | list[JsonValue] | str | int | float | bool | None
 
-MODES = ("nitpicks", "main")
 COMMENT_TYPES = ("assertive", "additional", "outsideDiffRange", "duplicate")
 CACHE_KEYS = {
     "assertive": "assertiveComments",
@@ -46,7 +45,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--mode",
-        choices=MODES,
+        choices=("nitpicks", "main"),
         default="nitpicks",
         help=(
             "Comment set to extract: nitpicks (assertiveComments) or "
@@ -197,15 +196,6 @@ def flatten_file_comments(
     return flattened_comments
 
 
-def comment_sort_key(comment: dict[str, Any]) -> tuple[str, int, int]:
-    """Sort comments by filename then line range."""
-    return (
-        str(comment["filename"]),
-        int(comment["start_line"] or 0),
-        int(comment["end_line"] or 0),
-    )
-
-
 def extract_comments_for_mode(
     review: dict[str, Any], mode: str, requested_types: list[str]
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
@@ -262,14 +252,10 @@ def format_comments_text(
             comment.get("start_line"),
             comment.get("end_line"),
         )
-        severity = comment.get("severity")
-        if severity and severity != "none":
+        if (severity := comment.get("severity")) and severity != "none":
             location = f"{location} [{severity}]"
-        body = comment.get("comment")
-        if body:
-            body_text = re.sub(r"\n{3,}", "\n\n", DETAILS_BLOCK_RE.sub("", str(body))).strip()
-        else:
-            body_text = "(empty comment)"
+        body = str(comment.get("comment") or "(empty comment)")
+        body_text = re.sub(r"\n{3,}", "\n\n", DETAILS_BLOCK_RE.sub("", body)).strip()
         blocks.append(f"{location}\n{body_text}")
     return f"{header}\n\n" + "\n\n---\n\n".join(blocks) + "\n"
 
@@ -330,7 +316,13 @@ def main() -> None:
     extracted_comments, counts_by_type = extract_comments_for_mode(
         selected_review, args.mode, requested_types
     )
-    extracted_comments.sort(key=comment_sort_key)
+    extracted_comments.sort(
+        key=lambda comment: (
+            str(comment["filename"]),
+            int(comment["start_line"] or 0),
+            int(comment["end_line"] or 0),
+        )
+    )
 
     review_title = selected_review.get("title")
     review_title = review_title if isinstance(review_title, str) else ""

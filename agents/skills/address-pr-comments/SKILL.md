@@ -19,7 +19,8 @@ description: Triage and resolve PR comments from humans and bots, including code
 3. Once comments are available, categorize into bugs, suggestions, nitpicks, and questions.
 4. Address each with code/test updates; only post thread replies when they add clear value for future human reviewers.
 5. Resolve review threads through GraphQL for comments that are fixed or intentionally accepted as no-change. Do not leave bot comment threads open.
-6. Batch related fixes into coherent commits.
+6. Run `/code-simplifier` on your edits before committing.
+7. Batch related fixes into coherent commits, then push.
 
 ## Rules
 
@@ -30,3 +31,4 @@ description: Triage and resolve PR comments from humans and bots, including code
 - Reply when context is genuinely useful (non-obvious tradeoff, partial acceptance, or reason for leaving code as-is).
 - Add tests when comments expose missing behavior coverage
 - Prioritize correctness and high-signal feedback first
+- Simplify edits with `/code-simplifier` before commit/push; do not land verbose remediation diffs unreviewed for bloat

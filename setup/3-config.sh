@@ -198,12 +198,11 @@ configure_macos() {
 
   echo '- Enable Touch ID for sudo (via update-safe sudo_local, not sudo itself).'
   # Template ships on Sonoma+; without it (or a prior sudo_local) there is nothing to edit.
-  if [[ ! -f /etc/pam.d/sudo_local ]]; then
-    if [[ ! -f /etc/pam.d/sudo_local.template ]]; then
-      echo '  skipped: /etc/pam.d/sudo_local.template missing (macOS Sonoma+ required).'
-    elif ! sudo cp /etc/pam.d/sudo_local.template /etc/pam.d/sudo_local; then
-      echo '  failed: could not create /etc/pam.d/sudo_local from template.'
-    fi
+  if [[ ! -f /etc/pam.d/sudo_local && ! -f /etc/pam.d/sudo_local.template ]]; then
+    echo '  skipped: /etc/pam.d/sudo_local.template missing (macOS Sonoma+ required).'
+  elif [[ ! -f /etc/pam.d/sudo_local ]] &&
+    ! sudo cp /etc/pam.d/sudo_local.template /etc/pam.d/sudo_local; then
+    echo '  failed: could not create /etc/pam.d/sudo_local from template.'
   fi
   if [[ -f /etc/pam.d/sudo_local ]]; then
     sudo sed -i '' 's/^#auth/auth/' /etc/pam.d/sudo_local

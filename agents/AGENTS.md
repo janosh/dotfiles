@@ -7,8 +7,7 @@ These rules apply to all projects.
 - **Equivalence is measured, not read.** To claim two implementations match, run both on identical inputs (representative *and* edge cases) and paste `max |a-b|` and max relative error. Never pronounce on equivalence from reading the code.
 - **Round-off has a size, compute it.** Never wave off a numerical mismatch as "floating-point", "round-off", "precision", or "tolerance" without computing the actual error and comparing to machine eps for the dtype (f64 ≈ 2.2e-16, f32 ≈ 1.2e-7). Bisect it: compare intermediate values, not just final outputs, and locate the first step where the paths diverge.
 - **Compare with explicit, justified tolerances.** Use `np.testing.assert_allclose(rtol=..., atol=...)` with values you chose deliberately (not defaults). For "bit-identical" claims use exact equality. Pin seeds before comparing stochastic outputs.
-- **Read before you explain.** Before answering code questions, read it carefully as well as surrounding/related code *and* the callees it depends on. Quote specific lines your answer rests on. Never infer behavior from a name, signature, docstring, or comment; they can lie.
-- **Separate observed from inferred.** Say "I ran X and saw Y" vs "I expect Y, haven't checked". Never report a test/build as passing, outputs as matching, or a bug as fixed unless you ran it and saw the result. If it's unverified, say so; then name the check that would settle it and run it.
+- **Verify before claiming.** Read relevant implementations and callees, distinguish observed results from inference, and never report unrun checks as passing.
 
 ## Multi-agent branch sharing
 
@@ -86,6 +85,7 @@ Multiple agents work on the same repo concurrently. Any destructive git operatio
 - Log useful context with errors—include relevant variable values
 - Ask before adding new dependencies.
 - Prefer editing existing files over creating new ones.
+- Prefer fast Rust CLIs over stock Unix tools when available: `fd` over `find`, `dust` over `du`, `rg` over `grep`, and `bat` over `cat`.
 - Keep existing comments when editing files unless they are stale or low value.
 - Use single-line section headers: `// === Section Name ===` not verbose multi-line box comments
 - **Never hard-wrap markdown.** There is no max line length: write each paragraph and list item as one long line and let the renderer wrap it. Reflowing prose to a column makes later edits produce noisy diffs. The only exception is inside code fences, where line breaks are content. This applies to prose you write for humans too, e.g. Slack messages, PR descriptions, commit bodies.

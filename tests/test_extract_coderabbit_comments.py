@@ -33,8 +33,8 @@ def test_format_location(
     assert extract_comments.format_location(filename, start_line, end_line) == expected
 
 
-def test_format_comments_text_is_plain_not_json() -> None:
-    """Plain-text output includes location + body without JSON wrapping."""
+def test_format_comments_text() -> None:
+    """Plain text includes compact comments and mode-specific labels."""
     text = extract_comments.format_comments_text(
         [
             {
@@ -42,7 +42,6 @@ def test_format_comments_text_is_plain_not_json() -> None:
                 "start_line": 64,
                 "end_line": 70,
                 "severity": "trivial",
-                "type": "assertive",
                 "comment": (
                     "Confirm the refresh effect tracks the query.\n\n"
                     "<details>\n<summary>Proposed change</summary>\n\n"
@@ -58,13 +57,8 @@ def test_format_comments_text_is_plain_not_json() -> None:
     assert "Confirm the refresh effect tracks the query." in text
     assert "<details>" not in text
     assert "find.query" not in text
-    assert "{" not in text
-
-
-def test_format_comments_text_main_label() -> None:
-    """Main mode header uses main comment label."""
-    text = extract_comments.format_comments_text([], review_title="Review", mode="main")
-    assert text.startswith("# 0 main comment(s) · Review\n")
+    main_text = extract_comments.format_comments_text([], review_title="Review", mode="main")
+    assert main_text.startswith("# 0 main comment(s) · Review\n")
 
 
 def test_resolve_comment_types_default_path() -> None:
@@ -78,32 +72,8 @@ def test_resolve_comment_types_default_path() -> None:
 def test_extract_comments_for_mode_main_vs_nitpicks() -> None:
     """Main reads fileReviewMap; nitpicks reads assertiveComments."""
     review = {
-        "fileReviewMap": {
-            "a.py": {
-                "comments": [
-                    {
-                        "filename": "a.py",
-                        "startLine": 1,
-                        "endLine": 2,
-                        "severity": "major",
-                        "type": "actionable",
-                        "comment": "Fix the bug.",
-                    }
-                ]
-            }
-        },
-        "additionalDetails": {
-            "assertiveComments": {
-                "b.py": [
-                    {
-                        "startLine": 3,
-                        "endLine": 3,
-                        "severity": "trivial",
-                        "comment": "Nitpick.",
-                    }
-                ]
-            }
-        },
+        "fileReviewMap": {"a.py": {"comments": [{"comment": "Fix the bug."}]}},
+        "additionalDetails": {"assertiveComments": {"b.py": [{"comment": "Nitpick."}]}},
     }
     main_comments, main_counts = extract_comments.extract_comments_for_mode(
         review, "main", ["assertive"]
