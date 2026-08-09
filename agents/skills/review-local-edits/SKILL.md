@@ -1,20 +1,15 @@
 ---
 name: review-local-edits
-description: Review local edits for commit readiness — bloat, correctness, polish, test gaps. Use before committing or to judge if uncommitted changes earn their keep.
+description: Pre-commit gate for uncommitted edits: judge whether each earns its keep and apply confident cleanup. Use immediately before committing.
 ---
 
 # Review Local Edits
 
 ## Instructions
 
-Start in review mode. Ask: are all local edits real improvements that earn their keep and ready to commit? no bloat or unpolished code that needs more work before shipping?
-
-Review the diff first for correctness, regressions, edge cases, integration issues, weak tests, duplicated setup, and unnecessary code.
-
-Only after reviewing, immediately apply high-confidence polish fixes: remove bloat, simplify overbuilt code, tighten assertions, delete dead code, and clean obvious rough edges.
-
-Do not action speculative ideas, behavior changes, or anything that needs product judgment. Report those separately.
-
-Preserve behavior, keep edits targeted, and run focused tests/lints when cheap and relevant.
-
-Keep this fast — it's a pre-commit check. Only run a `cross-model-review` second-opinion pass when the user asks for one or the change is genuinely high-stakes (security, data loss, migrations, public API); skip it for routine edits.
+1. Review the uncommitted diff and untracked files. Judge whether every edit earns its keep and is ready to commit.
+2. Check correctness, regressions, edge cases, integration, performance, API/design quality, weak tests, duplicated setup, dead code, needless abstraction, and unnecessary lines.
+3. Prioritize findings by impact and confidence. Immediately apply verified, low-risk, behavior-preserving fixes: remove bloat, simplify overbuilt code, tighten assertions, and clean rough edges.
+4. Report speculative, behavior-changing, design-level, high-effort, or product-dependent improvements separately with a concrete recommendation and complexity/payoff assessment.
+5. Keep edits targeted and run the narrowest affected checks once after the fix batch.
+6. Keep this fast. Run a `cross-model-review` only when the user asks or the change is genuinely high-stakes: security, data loss, migrations, or public API.

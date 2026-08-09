@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Stage, commit, and push local changes. Modifiers: nv (--no-verify), mine (own edits only), local (no push).
+description: Stage, commit, and push changes in the current repository. Modifiers: nv (--no-verify), mine (own edits only), local (no push).
 disable-model-invocation: true
 ---
 

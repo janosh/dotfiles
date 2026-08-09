@@ -29,7 +29,7 @@ When setting up new Macs with iCloud "Desktop & Documents" sync enabled, check [
 .
 ├── agents/AGENTS.md           # global agent rules (source for ~/dev/AGENTS.md symlink)
 ├── agents/skills/             # agent skills symlinked into Cursor/Codex/Claude
-├── dotfiles/                  # .zshrc (macOS), .bashrc + shared aliases/gh-failover (cluster), git, cspell
+├── dotfiles/                  # .zshrc (macOS), .bashrc + shared aliases/gh account selection, git, cspell
 ├── notes/                     # personal runbooks (Mac setup, Cursor, etc.)
 ├── setup/                     # macOS bootstrap scripts
 └── scripts/                   # one-off utilities

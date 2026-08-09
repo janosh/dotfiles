@@ -1,5 +1,5 @@
 #!/bin/bash
-# Cluster/HPC shell. Not linked by macOS setup; copy with aliases.sh + gh-failover.sh.
+# Cluster/HPC shell. Not linked by macOS setup; copy with aliases.sh + gh-account.sh.
 
 # === Options ===
 shopt -s autocd # https://gnu.org/software/bash/manual/html_node/The-Shopt-Builtin
@@ -15,6 +15,7 @@ parse_git_branch() {
 export PS1="\[\033[34m\]\h \[\033[32m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[00m\]$ "
 
 # === History ===
+HISTCONTROL=ignoreboth:erasedups
 shopt -s histappend # write history immediately; survives ssh drops. https://askubuntu.com/a/67306
 PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 
@@ -29,12 +30,12 @@ if [[ $- == *i* ]]; then # https://superuser.com/a/686293
   bind '"\C-u": unix-line-discard' # delete to start of line
 fi
 
-# === Shared aliases / gp failover (realpath follows symlinks) ===
+# === Shared aliases / gh account selection (realpath follows symlinks) ===
 _dotfiles_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 # shellcheck disable=SC1091
 . "${_dotfiles_dir}/aliases.sh"
 # shellcheck disable=SC1091
-. "${_dotfiles_dir}/gh-failover.sh"
+. "${_dotfiles_dir}/gh-account.sh"
 unset _dotfiles_dir
 
 # === SLURM ===

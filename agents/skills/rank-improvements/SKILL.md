@@ -1,35 +1,16 @@
 ---
 name: rank-improvements
-description: Rank improvement opportunities in changed code, implement the confident ones, and surface judgment calls. Use for review and cleanup.
+description: Review changed code, rank improvements, implement safe fixes, and surface judgment calls. Use for prioritized review of uncommitted or branch changes.
 ---
 
-# Rank Improvement Ideas
-
-## When to use
-
-- You want a punch list before implementation
-- You need prioritized review output for changed code
+# Rank Improvements
 
 ## Instructions
 
-1. Analyze in this order:
-   - Uncommitted changes
-   - Branch diff vs `main`
-2. Find opportunities in correctness, robustness, simplification, performance, readability, and maintainability.
+1. Review uncommitted changes when the tree is dirty; otherwise review the branch diff vs `main`. Review both only when asked or inseparable, and expand repository-wide only when asked or an observed pattern warrants it.
+2. Find correctness, robustness, simplification, performance, readability, and maintainability improvements. Weigh complexity against utility; recommend dropping costly low-value features.
 3. Rank findings by severity: Critical, High, Medium, Low.
-4. For each finding include:
-   - file/location
-   - problem summary
-   - concrete fix suggestion
-5. Act on findings, don't just list them:
-   - Immediately implement any fix you've verified is low-risk and behavior-preserving, regardless of severity.
-   - Report (don't auto-apply) high-risk, behavior-changing, design-level, or high-effort items — even Critical ones — each with a recommendation.
-
-## Rules
-
-- Auto-apply confident, low-risk fixes; report the rest — don't make the user re-request obvious wins
-- Keep scope to changed code
-- Omit empty severity sections
-- Apply best judgment on which improvements to implement versus leave undone.
-- Prioritize complexity/utility tradeoffs: avoid high-effort or high-maintenance changes unless their value is clearly commensurate.
-- Treat long-term maintenance cost as a first-class downside; high-maintenance improvements need especially strong payoff.
+4. Implement every verified, low-risk, behavior-preserving fix. Always centralize confirmed duplication; never merely report unDRY code.
+5. Defer only high-risk, behavior-changing, design-level, or high-effort findings. Include severity, location, problem, and recommended fix.
+6. Run the narrowest affected checks once after any fix batch; reuse a same-session result only when no covered path changed since that run.
+7. Report **Implemented** items with severity and verification, then **Reported only — not done** items, ordered by severity.

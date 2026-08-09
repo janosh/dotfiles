@@ -13,9 +13,9 @@ description: Hunt for concrete correctness bugs in changed code. Use for adversa
 ## Instructions
 
 1. Determine scope:
-   - Use uncommitted diff by default
-   - If tiny, review branch diff vs `main`
-   - Review serially by default; only for a clearly large diff (roughly 7+ files or several subsystems) fan out read-only subagents (one layer), aggregate findings, and apply the fixes yourself
+   - Use the uncommitted diff when the tree is dirty; otherwise use the branch diff vs `main`
+   - Do not expand a small uncommitted diff into a branch review unless the user asks or the local change is inseparable from unreviewed branch commits
+   - Review serially by default. Fan out one layer only when independent feature/directory partitions each need deep review and serial work clearly costs more than dispatch and aggregation; aggregate findings and apply fixes yourself
 2. Search for concrete break cases with real inputs.
 3. Prioritize:
    - Silent wrong results
@@ -31,7 +31,8 @@ description: Hunt for concrete correctness bugs in changed code. Use for adversa
 5. Add or strengthen tests where possible:
    - Cover the failing input or edge case that exposed the issue
    - Prefer concise, strict assertions that would catch regressions
-   - Run the relevant suite; spot-check the key regression test fails on the bug before the fix (full mutation via `verify-tests` only if confidence is still low)
+   - Prefer red-then-green when the fix is not yet applied. If it is already present and red evidence still matters, mutate only the relevant lines with a patch or in an isolated worktree, then undo the mutation and confirm the test passes on the restored code; never stash, reset, restore, or check out a mixed dirty tree. Use `verify-tests` only when assertion strength remains doubtful
+   - After the fix batch, run the narrowest affected tests once and confirm they pass
 6. Report what you changed with proof:
    - Breaking input
    - Expected vs actual behavior

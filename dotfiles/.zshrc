@@ -57,6 +57,7 @@ export PNPM_CONFIG_LOCKFILE=false
 [[ -r "$HOME/.vite-plus/env" ]] && . "$HOME/.vite-plus/env" # https://viteplus.dev
 
 # === Plugins (syntax-highlighting last) ===
+HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
 # shellcheck disable=SC1091,SC1094
 for _zsh_plugin in zsh-autosuggestions zsh-history-substring-search zsh-syntax-highlighting; do
   [[ -r /opt/homebrew/share/$_zsh_plugin/$_zsh_plugin.zsh ]] &&
@@ -81,18 +82,18 @@ if (( $+functions[history-substring-search-up] )); then
   [[ -n $terminfo[kcud1] ]] && bindkey "$terminfo[kcud1]" history-substring-search-down
 fi
 
-# === Shared aliases / gp failover ===
+# === Shared aliases / gh account selection ===
 _dotfiles_dir=${${(%):-%x}:A:h} # :A follows ~/.zshrc symlink
 # shellcheck disable=SC1091
 . "${_dotfiles_dir}/aliases.sh"
 # shellcheck disable=SC1091
-. "${_dotfiles_dir}/gh-failover.sh"
+. "${_dotfiles_dir}/gh-account.sh"
 unset _dotfiles_dir
 
 # Rank files by net lines added. --no-project: stdlib script, no cwd project sync/lock.
-glines() {
-  local repo=${${functions_source[glines]}:A:h:h}
-  env -u UV_FROZEN -u UV_NO_SYNC uv run --no-project "${repo}/scripts/git_line_rank.py" "$@"
+gdiff() {
+  local repo=${${functions_source[gdiff]}:A:h:h}
+  env -u UV_FROZEN -u UV_NO_SYNC uv run --no-project "${repo}/scripts/gdiff.py" "$@"
 }
 
 # Clean stale branches and non-origin remotes.

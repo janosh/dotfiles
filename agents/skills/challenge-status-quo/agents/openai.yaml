@@ -1,0 +1,4 @@
+interface:
+  display_name: "Challenge Status Quo"
+  short_description: "Rethink designs from first principles"
+  default_prompt: "Use $challenge-status-quo to rethink this implementation from first principles and simplify its architecture."

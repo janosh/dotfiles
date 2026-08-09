@@ -1,4 +1,4 @@
-"""Tests for git line-rank reporting."""
+"""Tests for gdiff reporting."""
 
 import os
 import shutil
@@ -9,13 +9,13 @@ from pathlib import Path
 
 import pytest
 
-module_path = f"{os.path.dirname(__file__)}/git_line_rank.py"
-spec = util.spec_from_file_location("git_line_rank", module_path)
+module_path = f"{os.path.dirname(__file__)}/gdiff.py"
+spec = util.spec_from_file_location("gdiff", module_path)
 if spec is None or spec.loader is None:
     raise RuntimeError(f"failed to load module spec for {module_path}")
-git_line_rank = util.module_from_spec(spec)
-sys.modules["git_line_rank"] = git_line_rank
-spec.loader.exec_module(git_line_rank)
+gdiff = util.module_from_spec(spec)
+sys.modules["gdiff"] = gdiff
+spec.loader.exec_module(gdiff)
 GIT_IDENTITY_ARGS = ("-c", "user.name=Test User", "-c", "user.email=test@example.com")
 
 
@@ -71,6 +71,9 @@ def changed_repo(tmp_path: Path, git_path: str) -> str:
         (["--unstaged"], ("table", 0, "n", "unstaged", [])),
         (["-u"], ("table", 0, "n", "unstaged", [])),
         (["@~2"], ("table", 0, "n", "history", ["@~2"])),
+        (["main...@"], ("table", 0, "n", "diff", ["main...@"])),
+        (["main..@"], ("table", 0, "n", "diff", ["main..@"])),
+        (["--history", "main...@"], ("table", 0, "n", "history", ["main...@"])),
         (["--history", "--since=1.year"], ("table", 0, "n", "history", ["--since=1.year"])),
         (["--since=1.year"], ("table", 0, "n", "history", ["--since=1.year"])),
         (["--local", "--", "*.py"], ("table", 0, "n", "local", ["--", "*.py"])),
@@ -80,27 +83,35 @@ def test_parse_args_selects_source(
     args: list[str], expected: tuple[str, int, str, str, list[str]]
 ) -> None:
     """Parse source and passthrough args."""
-    assert git_line_rank.parse_args(args) == expected
+    assert gdiff.parse_args(args) == expected
+
+
+def test_help_uses_gdiff_command_name(capsys: pytest.CaptureFixture[str]) -> None:
+    """Present the renamed command in CLI help."""
+    with pytest.raises(SystemExit) as system_exit:
+        gdiff.parse_args(["--help"])
+    assert system_exit.value.code == 0
+    assert capsys.readouterr().out.startswith("usage: gdiff ")
 
 
 def test_parse_numstat_rows_aggregates_text_changes() -> None:
     """Aggregate text changes, follow renames, and skip binary rows."""
-    rows = git_line_rank.parse_numstat_rows("2\t1\ta.py\n-\t-\tbinary.bin\n3\t0\ta.py\n")
+    rows = gdiff.parse_numstat_rows("2\t1\ta.py\n-\t-\tbinary.bin\n3\t0\ta.py\n")
     assert rows == [(4, 5, 1, "a.py")]
     rename_numstat = (
         "3\t1\told.py\0\n1\t0\t\0old.py\0new.py\0"
         "\n-\t-\t\0new.py\0final.py\0\n2\t0\tfinal.py\0"
     )
-    assert git_line_rank.parse_numstat_rows(rename_numstat) == [(5, 6, 1, "final.py")]
+    assert gdiff.parse_numstat_rows(rename_numstat) == [(5, 6, 1, "final.py")]
 
 
-def test_history_sources_accept_revisions_and_print_commit_summaries(
+def test_revision_sources_and_commit_summaries(
     tmp_path: Path,
     git_path: str,
     capsys: pytest.CaptureFixture[str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """History mode accepts revisions and prints selected commit summaries."""
+    """History and endpoint-diff modes report the selected revisions."""
     repo = str(tmp_path)
     run_git(git_path, repo, ["init"])
     base_history = "".join(f"line {idx:02d}\n" for idx in range(10))
@@ -115,7 +126,7 @@ def test_history_sources_accept_revisions_and_print_commit_summaries(
 
     def history_rows(args: list[str]) -> list[tuple[int, int, int, str]]:
         """Collect history rows from the test repo."""
-        return git_line_rank.collect_line_rank_rows(repo, "history", args)
+        return gdiff.collect_line_rank_rows(repo, "history", args)
 
     middle_commit = run_git(git_path, repo, ["rev-parse", "HEAD~1"]).stdout.strip()
     last_two_commits = [(1, 1, 0, "other.txt"), (2, 2, 0, "history.txt")]
@@ -131,7 +142,7 @@ def test_history_sources_accept_revisions_and_print_commit_summaries(
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("FORCE_COLOR", raising=False)
     monkeypatch.setenv("NO_COLOR", "1")
-    assert git_line_rank.main(["@~2"]) == 0
+    assert gdiff.main(["@~2"]) == 0
     assert capsys.readouterr().out == (
         f"{commit_shas[0]} (2 files) two\n"
         f"{commit_shas[1]} (1 files) one\n"
@@ -141,7 +152,7 @@ def test_history_sources_accept_revisions_and_print_commit_summaries(
         "   +2  history.txt\n"
         "   +3  total\n"
     )
-    assert git_line_rank.main(["--markdown", "@~2"]) == 0
+    assert gdiff.main(["--markdown", "@~2"]) == 0
     assert capsys.readouterr().out == (
         f"{commit_shas[0]} (2 files) two\n"
         f"{commit_shas[1]} (1 files) one\n\n"
@@ -167,10 +178,33 @@ def test_history_sources_accept_revisions_and_print_commit_summaries(
     assert history_rows(["@~3"]) == expected_rows
     assert history_rows(["@~3", "--reverse"]) == expected_rows
 
+    base_branch = run_git(git_path, repo, ["branch", "--show-current"]).stdout.strip()
+    run_git(git_path, repo, ["switch", "-c", "feature"])
+    moved_path = tmp_path / "moved.txt"
+    moved_path.write_text(f"{moved_text}final\nfeature one\n", encoding="utf-8")
+    commit_all(git_path, repo, "feature one")
+    moved_path.write_text(f"{moved_text}final\nfeature two\n", encoding="utf-8")
+    commit_all(git_path, repo, "feature two")
+    run_git(git_path, repo, ["switch", base_branch])
+    (tmp_path / "main.txt").write_text("main\n", encoding="utf-8")
+    commit_all(git_path, repo, "main")
+    revision_range = f"{base_branch}...feature"
+
+    assert gdiff.collect_line_rank_rows(repo, "diff", [revision_range]) == [
+        (1, 1, 0, "moved.txt")
+    ]
+    assert gdiff.collect_line_rank_rows(repo, "history", [revision_range]) == [
+        (1, 1, 0, "main.txt"),
+        (1, 2, 1, "moved.txt"),
+    ]
+    assert gdiff.normalize_history_args(repo, [revision_range], right_side_only=True) == [
+        f"{base_branch}..feature"
+    ]
+
 
 def test_commit_summary_lines_apply_display_limits() -> None:
     """Hide singleton ranges and limit message length and commit count."""
-    format_lines = git_line_rank.commit_summary_lines
+    format_lines = gdiff.commit_summary_lines
     assert format_lines([("aaaaaaa", 1, "one")]) == []
     assert format_lines(
         [("aaaaaaa", 3, "xxxxx"), ("bbbbbbb", 1, "two")], max_message_chars=3
@@ -201,7 +235,7 @@ def test_parse_numstat_rows_sorts_by_requested_metric(
 ) -> None:
     """Sort rows by net, added, or removed lines."""
     numstat = "5\t0\tnet.py\n8\t4\tadded.py\n0\t6\tremoved.py\n"
-    sorted_files = [row[3] for row in git_line_rank.parse_numstat_rows(numstat, sort_name)]
+    sorted_files = [row[3] for row in gdiff.parse_numstat_rows(numstat, sort_name)]
     assert sorted_files == expected_files
 
 
@@ -219,7 +253,7 @@ def test_parse_numstat_rows_sorts_by_requested_metric(
 )
 def test_file_kind_detects_code_and_test_files(file_path: str, expected: str) -> None:
     """Classify code and test file paths."""
-    assert git_line_rank.file_kind(file_path) == expected
+    assert gdiff.file_kind(file_path) == expected
 
 
 def test_print_table_formats_and_colors_rows(
@@ -234,7 +268,7 @@ def test_print_table_formats_and_colors_rows(
     )
     monkeypatch.delenv("FORCE_COLOR", raising=False)
     monkeypatch.setenv("NO_COLOR", "1")
-    git_line_rank.print_table(rows)
+    gdiff.print_table(rows)
     assert capsys.readouterr().out == (
         "     lines  file\n"
         "+3 -1 = +2  src/added.py\n"
@@ -244,23 +278,23 @@ def test_print_table_formats_and_colors_rows(
     )
 
     monkeypatch.setenv("FORCE_COLOR", "1")
-    git_line_rank.print_table(rows)
+    gdiff.print_table(rows)
     assert capsys.readouterr().out == (
         "     lines  file\n"
-        f"{git_line_rank.ANSI_GREEN}+3{git_line_rank.ANSI_RESET} "
-        f"{git_line_rank.ANSI_RED}-1{git_line_rank.ANSI_RESET} = "
-        f"{git_line_rank.ANSI_GREEN}+2{git_line_rank.ANSI_RESET}  "
-        f"{git_line_rank.ANSI_BLUE}src/added.py{git_line_rank.ANSI_RESET}\n"
-        f"        {git_line_rank.ANSI_RED}-1{git_line_rank.ANSI_RESET}  "
-        f"{git_line_rank.ANSI_YELLOW}tests/removed.py{git_line_rank.ANSI_RESET}\n"
-        f"{git_line_rank.ANSI_GREEN}+1{git_line_rank.ANSI_RESET} "
-        f"{git_line_rank.ANSI_RED}-1{git_line_rank.ANSI_RESET} = +0  changed.md\n"
-        f"{git_line_rank.ANSI_GREEN}+4{git_line_rank.ANSI_RESET} "
-        f"{git_line_rank.ANSI_RED}-3{git_line_rank.ANSI_RESET} = "
-        f"{git_line_rank.ANSI_GREEN}+1{git_line_rank.ANSI_RESET}  total\n"
+        f"{gdiff.ANSI_GREEN}+3{gdiff.ANSI_RESET} "
+        f"{gdiff.ANSI_RED}-1{gdiff.ANSI_RESET} = "
+        f"{gdiff.ANSI_GREEN}+2{gdiff.ANSI_RESET}  "
+        f"{gdiff.ANSI_BLUE}src/added.py{gdiff.ANSI_RESET}\n"
+        f"        {gdiff.ANSI_RED}-1{gdiff.ANSI_RESET}  "
+        f"{gdiff.ANSI_YELLOW}tests/removed.py{gdiff.ANSI_RESET}\n"
+        f"{gdiff.ANSI_GREEN}+1{gdiff.ANSI_RESET} "
+        f"{gdiff.ANSI_RED}-1{gdiff.ANSI_RESET} = +0  changed.md\n"
+        f"{gdiff.ANSI_GREEN}+4{gdiff.ANSI_RESET} "
+        f"{gdiff.ANSI_RED}-3{gdiff.ANSI_RESET} = "
+        f"{gdiff.ANSI_GREEN}+1{gdiff.ANSI_RESET}  total\n"
     )
     monkeypatch.delenv("FORCE_COLOR")
-    git_line_rank.print_table([(2, 2, 0, "added.py")])
+    gdiff.print_table([(2, 2, 0, "added.py")])
     assert capsys.readouterr().out == "lines  file\n   +2  added.py\n   +2  total\n"
 
 
@@ -281,8 +315,8 @@ def test_html_report_formats_rows_and_omits_total_link(
     (tmp_path / "src").mkdir()
     (tmp_path / "src/added.py").write_text("new\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(git_line_rank.webbrowser, "open", bool)
-    assert git_line_rank.main(["--html"]) == 0
+    monkeypatch.setattr(gdiff.webbrowser, "open", bool)
+    assert gdiff.main(["--html"]) == 0
     report_path = capsys.readouterr().out.removeprefix("Opened ").strip()
     with open(report_path, encoding="utf-8") as report_file:
         report_html = report_file.read()
@@ -323,4 +357,4 @@ def test_local_line_rank_sources(
     changed_repo: str, source_name: str, expected: list[tuple[int, int, int, str]]
 ) -> None:
     """Local sources include the expected staged, unstaged, and untracked changes."""
-    assert git_line_rank.collect_line_rank_rows(changed_repo, source_name, []) == expected
+    assert gdiff.collect_line_rank_rows(changed_repo, source_name, []) == expected

@@ -36,8 +36,7 @@ A different model family catches different bugs, so the reviewer must NOT share 
 
 Launch reviewers on the Step 2 model in read-only mode. Each returns, for its scope, a prioritized list of correctness bugs, test gaps, performance issues, and bloat/overengineering/elegance improvements (including refactor proposals) — each with a concrete fix — plus a plan-completion verdict if a plan exists.
 
-- Small diff: one subagent with the Step 1 prompt.
-- Large diff (roughly 7+ files, or spanning multiple features/new dirs): partition the diff by feature/dir and launch one reviewer per partition in parallel (one layer, no nested fan-out), each given the shared context plus its slice. Then aggregate and de-duplicate their findings, and judge cross-cutting concerns and overall plan completion (if a plan exists) across partitions yourself.
+- Use one subagent by default. Partition by feature/directory only when each slice needs deep independent review, shares little cross-cutting context, and serial review clearly costs more than dispatch and aggregation. Use one parallel layer, give each reviewer the shared context plus its slice, then aggregate findings and judge cross-cutting concerns yourself.
 
 Do not let a reviewer's praise substitute for evidence — weight concrete findings over verdicts.
 

@@ -47,22 +47,22 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
 
 def parse_args(args: Sequence[str]) -> ParsedArgs:
-    """Parse glines arguments and pass unrecognized values through to git."""
+    """Parse gdiff arguments and pass unrecognized values through to git."""
     parser = argparse.ArgumentParser(
-        prog="glines",
+        prog="gdiff",
         allow_abbrev=False,
         description="Rank files in the current git repo by net lines added.",
         epilog=(
             "Examples:\n"
-            "  glines\n"
-            "  glines --staged\n"
-            "  glines --staged-files\n"
-            "  glines @~5\n"
-            "  glines 1a2b3c4\n"
-            "  glines --unstaged -- '*.py'\n"
-            "  glines -n 25 --markdown\n"
-            "  glines --history --html --since=1.year\n"
-            "  glines --history --author='Jane Doe' -- '*.py'"
+            "  gdiff\n"
+            "  gdiff --staged\n"
+            "  gdiff --staged-files\n"
+            "  gdiff @~5\n"
+            "  gdiff 1a2b3c4\n"
+            "  gdiff --unstaged -- '*.py'\n"
+            "  gdiff -n 25 --markdown\n"
+            "  gdiff --history --html --since=1.year\n"
+            "  gdiff --history --author='Jane Doe' -- '*.py'"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -102,7 +102,13 @@ def parse_args(args: Sequence[str]) -> ParsedArgs:
     parsed_args, git_args = parser.parse_known_args(args)
     if parsed_args.limit < 0:
         parser.error("--limit expects a non-negative integer")
-    source_name = parsed_args.source_name or ("history" if git_args else "local")
+    pathspec_idx = git_args.index("--") if "--" in git_args else len(git_args)
+    has_revision_range = any(
+        ".." in arg and not arg.startswith("-") for arg in git_args[:pathspec_idx]
+    )
+    source_name = parsed_args.source_name or (
+        "diff" if has_revision_range else "history" if git_args else "local"
+    )
     return parsed_args.format_name, parsed_args.limit, parsed_args.sort, source_name, git_args
 
 
@@ -110,7 +116,7 @@ def command_path(command: str) -> str:
     """Return the absolute path to an executable on PATH."""
     abs_command_path = shutil.which(command)
     if abs_command_path is None:
-        print(f"glines: command not found: {command}", file=sys.stderr)
+        print(f"gdiff: command not found: {command}", file=sys.stderr)
         raise SystemExit(127)
     return abs_command_path
 
@@ -178,10 +184,20 @@ def rows_from_counters(
     )
 
 
-def normalize_history_args(repo: str, git_args: Sequence[str]) -> list[str]:
-    """Expand glines history shortcuts without changing normal git-log refs."""
+def normalize_history_args(
+    repo: str,
+    git_args: Sequence[str],
+    *,
+    right_side_only: bool = False,
+) -> list[str]:
+    """Expand history shortcuts and optionally select the right side of symmetric ranges."""
     history_args = list(git_args)
     pathspec_idx = history_args.index("--") if "--" in history_args else len(history_args)
+    if right_side_only:
+        history_args[:pathspec_idx] = [
+            arg.replace("...", "..", 1) if not arg.startswith("-") else arg
+            for arg in history_args[:pathspec_idx]
+        ]
     normalized_args: list[str] = []
     git_path = command_path("git")
     for arg in history_args[:pathspec_idx]:
@@ -217,21 +233,21 @@ def collect_line_rank_rows(
         return parse_numstat_rows(
             git_stdout(
                 ["-C", repo, "log", *revision_args, *flags, *history_args[pathspec_idx:]],
-                "glines: git log failed",
+                "gdiff: git log failed",
             ),
             sort_name,
         )
     if source_name == "staged_files":
         staged_files = git_stdout(
             ["-C", repo, "diff", "--cached", "--name-only", "-z", *git_args],
-            "glines: git diff --cached failed",
+            "gdiff: git diff --cached failed",
         ).split("\0")[:-1]
         if not staged_files:
             return []
         return parse_numstat_rows(
             git_stdout(
                 ["-C", repo, "diff", "--numstat", "HEAD", "--", *staged_files],
-                "glines: git diff failed",
+                "gdiff: git diff failed",
             ),
             sort_name,
         )
@@ -242,7 +258,7 @@ def collect_line_rank_rows(
         diff_args.append("--cached")
     diff_args.extend(git_args)
 
-    rows = parse_numstat_rows(git_stdout(diff_args, "glines: git diff failed"), sort_name)
+    rows = parse_numstat_rows(git_stdout(diff_args, "gdiff: git diff failed"), sort_name)
     if source_name in {"local", "unstaged"}:
         if "--" in git_args:
             separator_idx = git_args.index("--")
@@ -260,7 +276,7 @@ def collect_line_rank_rows(
                 "-z",
                 *pathspec_args,
             ],
-            "glines: git ls-files failed",
+            "gdiff: git ls-files failed",
         )
         for file_path in filter(None, untracked_stdout.split("\0")):
             try:
@@ -375,7 +391,7 @@ def main(args: Sequence[str] | None = None) -> int:  # noqa: PLR0915
     )
     repo = git_stdout(
         ["-C", os.getcwd(), "rev-parse", "--show-toplevel"],
-        "glines: not inside a git repo",
+        "gdiff: not inside a git repo",
         2,
     )
     rows = collect_line_rank_rows(repo, source_name, git_args, sort_name)
@@ -383,18 +399,20 @@ def main(args: Sequence[str] | None = None) -> int:  # noqa: PLR0915
         rows = rows[:limit]
 
     if not rows:
-        print("glines: no text-file line changes found")
+        print("gdiff: no text-file line changes found")
         return 0
 
     commit_lines: list[str] = []
-    if source_name == "history":
-        history_args = normalize_history_args(repo, git_args)
+    if source_name in {"history", "diff"}:
+        history_args = normalize_history_args(
+            repo, git_args, right_side_only=source_name == "diff"
+        )
         pathspec_idx = history_args.index("--") if "--" in history_args else len(history_args)
         summary_flags = ["--no-patch", "--shortstat", "--format=%x00%h%x09%s"]
         summary_args = ["-C", repo, "log", *history_args[:pathspec_idx], *summary_flags]
         summary_stdout = git_stdout(
             [*summary_args, *history_args[pathspec_idx:]],
-            "glines: git log failed",
+            "gdiff: git log failed",
         )
         summaries: list[CommitSummary] = []
         for record in summary_stdout.split("\0")[1:]:
@@ -455,7 +473,7 @@ def main(args: Sequence[str] | None = None) -> int:  # noqa: PLR0915
         commit_text = escape("\n".join(commit_lines))
         commits_html = f"<h2>Commits</h2>\n<pre>{commit_text}</pre>\n" if commit_text else ""
         with tempfile.NamedTemporaryFile(
-            "w", delete=False, encoding="utf-8", prefix="git-line-rank-", suffix=".html"
+            "w", delete=False, encoding="utf-8", prefix="gdiff-", suffix=".html"
         ) as report_file:
             report_path = report_file.name
             report_file.write(

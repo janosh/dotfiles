@@ -7,20 +7,20 @@ description: Audit test files or directories for low-value coverage; simplify, f
 
 ## Workflow
 
-1. Run the narrowest scoped tests. Fix clear defects; ask only when intended behavior is ambiguous. Audit from a green baseline.
-2. Inspect the production code, related tests, and shared fixtures. If existing coverage will help judge deletions, record affected-file line/branch coverage without adding tooling.
-3. Simplify first: parameterize repeated cases, fold related assertions, and remove duplicated setup or helpers.
-4. Delete only trivial, vacuous, implementation-only, or truly duplicate tests. A named retained test must cover the same behavior and failure mode at the same or deeper integration level; otherwise keep the candidate.
-5. Batch low-risk edits and run the narrowest affected tests once. Run the full scoped suite, lint, and type checks once at the end.
-6. Repeat coverage only when cases or paths were removed. Reject threshold failures or unexplained affected-file drops. Mutation-check only deletion of sole regression, edge, or error-path coverage.
+1. Inspect the production code, related tests, and shared fixtures to identify the behaviors and failure modes each test protects.
+2. Simplify first: parameterize repeated cases, fold related assertions, and remove duplicated setup or helpers. Before keeping a standalone test, search nearby tests for the same behavior and setup; fold it only when readability, intent, and failure clarity remain strong.
+3. Identify only trivial, vacuous, implementation-only, or truly duplicate tests as deletion candidates. A named retained test must cover the same behavior and failure mode at the same or deeper integration level; otherwise keep the candidate. Keep candidates whose current pass/fail status is unknown until step 4.
+4. Batch simplifications and run the narrowest affected tests once with unknown-status deletion candidates still present. Delete only candidates that passed in this run and satisfy step 3; if deletion changes fixtures, helpers, or collection behavior, verify that affected behavior afterward.
+5. When coverage will decide a specific deletion, measure affected-file coverage with that candidate present and again with it removed, and reject a drop you cannot explain. Otherwise collect coverage only when project thresholds require it after the edit batch, and reject threshold failures. Mutation-check only deletion of sole regression, edge, or error-path coverage.
+6. Escalate to a broader suite, lint, or type checks only when edits affect shared fixtures/helpers or cross-cutting behavior.
 
 ## Scope handling
 
-- Work serially for small scopes. For 5+ independent files, delegate disjoint file-local edits; the parent owns shared changes and final verification.
+- Work serially by default. Parallelize only when partitions are file-disjoint, share no fixtures or helpers being edited, and serial execution is clearly slower; the parent owns shared changes and one aggregated verification.
 
 ## Report
 
-- Summarize edits, retained coverage for deletions, checks run, coverage changes, and uncertain candidates.
+- Summarize deletions, the retained behavior that justifies them, checks run, and uncertain candidates.
 
 ## Rules
 

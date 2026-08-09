@@ -5,6 +5,7 @@ alias gca='git commit --amend'
 alias gcan='git commit --amend --no-edit'
 alias gt='git tag'
 alias gst='git stash'
+# gl/gp are functions in gh-account.sh: they retry across gh accounts on an auth error
 alias gr='git remote'
 alias grv='git remote -v'
 alias gb='git branch'

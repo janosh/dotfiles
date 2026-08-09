@@ -23,4 +23,4 @@ jobs:
         uses: j178/prek-action@v2
 
       - name: Run tests
-        run: uv run --no-project --with pytest python -m pytest scripts/test_git_line_rank.py
+        run: uv run --no-project --with pytest python -m pytest
