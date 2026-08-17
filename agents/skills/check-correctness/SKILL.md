@@ -15,7 +15,7 @@ description: Hunt for concrete correctness bugs in changed code. Use for adversa
 1. Determine scope:
    - Use the uncommitted diff when the tree is dirty; otherwise use the branch diff vs `main`
    - Do not expand a small uncommitted diff into a branch review unless the user asks or the local change is inseparable from unreviewed branch commits
-   - Review serially by default. Fan out one layer only when independent feature/directory partitions each need deep review and serial work clearly costs more than dispatch and aggregation; aggregate findings and apply fixes yourself
+   - Use `distribute` when requested or when independent feature/directory reviews justify one read-only parallel layer; otherwise review directly. Aggregate findings and apply fixes yourself; explain any requested fallback
 2. Search for concrete break cases with real inputs.
 3. Prioritize:
    - Silent wrong results

@@ -14,7 +14,7 @@ description: Find and fix related variants of a recently fixed issue across the 
 
 1. Generalize the root pattern of the original issue.
 2. Search for exact and conceptual variants across the repo.
-3. Search serially by default. Fan out one layer only when area partitions are disjoint, require substantial independent work, and serial execution clearly costs more than dispatch and aggregation; do not share edited files between agents.
+3. Use `distribute` when requested or when disjoint areas justify one parallel search-and-fix layer; otherwise work directly. Never share edited files between agents; the parent owns shared changes and aggregate verification. Explain any requested fallback.
 4. Apply fixes consistently.
 5. If repeated 3+ times, consider shared abstraction only when it improves clarity.
 6. Run one aggregated focused verification after all fixes.

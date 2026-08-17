@@ -5,6 +5,8 @@ description: Review changed code, rank improvements, implement safe fixes, and s
 
 # Rank Improvements
 
+Use `distribute` when requested or when independent feature/directory reviews justify one read-only parallel layer; otherwise work directly. The parent verifies and ranks findings, applies fixes, and runs aggregate checks. Explain any requested fallback.
+
 ## Instructions
 
 1. Review uncommitted changes when the tree is dirty; otherwise review the branch diff vs `main`. Review both only when asked or inseparable, and expand repository-wide only when asked or an observed pattern warrants it.

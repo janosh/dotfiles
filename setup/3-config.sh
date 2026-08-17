@@ -133,6 +133,9 @@ configure_macos() {
   defaults write com.apple.Terminal 'Startup Window Settings' -string 'Pro'
 
   # === General UI ===
+  echo '- Switch appearance automatically with time of day.'
+  defaults write NSGlobalDomain AppleInterfaceStyleSwitchesAutomatically -bool true
+
   echo '- Expand save panel by default.'
   defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
   defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
@@ -147,8 +150,9 @@ configure_macos() {
   echo '- Save to disk (not to iCloud) by default.'
   defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
 
-  echo '- Disable smart quotes.'
+  echo '- Disable smart quotes and dashes.'
   defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+  defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
 
   configure_text_replacements
 
@@ -161,12 +165,16 @@ configure_macos() {
   echo '- Set Help Viewer windows to non-floating mode.'
   defaults write com.apple.helpviewer DevMode -bool true
 
-  echo '- Enable full keyboard access for all controls (Tab in modal dialogs).'
+  echo '- Enable full keyboard access and fast key repeat.'
   defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+  defaults write NSGlobalDomain KeyRepeat -int 2
+  defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
-  echo '- Set languages and metric units.'
+  echo '- Set languages, metric units, 24-hour time, and battery percentage.'
   defaults write NSGlobalDomain AppleLanguages -array "en_US" "de_DE"
   defaults write NSGlobalDomain AppleMetricUnits -bool true
+  defaults write NSGlobalDomain AppleICUForce24HourTime -bool true
+  defaults write com.apple.controlcenter BatteryShowPercentage -bool true
 
   echo '- Show language menu in the top right corner of the boot screen.'
   sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool true
@@ -199,10 +207,11 @@ configure_macos() {
   defaults write com.apple.dock showMissionControlGestureEnabled -bool true
 
   # === Security / accounts ===
-  echo '- Show Bluetooth in the menu bar; require password immediately on wake.'
+  echo '- Show Bluetooth, require an immediate password, and enable the firewall.'
   defaults -currentHost write com.apple.controlcenter Bluetooth -int 18
   defaults write com.apple.screensaver askForPassword -int 1
   defaults write com.apple.screensaver askForPasswordDelay -int 0
+  sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
 
   echo '- Disable the Guest User account.'
   sudo sysadminctl -guestAccount off
