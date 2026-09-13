@@ -61,9 +61,9 @@ Multiple agents may work on the same branch concurrently. Editing a file that al
 - Don't commit without being asked
 - Never add `Co-authored-by: Cursor/Codex/...` or similar to commit messages
 - Never `git push --force/--force-with-lease` unless explicitly asked for that specific branch and situation. Once work is pushed, prefer follow-up commits over amending/rebasing.
-- **Never create GitHub issues or PRs without asking.** When asked to "draft" one, output the title and body as markdown for review — don't run `gh` until explicitly told to post.
+- A request to submit or open a PR authorizes publishing its branch and creating the PR without another confirmation. Create issues only when requested. When asked to "draft" an issue or PR, output the title and body as markdown for review — don't run `gh` until explicitly told to post.
 - **Permission to commit is never permission to open a PR**, and neither is a blocked push. If a push is rejected (branch protection, required status checks, ruleset), stop and report it. Do NOT work around it by moving the commit to a new branch and opening a PR. Leave the commit local and let the user choose how to land it.
-- **Push only where the branch already publishes** — `git push --dry-run` prints the real destination. Never `git push -u origin <name>` for a branch with no `origin/<name>` (e.g. after `gh pr checkout` of a fork PR, that publishes a new upstream branch instead of updating their PR). No destination means stop and ask.
+- Do not ask for separate permission to publish a branch as part of requested work, including setting an upstream for a new branch. Verify the destination with `git push --dry-run`. For an existing fork PR, push to its actual head repository and branch rather than creating an unrelated branch on `origin`.
 - Asking a question mid-task and getting an answer authorizes only what was asked. When the plan turns out not to work, ask again. Don't substitute a different action you think is equivalent.
 
 ## CRITICAL: Protect Uncommitted Work
@@ -84,6 +84,7 @@ Multiple agents work on the same repo concurrently. Any destructive git operatio
 - Remove dead code aggressively. Prefer a clean codebase over deprecation.
 - Log useful context with errors—include relevant variable values
 - Ask before adding new dependencies.
+- For my own upstream packages (e.g. `svelte-widgets` and `matterviz`), always track the upstream repository's latest `main` branch. Adapt consuming code to breaking API changes instead of pinning older commits or releases, downgrading, or adding compatibility fallbacks.
 - Prefer editing existing files over creating new ones.
 - Prefer fast Rust CLIs over stock Unix tools when available: `fd` over `find`, `dust` over `du`, `rg` over `grep`, and `bat` over `cat`.
 - Keep existing comments when editing files unless they are stale or low value.
