@@ -23,5 +23,5 @@ print(f"Renaming {len(files)} files along with their XMP files in {dirname} with
 for idx, file in enumerate(files, start=1):
     basename, ext = os.path.splitext(file)
     os.rename(file, f"{prefix}{idx}{ext}")
-    if os.path.exists(f"{basename}.xmp"):
+    if os.path.isfile(f"{basename}.xmp"):
         os.rename(f"{basename}.xmp", f"{prefix}{idx}.xmp")

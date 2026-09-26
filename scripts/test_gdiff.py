@@ -162,6 +162,8 @@ def test_revision_sources_and_commit_summaries(
         "| +2 | `history.txt` |\n"
         "| +3 | `total` |\n"
     )
+    assert gdiff.main(["-n", "1", "@~2"]) == 0  # keeps the top-ranked file, not the bottom
+    assert capsys.readouterr().out.endswith("   +2  history.txt\n   +2  total\n")
     run_git(git_path, repo, ["mv", "history.txt", "moved.txt"])
     unchanged_line_count = 5
     moved_text = "".join(

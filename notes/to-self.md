@@ -2,7 +2,7 @@
 
 ## Cursor/Codex Setup
 
-`configure_agents` in `setup/3-config.sh` creates all the symlinks below. It runs as part of `setup/main.sh`; re-run it on its own after cloning new repos:
+`configure_agents` in `setup/3-config.sh` creates all the symlinks below. It runs as part of `setup/main.sh`; re-run it after cloning new repos:
 
 ```sh
 source ~/dev/dotfiles/setup/3-config.sh && DOTFILES_DIR=~/dev/dotfiles configure_agents
@@ -10,70 +10,39 @@ source ~/dev/dotfiles/setup/3-config.sh && DOTFILES_DIR=~/dev/dotfiles configure
 
 Why each link exists:
 
-- Codex and Claude Code inherit `AGENTS.md` up the directory tree, so a single `~/dev/AGENTS.md` covers every repo below it.
-- Cursor does **not** walk up past the workspace root — it only reads `AGENTS.md` at the root of the open folder and in subdirectories below it. Opening a single repo means `~/dev/AGENTS.md` is one level too high and no rules load at all, so every repo gets its own link. Repos with their own `AGENTS.md` are left alone, and the global gitignore excludes `AGENTS.md` so these stay untracked.
-- Global skills live in `~/.cursor/skills/` for Cursor, `~/.agents/skills/` for Codex and `~/.claude/skills/` for Claude Code. The `SKILL.md` `name`/`description` frontmatter is shared across all three, so the same skill dirs are linked into each.
+- Codex and Claude Code inherit `AGENTS.md` up the directory tree, so `~/dev/AGENTS.md` covers every repo below it.
+- Cursor only reads `AGENTS.md` at and below the workspace root, so opening a single repo misses `~/dev/AGENTS.md`. Every repo therefore gets its own link, except repos with their own `AGENTS.md`. The global gitignore keeps these links untracked.
+- Global skills live in `~/.cursor/skills/` (Cursor), `~/.agents/skills/` (Codex) and `~/.claude/skills/` (Claude Code). All three share the `SKILL.md` frontmatter format, so the same skill dirs are linked into each.
 
-## When having lost work in VS Code
+## Recovering lost work in VS Code
 
-Incident on 2022-08-04: I had a `functorch_ensemble.ipynb` notebook which I renamed to a regular Python script `.py` and continued editing for 2 hours. After saving all files, I noticed 1 remaining blue dot indicating an unsaved file. This happens often when using the interactive window so I thought nothing of it, closed the workspace and left for lunch. I later reopened the folder and saw the `functorch_ensemble.py` had the original JSON content from the Jupyter notebook in it. All my edits were missing.
-
-Recovery: Following this [superuser answer](https://superuser.com/a/1723403), I was able to recover my changes from `~/Library/Application\ Support/Code/User/History` by grepping for the term `accuracy_dict` which I knew I had added late in the 2h editing process. So any matching file would be a more recent backup.
+VS Code keeps local file history in `~/Library/Application Support/Code/User/History` ([superuser answer](https://superuser.com/a/1723403)). Once (2022-08-04) a `.ipynb` renamed to `.py` reverted to its notebook JSON after closing the workspace, losing 2h of edits. Recover by grepping the history for a term added late in the session:
 
 ```sh
 find . -name "*.py" -exec grep accuracy_dict {} +
 ```
 
-## `brew install/upgrade` breaks `uv` virtual env
+## `brew upgrade` breaks `uv` venvs
 
-reason is that a `uv` venv only stores a symlink to the Python binary which gets removed if a brew upgrade automatically installs a more recent Python version (e.g. 12.3->12.4 on `brew install mongodb-community` for me on 2024-07-09). fix was to update the symlink to a less brittle path
+A `uv` venv only symlinks its Python binary, so a brew Python upgrade (e.g. 3.12.3 -> 3.12.4 on 2024-07-09) left `~/.venv/py312/bin/python` dangling (`bad interpreter`). The stopgap was relinking it: `ln -f $(which python3) ~/.venv/py312/bin/python`.
 
-```sh
-pytest # 1st symptom that something in the venv broke
->>> zsh: /Users/janosh/.venv/py312/bin/pytest: bad interpreter: /Users/janosh/.venv/py312/bin/python
-readlink /Users/janosh/.venv/py312/bin/python # figure out why Python binary is missing
->>> /opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/3.12/bin/python3.12
-ln -f $(which python3) /Users/janosh/.venv/py312/bin/python # update the symlink to fix venv
-```
-
-the last command brought the venv back to life and used `/opt/homebrew/bin/python3` instead of `/opt/homebrew/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/3.12/bin/python3.12` which should not break again in future updates.
-perhaps a better solution altogether would be to tell `uv` to copy the Python binary instead of linking it. `uv --link-mode=copy` appears to apply only to packages though.
-
-Fixed for good in `setup/2-apps.sh`: `uv` is installed by its own standalone script (not brew) and `~/.venv/py314` is created with `--managed-python`, so the venv points at uv's own interpreter and brew can no longer invalidate it.
+Fixed for good in `setup/2-apps.sh`: `uv` comes from its standalone installer (not brew) and `~/.venv/py314` is created with `--managed-python`, so brew can no longer invalidate it.
 
 ## iCloud Documents Sync & New Mac Setup
 
-**The Problem:**
-When setting up a new Mac with "Desktop & Documents Folders" sync enabled in iCloud, macOS often creates a duplicate subfolder (e.g., `Documents - Janosh’s M4 MacBook Pro`) inside the main Documents folder instead of merging files. This is a safety feature to prevent overwriting existing cloud files with new local ones.
+With "Desktop & Documents Folders" sync enabled on a new Mac, macOS often creates a duplicate subfolder (e.g. `Documents - Janosh’s M4 MacBook Pro`) inside Documents instead of merging, to avoid overwriting cloud files. To merge:
 
-**Clean Merge Strategy:**
-Use `rsync` to merge the unique files from the duplicate folder into the main one.
-
-1. **Dry Run (Check what would happen):**
+1. Copy unique files into the main folder (`-a` preserves timestamps/perms, `--ignore-existing` skips files already there). Dry run first, then rerun without `--dry-run`:
 
     ```sh
-    # -a: archive mode (preserve timestamps, perms)
-    # -v: verbose
-    # --ignore-existing: skip files that already exist in destination
-    # --dry-run: don't actually do anything yet
     rsync -av --ignore-existing "Documents/Documents - Janosh’s M4 MacBook Pro/" "Documents/" --dry-run
     ```
 
-    If the dry run looks good, rerun without `--dry-run`.
-
-2. **Verify & Delete:**
-    Now the nested folder should contain *only* redundant duplicates.
-    Verify this by diffing a sample file or checking counts, then delete the nested folder:
+2. Verify the nested folder holds only duplicates (the diff should print nothing), then delete it:
 
     ```sh
     diff -r "Documents/Documents - Janosh’s M4 MacBook Pro" "Documents" | grep "Only in Documents - "
-    # Should return nothing (meaning no unique files left in the nested folder)
-
     trash "Documents/Documents - Janosh’s M4 MacBook Pro"
     ```
 
-**Important Setting:**
-Ensure **"Optimize Mac Storage"** is **OFF** (System Settings > Apple ID > iCloud).
-
-- **ON:** macOS randomly offloads files to the cloud, leaving "ghost" files that need internet to open.
-- **OFF:** Keeps a full copy of all files on your local drive (safest for backups and offline work).
+Keep **"Optimize Mac Storage"** **OFF** (System Settings > Apple ID > iCloud). When on, macOS offloads files to the cloud, leaving placeholders that need internet to open; off keeps a full local copy (safest for backups and offline work).

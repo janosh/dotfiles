@@ -383,11 +383,9 @@ def verify_output(
 
 
 def output_path(input_file: str, outdir: str | None, suffix: str | None) -> str:
-    """Build an output path without changing the source extension."""
+    """Build an output path in outdir, else next to the input with suffix before the ext."""
     if outdir:
-        return os.path.join(outdir, os.path.basename(input_file))
-    if suffix is None:
-        raise ValueError("Either outdir or suffix must be provided")
+        return f"{outdir}/{os.path.basename(input_file)}"
     stem, extension = os.path.splitext(input_file)
     return f"{stem}{suffix}{extension}"
 
@@ -418,8 +416,8 @@ def compress_video(
 
     started = time.perf_counter()
     with tempfile.TemporaryDirectory(prefix=".compress-video-", dir=output_dir) as tmpdir:
-        encoded_file = os.path.join(tmpdir, "encoded.mp4")
-        rebuilt_file = os.path.join(tmpdir, "rebuilt.mp4")
+        encoded_file = f"{tmpdir}/encoded.mp4"
+        rebuilt_file = f"{tmpdir}/rebuilt.mp4"
         encode_video(
             ffmpeg,
             input_file,
@@ -515,9 +513,8 @@ def main(
         in_out_map[file_path] = out_path
 
     if write_file_map:
-        map_dir = outdir or os.getcwd()
-        file_map_path = os.path.join(map_dir, "file_map.json")
-        with open(file_map_path, "w") as json_file:
+        file_map_path = f"{outdir or os.getcwd()}/file_map.json"
+        with open(file_map_path, "w", encoding="utf-8") as json_file:
             json.dump(in_out_map, json_file, indent=2)
         print(f"A map from input to output file paths was written to {file_map_path}")
 
@@ -527,13 +524,8 @@ def main(
 if __name__ == "__main__":
     import argparse
 
-    try:
-        with open(f"{DIRNAME}/compress-videos.md") as md_file:
-            description = md_file.read()
-    except FileNotFoundError:
-        description = ""
-
-    parser = argparse.ArgumentParser(description=description)
+    with open(f"{DIRNAME}/compress-videos.md", encoding="utf-8") as md_file:
+        parser = argparse.ArgumentParser(description=md_file.read())
     parser.add_argument("source_files", nargs="+", help="Video files to be compressed")
 
     out_group = parser.add_mutually_exclusive_group()

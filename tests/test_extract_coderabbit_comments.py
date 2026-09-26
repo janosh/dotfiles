@@ -135,5 +135,7 @@ def test_select_review_prefers_newest_round_across_editors(tmp_path: Path) -> No
     assert review["id"] == "new"
     assert "/Cursor/User/" in source_file
 
+    # Zulu timestamps must parse; otherwise only cache mtimes would order the rounds.
+    assert extract_comments.review_timestamp_epoch({"endedAt": "1970-01-01T00:00:01Z"}) == 1
     # An explicit id still reaches the older editor's round, proving both caches were read.
     assert extract_comments.select_review(cache_files, "old")[0]["id"] == "old"

@@ -94,26 +94,67 @@ write_trackpad() {
 # Sync Keyboard text replacements (defaults + KeyboardServices DB; DB wins on Tahoe).
 configure_text_replacements() {
   echo '- Keyboard: sync text replacements.'
-  python3 - "${DOTFILES_DIR}/dotfiles/text-replacements.json" <<'PY'
-import json, plistlib, sqlite3, subprocess, sys, time, uuid
-from pathlib import Path
-repls = json.loads(Path(sys.argv[1]).read_text())
-tmp = Path("/tmp/tr-import.plist")
-tmp.write_bytes(plistlib.dumps({"NSUserDictionaryReplacementItems": [
-  {"on": 1, "replace": k, "with": v} for k, v in repls.items()]}))
-subprocess.check_call(["defaults", "import", "-g", str(tmp)]); tmp.unlink()
-ts = time.time() - 978307200  # CFAbsoluteTime
-with sqlite3.connect(Path.home() / "Library/KeyboardServices/TextReplacements.db") as con:
-  con.execute(f"DELETE FROM ZTEXTREPLACEMENTENTRY WHERE ZSHORTCUT IN ({','.join('?' * len(repls))})", tuple(repls))
-  pk0 = con.execute("SELECT IFNULL(MAX(Z_PK), 0) FROM ZTEXTREPLACEMENTENTRY").fetchone()[0]
-  rows = [(pk0 + i, 1, 1, 1, 0, ts, v, k, str(uuid.uuid4()).upper(), None) for i, (k, v) in enumerate(repls.items(), 1)]
-  con.executemany("INSERT INTO ZTEXTREPLACEMENTENTRY VALUES (?,?,?,?,?,?,?,?,?,?)", rows)
-  con.execute("UPDATE Z_PRIMARYKEY SET Z_MAX = ? WHERE Z_ENT = 1", (pk0 + len(rows),))
-subprocess.call(["killall", "keyboardservicesd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+  uv run --no-project - "${DOTFILES_DIR}/dotfiles/text-replacements.json" <<'PY'
+import base64
+import json
+import os
+import plistlib
+import sqlite3
+import subprocess
+import sys
+import tempfile
+import time
+import uuid
+
+with open(sys.argv[1], encoding="utf-8") as config_file:
+    entries = json.load(config_file)
+# Values are base64 to obscure casual browsing (not encryption); null retires a shortcut.
+replacements = {
+    shortcut: base64.b64decode(value, validate=True).decode()
+    for shortcut, value in entries.items() if value is not None
+}
+# Binary export/import preserves unrelated preferences, including subsecond timestamps.
+with tempfile.TemporaryDirectory(prefix="text-replacements-") as temp_dir:
+    plist_path = f"{temp_dir}/global.plist"
+    subprocess.run(["defaults", "export", "-g", plist_path], check=True)
+    with open(plist_path, "rb") as plist_file:
+        settings = plistlib.load(plist_file)
+    settings["NSUserDictionaryReplacementItems"] = [
+        entry for entry in settings.get("NSUserDictionaryReplacementItems", [])
+        if entry["replace"] not in entries
+    ] + [{"on": 1, "replace": shortcut, "with": value} for shortcut, value in replacements.items()]
+    with open(plist_path, "wb") as plist_file:
+        plistlib.dump(settings, plist_file, fmt=plistlib.FMT_BINARY)
+    subprocess.run(["defaults", "import", "-g", plist_path], check=True)
+
+timestamp = time.time() - 978307200  # CFAbsoluteTime, an epoch timestamp rather than elapsed time.
+with sqlite3.connect(os.path.expanduser("~/Library/KeyboardServices/TextReplacements.db")) as connection:
+    last_pk = connection.execute("SELECT Z_MAX FROM Z_PRIMARYKEY WHERE Z_ENT = 1").fetchone()[0]
+    # Keep deletion tombstones so iCloud can remove retired shortcuts on other devices.
+    for shortcut, value in entries.items():
+        if value is None:
+            connection.execute(
+                "UPDATE ZTEXTREPLACEMENTENTRY SET ZWASDELETED = 1, ZNEEDSSAVETOCLOUD = 1, "
+                "Z_OPT = Z_OPT + 1, ZTIMESTAMP = ? WHERE ZSHORTCUT = ? AND ZWASDELETED = 0",
+                (timestamp, shortcut),
+            )
+        else:
+            connection.execute("DELETE FROM ZTEXTREPLACEMENTENTRY WHERE ZSHORTCUT = ?", (shortcut,))
+    rows = [
+        (last_pk + idx, 1, 1, 1, 0, timestamp, value, shortcut, str(uuid.uuid4()).upper(), None)
+        for idx, (shortcut, value) in enumerate(replacements.items(), 1)
+    ]
+    connection.executemany("INSERT INTO ZTEXTREPLACEMENTENTRY VALUES (?,?,?,?,?,?,?,?,?,?)", rows)
+    connection.execute("UPDATE Z_PRIMARYKEY SET Z_MAX = ? WHERE Z_ENT = 1", (last_pk + len(rows),))
+subprocess.run(["killall", "keyboardservicesd"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+# This on-demand service may stay stopped after killall; start it and refresh user preferences.
+subprocess.run(["launchctl", "start", "com.apple.keyboardservicesd"], check=True)
+subprocess.run(["pkill", "-TERM", "-u", str(os.getuid()), "-x", "cfprefsd"], check=False)
 PY
 }
 
 configure_macos() {
+  local corner pnpm_config
   echo "This function configures macOS defaults."
 
   # Ask for 'sudo' authentication.

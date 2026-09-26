@@ -4,7 +4,7 @@
 
 - `worktrees` authorizes deleting verified inactive, redundant local branches and clean linked worktrees in the current repository without another confirmation. Audit/dry-run is report-only.
 - Inspect all local branches and registered worktrees, including detached HEADs. Other repositories, remote branch deletion, publishing, PR creation, and moving unique changes require explicit user instruction.
-- Protect the primary checkout, executing agent's checkout and branch, `main`, configured default branch, locked worktrees, running agents/sessions, active PR heads, and destinations retaining another candidate's changes.
+- Protect the primary checkout, executing agent's checkout and branch, `main`, configured default branch, locked worktrees, agents or processes actively using the worktree, active PR heads, and destinations retaining another candidate's changes. Idle terminals and unsubmitted shell commands do not block cleanup.
 - Never discard modified, staged, untracked, or valuable ignored files without explicit approval for that worktree. Never stash, reset, restore, force-switch branches, or use `git clean` to make deletion possible.
 
 ## Inventory and activity

@@ -5,14 +5,6 @@ description: Extract CodeRabbit comments for the most recent review round in the
 
 # Address Local CodeRabbit Comments
 
-## When to use
-
-Use this skill when a user asks for:
-
-- current CodeRabbit review comments for the active repo
-- triaging or addressing the latest CodeRabbit feedback
-- the current review round status, not historical rounds
-
 ## Quick workflow
 
 1. Identify the target workspace path (usually current repo).

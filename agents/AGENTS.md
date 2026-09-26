@@ -62,7 +62,8 @@ Multiple agents may work on the same branch concurrently. Editing a file that al
 - Never add `Co-authored-by: Cursor/Codex/...` or similar to commit messages
 - Never `git push --force/--force-with-lease` unless explicitly asked for that specific branch and situation. Once work is pushed, prefer follow-up commits over amending/rebasing.
 - A request to submit or open a PR authorizes publishing its branch and creating the PR without another confirmation. Create issues only when requested. When asked to "draft" an issue or PR, output the title and body as markdown for review — don't run `gh` until explicitly told to post.
-- **Permission to commit is never permission to open a PR**, and neither is a blocked push. If a push is rejected (branch protection, required status checks, ruleset), stop and report it. Do NOT work around it by moving the commit to a new branch and opening a PR. Leave the commit local and let the user choose how to land it.
+- **Concurrent branch updates are routine:** If an authorized push is rejected because the destination branch advanced (non-fast-forward), fetch and merge the updated destination branch, resolve conflicts, run focused checks for affected code, and retry the push without asking. Preserve both local and remote commits; do not force-push or change the destination branch.
+- **Permission to commit is never permission to open a PR**, and neither is a blocked push. If a push is rejected by branch protection, required status checks, or a ruleset, stop and report that policy block. Do NOT bypass it by moving the commit to a new branch and opening a PR. Leave the commit local and let the user choose how to land it.
 - Do not ask for separate permission to publish a branch as part of requested work, including setting an upstream for a new branch. Verify the destination with `git push --dry-run`. For an existing fork PR, push to its actual head repository and branch rather than creating an unrelated branch on `origin`.
 - Asking a question mid-task and getting an answer authorizes only what was asked. When the plan turns out not to work, ask again. Don't substitute a different action you think is equivalent.
 
@@ -77,6 +78,7 @@ Multiple agents work on the same repo concurrently. Any destructive git operatio
 
 ## General
 
+- Never mention private repository or project names in another repository's code, docs, tests, fixtures, commit messages, or PR metadata unless the user explicitly asks; always confirm with the user first when that authorization is absent.
 - Before any cluster or `matsci` database work, read `~/dev/dotfiles/tmp/cluster-db-access.md` (SSH aliases, partitions, containers, build setup, DB recipes)
 - **Units notation**: never use `ų` or other obscure Unicode glyphs for units. Write `A^3` (cubic angstrom), `e/A^3` (electron density), `eV/A` (force), etc. In Rust doc comments and Python docstrings use `Å³`, `e/Å³`, `eV/Å` with the standard Å character.
 - **No single-letter or concatenated variable names!** Use proper snake_case: `idx` not `i`, `n_images` not `nimages`, `f_max` not `fmax`, `col_idx` not `colidx`

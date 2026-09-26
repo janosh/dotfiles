@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Shell scripts and config to bootstrap a fresh macOS install (Homebrew, dotfiles, system defaults), plus Cursor agent rules/skills and assorted utilities.
+Shell scripts and config to bootstrap a fresh macOS install (Homebrew, dotfiles, system defaults), plus agent rules/skills (Cursor, Codex, Claude Code) and assorted utilities.
 
 ## Usage
 

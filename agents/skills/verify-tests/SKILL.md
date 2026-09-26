@@ -22,6 +22,4 @@ description: Validate test robustness using mutation-style checks. Use when you 
 
 ## Rules
 
-- One mutation at a time
 - Prefer strengthening existing tests before adding many new ones
-- Avoid leaving any intentional breakage behind

@@ -10,7 +10,7 @@ import sys
 import tempfile
 import webbrowser
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from html import escape
 from urllib.request import pathname2url
 
@@ -23,6 +23,13 @@ ANSI_RED = "\033[31m"
 ANSI_BLUE = "\033[34m"
 ANSI_YELLOW = "\033[33m"
 ANSI_RESET = "\033[0m"
+# Keyed by the term kinds line_expr passes to its style callback (also the HTML classes).
+ANSI_BY_KIND = {
+    "added": ANSI_GREEN,
+    "removed": ANSI_RED,
+    "net-positive": ANSI_GREEN,
+    "net-negative": ANSI_RED,
+}
 HTML_STYLE = """
 body {
   color: #222;
@@ -37,10 +44,8 @@ tr:hover { background: #f7f7f7; }
 a { color: inherit; text-decoration-color: #999; text-underline-offset: 0.15rem; }
 a:hover { text-decoration-color: currentColor; }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-.added { color: #16a34a; }
-.removed { color: #dc2626; }
-.net-positive { color: #16a34a; }
-.net-negative { color: #dc2626; }
+.added, .net-positive { color: #16a34a; }
+.removed, .net-negative { color: #dc2626; }
 .code-file { color: #2563eb; }
 .test-file { color: #ca8a04; }
 """.strip()
@@ -68,9 +73,8 @@ def parse_args(args: Sequence[str]) -> ParsedArgs:
     )
     parser.add_argument("-n", "--limit", type=int, default=0)
     parser.add_argument("--sort", choices=["a", "r", "n"], default="n")
-    for group, dest, options in [
+    for dest, options in (
         (
-            parser.add_mutually_exclusive_group(),
             "source_name",
             [
                 (("--local",), "local"),
@@ -81,7 +85,6 @@ def parse_args(args: Sequence[str]) -> ParsedArgs:
             ],
         ),
         (
-            parser.add_mutually_exclusive_group(),
             "format_name",
             [
                 (("--table",), "table"),
@@ -89,20 +92,16 @@ def parse_args(args: Sequence[str]) -> ParsedArgs:
                 (("--html",), "html"),
             ],
         ),
-    ]:
+    ):
+        group = parser.add_mutually_exclusive_group()
         for flags, const in options:
-            group.add_argument(
-                *flags,
-                dest=dest,
-                action="store_const",
-                const=const,
-            )
+            group.add_argument(*flags, dest=dest, action="store_const", const=const)
     parser.set_defaults(format_name="table", source_name=None)
 
     parsed_args, git_args = parser.parse_known_args(args)
     if parsed_args.limit < 0:
         parser.error("--limit expects a non-negative integer")
-    pathspec_idx = git_args.index("--") if "--" in git_args else len(git_args)
+    pathspec_idx = pathspec_index(git_args)
     has_revision_range = any(
         ".." in arg and not arg.startswith("-") for arg in git_args[:pathspec_idx]
     )
@@ -110,6 +109,11 @@ def parse_args(args: Sequence[str]) -> ParsedArgs:
         "diff" if has_revision_range else "history" if git_args else "local"
     )
     return parsed_args.format_name, parsed_args.limit, parsed_args.sort, source_name, git_args
+
+
+def pathspec_index(git_args: Sequence[str]) -> int:
+    """Return the index of the ``--`` pathspec separator, or len(git_args) if absent."""
+    return git_args.index("--") if "--" in git_args else len(git_args)
 
 
 def command_path(command: str) -> str:
@@ -160,28 +164,17 @@ def parse_numstat_rows(numstat_stdout: str, sort_name: str = "n") -> list[LineRa
         added_by_file[file_path] += int(added_text)
         removed_by_file[file_path] += int(removed_text)
 
-    return rows_from_counters(added_by_file, removed_by_file, sort_name)
+    rows = [
+        (added - removed_by_file[file_path], added, removed_by_file[file_path], file_path)
+        for file_path, added in added_by_file.items()
+    ]
+    return sort_rows(rows, sort_name)
 
 
-def rows_from_counters(
-    added_by_file: Counter[str],
-    removed_by_file: Counter[str],
-    sort_name: str = "n",
-) -> list[LineRankRow]:
-    """Return sorted line-rank rows from added and removed counters."""
+def sort_rows(rows: list[LineRankRow], sort_name: str = "n") -> list[LineRankRow]:
+    """Sort rows ascending by net (n), added (a), or removed (r) lines."""
     sort_idx = {"n": 0, "a": 1, "r": 2}[sort_name]
-    return sorted(
-        [
-            (
-                added_by_file[file_path] - removed_by_file[file_path],
-                added_by_file[file_path],
-                removed_by_file[file_path],
-                file_path,
-            )
-            for file_path in added_by_file
-        ],
-        key=lambda row: (row[sort_idx], row[1], row[3]),
-    )
+    return sorted(rows, key=lambda row: (row[sort_idx], row[1], row[3]))
 
 
 def normalize_history_args(
@@ -192,7 +185,7 @@ def normalize_history_args(
 ) -> list[str]:
     """Expand history shortcuts and optionally select the right side of symmetric ranges."""
     history_args = list(git_args)
-    pathspec_idx = history_args.index("--") if "--" in history_args else len(history_args)
+    pathspec_idx = pathspec_index(history_args)
     if right_side_only:
         history_args[:pathspec_idx] = [
             arg.replace("...", "..", 1) if not arg.startswith("-") else arg
@@ -227,7 +220,7 @@ def collect_line_rank_rows(
     """Collect per-file line counts for the requested source."""
     if source_name == "history":
         history_args = normalize_history_args(repo, git_args)
-        pathspec_idx = history_args.index("--") if "--" in history_args else len(history_args)
+        pathspec_idx = pathspec_index(history_args)
         revision_args = [arg for arg in history_args[:pathspec_idx] if arg != "--reverse"]
         flags = ["--reverse", "--numstat", "-z", "--find-renames=40%", "--pretty=tformat:"]
         return parse_numstat_rows(
@@ -261,21 +254,12 @@ def collect_line_rank_rows(
     rows = parse_numstat_rows(git_stdout(diff_args, "gdiff: git diff failed"), sort_name)
     if source_name in {"local", "unstaged"}:
         if "--" in git_args:
-            separator_idx = git_args.index("--")
-            pathspec_args = ["--", *git_args[separator_idx + 1 :]]
+            pathspec_args = git_args[pathspec_index(git_args) :]
         else:
             pathspec_only = git_args and all(not arg.startswith("-") for arg in git_args)
             pathspec_args = ["--", *git_args] if pathspec_only else []
         untracked_stdout = git_stdout(
-            [
-                "-C",
-                repo,
-                "ls-files",
-                "--others",
-                "--exclude-standard",
-                "-z",
-                *pathspec_args,
-            ],
+            ["-C", repo, "ls-files", "--others", "--exclude-standard", "-z", *pathspec_args],
             "gdiff: git ls-files failed",
         )
         for file_path in filter(None, untracked_stdout.split("\0")):
@@ -286,13 +270,8 @@ def collect_line_rank_rows(
                 continue
             if added:
                 rows.append((added, added, 0, file_path))
-
-    added_by_file: Counter[str] = Counter()
-    removed_by_file: Counter[str] = Counter()
-    for _, added, removed, file_path in rows:
-        added_by_file[file_path] += added
-        removed_by_file[file_path] += removed
-    return rows_from_counters(added_by_file, removed_by_file, sort_name)
+    # Untracked files never appear in git diff, so rows need no re-aggregation.
+    return sort_rows(rows, sort_name)
 
 
 def commit_summary_lines(
@@ -318,16 +297,19 @@ def commit_summary_lines(
     ]
 
 
-def line_expr(row: LineRankRow) -> str:
-    """Return a compact added/removed/net expression."""
+def line_expr(
+    row: LineRankRow, style: Callable[[str, str], str] = lambda _kind, text: text
+) -> str:
+    """Return a compact added/removed/net expression, styling each term by its kind."""
     net, added, removed, _ = row
     parts: list[str] = []
     if added:
-        parts.append(f"{added:+d}")
+        parts.append(style("added", f"{added:+d}"))
     if removed:
-        parts.append(f"-{removed}")
+        parts.append(style("removed", f"-{removed}"))
     if added and removed:
-        parts.extend(["=", f"{net:+d}"])
+        net_kind = "net-positive" if net > 0 else "net-negative" if net < 0 else ""
+        parts.extend(["=", style(net_kind, f"{net:+d}") if net_kind else f"{net:+d}"])
     return " ".join(parts)
 
 
@@ -345,28 +327,16 @@ def print_table(rows: Sequence[LineRankRow]) -> None:
     color_enabled = "FORCE_COLOR" in os.environ or (
         "NO_COLOR" not in os.environ and sys.stdout.isatty()
     )
-    green, red, reset = (ANSI_GREEN, ANSI_RED, ANSI_RESET) if color_enabled else ("", "", "")
     print(f"{'lines':>{width}}  file")
     for row in rows_with_total:
-        net, added, removed, file_path = row
-        line_parts: list[str] = []
-        if added:
-            line_parts.append(f"{green}{added:+d}{reset}")
-        if removed:
-            line_parts.append(f"{red}-{removed}{reset}")
-        if added and removed:
-            color_code = green if net > 0 else red if net < 0 else ""
-            net_text = f"{net:+d}"
-            net_text = f"{color_code}{net_text}{reset}" if color_code else net_text
-            line_parts.extend(["=", net_text])
-        color_code = (
-            {"code": ANSI_BLUE, "test": ANSI_YELLOW}.get(file_kind(file_path))
-            if color_enabled
-            else ""
-        )
-        file_text = f"{color_code}{file_path}{reset}" if color_code else file_path
-        line_text = " " * (width - len(line_expr(row))) + " ".join(line_parts)
-        print(f"{line_text}  {file_text}")
+        file_path = row[3]
+        if not color_enabled:
+            print(f"{line_expr(row):>{width}}  {file_path}")
+            continue
+        colored = line_expr(row, lambda kind, text: f"{ANSI_BY_KIND[kind]}{text}{ANSI_RESET}")
+        file_color = {"code": ANSI_BLUE, "test": ANSI_YELLOW}.get(file_kind(file_path))
+        file_text = f"{file_color}{file_path}{ANSI_RESET}" if file_color else file_path
+        print(f"{' ' * (width - len(line_expr(row)))}{colored}  {file_text}")
 
 
 def file_kind(file_path: str) -> str:
@@ -384,7 +354,68 @@ def file_kind(file_path: str) -> str:
     return "code" if CODE_EXT_PATTERN.fullmatch(ext) else ""
 
 
-def main(args: Sequence[str] | None = None) -> int:  # noqa: PLR0915
+def write_html_report(repo: str, rows: Sequence[LineRankRow], commit_lines: list[str]) -> str:
+    """Write rows (plus a total) as an HTML report linking each file, returning its path."""
+    repo_name = os.path.basename(repo)
+    editor = os.environ.get("VISUAL") or os.environ.get("EDITOR") or "cursor"
+    try:
+        editor_cmd = os.path.basename(shlex.split(editor)[0])
+    except ValueError:
+        editor_cmd = os.path.basename(editor)
+    url_scheme = {
+        "cursor": "cursor://file",
+        "cursor-insiders": "cursor://file",
+        "code": "vscode://file",
+        "code-insiders": "vscode://file",
+    }.get(editor_cmd, "file://")
+    html_row_lines: list[str] = []
+    for row in [*rows, total_row(rows)]:
+        file_path = row[3]
+        file_class = file_kind(file_path)
+        class_attr = f' class="{file_class}-file"' if file_class else ""
+        file_cell = f"<code{class_attr}>{escape(file_path)}</code>"
+        if file_path != "total":
+            file_url = url_scheme + pathname2url(f"{repo}/{file_path}")
+            file_cell = f'<a href="{escape(file_url, quote=True)}">{file_cell}</a>'
+        line_html = line_expr(row, lambda kind, text: f'<span class="{kind}">{text}</span>')
+        html_row_lines.append(f'<tr><td class="num">{line_html}</td><td>{file_cell}</td></tr>')
+    html_rows = "\n".join(html_row_lines)
+    commit_text = escape("\n".join(commit_lines))
+    commits_html = f"<h2>Commits</h2>\n<pre>{commit_text}</pre>\n" if commit_text else ""
+    with tempfile.NamedTemporaryFile(
+        "w", delete=False, encoding="utf-8", prefix="gdiff-", suffix=".html"
+    ) as report_file:
+        report_file.write(
+            f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Line Rank: {escape(repo_name)}</title>
+<style>
+{HTML_STYLE}
+</style>
+</head>
+<body>
+<h1>Line Rank: <code>{escape(repo_name)}</code></h1>
+<p>Sorted by net lines added. Source: <code>{escape(repo)}</code></p>
+{commits_html}<table>
+<thead>
+<tr>
+<th class="num">Lines</th><th>File</th>
+</tr>
+</thead>
+<tbody>
+{html_rows}
+</tbody>
+</table>
+</body>
+</html>
+"""
+        )
+    return report_file.name
+
+
+def main(args: Sequence[str] | None = None) -> int:
     """Run the git line rank CLI."""
     format_name, limit, sort_name, source_name, git_args = parse_args(
         sys.argv[1:] if args is None else args
@@ -395,8 +426,8 @@ def main(args: Sequence[str] | None = None) -> int:  # noqa: PLR0915
         2,
     )
     rows = collect_line_rank_rows(repo, source_name, git_args, sort_name)
-    if limit:
-        rows = rows[:limit]
+    if limit:  # rows ascend, so the top-ranked files are at the end
+        rows = rows[-limit:]
 
     if not rows:
         print("gdiff: no text-file line changes found")
@@ -407,7 +438,7 @@ def main(args: Sequence[str] | None = None) -> int:  # noqa: PLR0915
         history_args = normalize_history_args(
             repo, git_args, right_side_only=source_name == "diff"
         )
-        pathspec_idx = history_args.index("--") if "--" in history_args else len(history_args)
+        pathspec_idx = pathspec_index(history_args)
         summary_flags = ["--no-patch", "--shortstat", "--format=%x00%h%x09%s"]
         summary_args = ["-C", repo, "log", *history_args[:pathspec_idx], *summary_flags]
         summary_stdout = git_stdout(
@@ -433,76 +464,7 @@ def main(args: Sequence[str] | None = None) -> int:  # noqa: PLR0915
             md_file_path = file_path.replace("|", "\\|").replace("`", "&#96;")
             print(f"| {line_expr(row)} | `{md_file_path}` |")
     else:
-        repo_name = os.path.basename(repo)
-        html_row_lines: list[str] = []
-        for net, added, removed, file_path in [*rows, total_row(rows)]:
-            line_parts: list[str] = []
-            if added:
-                line_parts.append(f'<span class="added">{added:+d}</span>')
-            if removed:
-                line_parts.append(f'<span class="removed">-{removed}</span>')
-            if added and removed:
-                net_class = "net-positive" if net > 0 else "net-negative" if net < 0 else ""
-                net_text = f"{net:+d}"
-                net_html = (
-                    f'<span class="{net_class}">{net_text}</span>' if net_class else net_text
-                )
-                line_parts.extend(["=", net_html])
-
-            escaped_file_path = escape(file_path)
-            file_class = file_kind(file_path)
-            class_attr = f' class="{file_class}-file"' if file_class else ""
-            file_cell = f"<code{class_attr}>{escaped_file_path}</code>"
-            if file_path != "total":
-                editor = os.environ.get("VISUAL") or os.environ.get("EDITOR") or "cursor"
-                try:
-                    editor_cmd = os.path.basename(shlex.split(editor)[0])
-                except ValueError:
-                    editor_cmd = os.path.basename(editor)
-                encoded_path = pathname2url(f"{repo}/{file_path}")
-                if editor_cmd in {"cursor", "cursor-insiders"}:
-                    file_url = f"cursor://file{encoded_path}"
-                elif editor_cmd in {"code", "code-insiders"}:
-                    file_url = f"vscode://file{encoded_path}"
-                else:
-                    file_url = "file://" + encoded_path
-                file_cell = f'<a href="{escape(file_url, quote=True)}">{file_cell}</a>'
-            cells = f'<td class="num">{" ".join(line_parts)}</td><td>{file_cell}</td>'
-            html_row_lines.append(f"<tr>{cells}</tr>")
-        html_rows = "\n".join(html_row_lines)
-        commit_text = escape("\n".join(commit_lines))
-        commits_html = f"<h2>Commits</h2>\n<pre>{commit_text}</pre>\n" if commit_text else ""
-        with tempfile.NamedTemporaryFile(
-            "w", delete=False, encoding="utf-8", prefix="gdiff-", suffix=".html"
-        ) as report_file:
-            report_path = report_file.name
-            report_file.write(
-                f"""<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Line Rank: {escape(repo_name)}</title>
-<style>
-{HTML_STYLE}
-</style>
-</head>
-<body>
-<h1>Line Rank: <code>{escape(repo_name)}</code></h1>
-<p>Sorted by net lines added over git history. Source: <code>{escape(repo)}</code></p>
-{commits_html}<table>
-<thead>
-<tr>
-<th class="num">Lines</th><th>File</th>
-</tr>
-</thead>
-<tbody>
-{html_rows}
-</tbody>
-</table>
-</body>
-</html>
-"""
-            )
+        report_path = write_html_report(repo, rows, commit_lines)
         report_url = "file://" + pathname2url(report_path)
         if not webbrowser.open(report_url) and sys.platform == "darwin":
             subprocess.run([command_path("open"), report_path], check=False)

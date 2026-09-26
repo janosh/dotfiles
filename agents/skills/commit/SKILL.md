@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 Stage **all** edits → commit with hooks → push. Coherent commits; short imperative summary + body focused on rationale.
 
-`/commit` unless followed by `local` authorizes to push to the branch's existing upstream. Don't stop to ask, and don't fall back to a "never push unasked" rule; this skill is the ask. Only `local` skips it.
+`/commit` authorizes pushing to the branch's existing upstream unless followed by `local`. Don't stop to ask or fall back to a "never push unasked" rule; this skill is the ask.
 
 ## Modifiers
 
@@ -27,7 +27,7 @@ Space-separated after `/commit`; combine freely.
 
 ## Amend (`/commit amend [update-msg|keep-msg] [mine] [local] [nv]`)
 
-1. Use `update-msg` when neither message submode is given; use `keep-msg` only when explicit, and reject both together.
+1. Default to `update-msg`; use `keep-msg` only when explicit, and reject both together.
 2. Stage all edits, or only this agent's paths with `mine`; stop if `mine` would include unrelated pre-staged paths.
 3. Unless `local`, require an existing upstream and confirm its destination with a dry run before rewriting `HEAD`.
 4. With `keep-msg`, use `git commit --amend --no-edit`. With `update-msg`, replace the title and body with a concise message derived from the complete amended commit. Run hooks unless `nv` is present.

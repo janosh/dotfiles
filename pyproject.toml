@@ -32,3 +32,6 @@ lint = ["pillow", "pytest", "requests"]
 atomate = "atomate"
 AIMD = "AIMD"
 ATOMATE = "ATOMATE"
+
+[tool.typos.files]
+extend-exclude = ["dotfiles/text-replacements.json"] # base64 values

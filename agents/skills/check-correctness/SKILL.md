@@ -26,9 +26,8 @@ description: Hunt for concrete correctness bugs in changed code. Use for adversa
    - Do not ask the user to validate issues you can verify independently
    - Ask for user input only when blocked by missing access, ambiguous product intent, or external context you cannot derive
    - Apply the smallest correct fix
-   - Do not defer small bugs or rare edge cases
    - Keep behavior-focused, low-risk changes
-5. Add or strengthen tests where possible:
+5. Add or strengthen regression tests for each fix where feasible:
    - Cover the failing input or edge case that exposed the issue
    - Prefer concise, strict assertions that would catch regressions
    - Prefer red-then-green when the fix is not yet applied. If it is already present and red evidence still matters, mutate only the relevant lines with a patch or in an isolated worktree, then undo the mutation and confirm the test passes on the restored code; never stash, reset, restore, or check out a mixed dirty tree. Use `verify-tests` only when assertion strength remains doubtful
@@ -42,5 +41,4 @@ description: Hunt for concrete correctness bugs in changed code. Use for adversa
 
 - Focus on demonstrable issues, not abstract concerns
 - Directly fix every confirmed issue within scope, including small or rare edge-case bugs
-- Add regression coverage whenever feasible for each fix
 - If no bugs found, state what was tested and residual risk

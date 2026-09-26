@@ -1,15 +1,11 @@
 ---
 name: loose-ends
 description: Surface unfinished work before a completion event. Use before committing, pushing, opening or merging a PR, cutting a release, or handing off, to recover TODOs and deferrals raised earlier in the conversation and judge what follow-up is now advisable.
-disable-model-invocation: true
 ---
 
 # Loose Ends
 
-## When to use
-
-- Before a completion event: commit, push, PR open or merge, release, handoff
-- User asks what is left, what was missed, or whether anything needs follow-up
+Also use when the user asks what is left, what was missed, or whether anything needs follow-up.
 
 ## Instructions
 

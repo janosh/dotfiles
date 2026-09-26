@@ -5,16 +5,11 @@ description: Triage and resolve PR comments from humans and bots, including code
 
 # Address PR Comments
 
-## When to use
-
-- A PR has unresolved review comments
-- You need systematic comment-by-comment remediation
-
 ## Instructions
 
 1. Determine PR number and fetch comments via `gh` APIs.
 2. Interpret invocation modifiers; `blocking` and `distribute` may be combined:
-   - `blocking`: poll for bot comments every 120 seconds in the foreground and do not switch to other tasks. Without it, do a single fetch pass and report when bot comments are not ready.
+   - `blocking`: poll for bot comments every 120 seconds in the foreground and do not switch to other tasks until bot comments appear or a clear timeout/error condition occurs. Without it, do a single fetch pass; if bot comments are not ready, report status and wait for a later re-run instead of idling.
    - `distribute`: use when requested or when independent file/thread groups justify one parallel layer. Subagents edit only assigned disjoint paths and propose thread dispositions; the parent owns replies, resolutions, aggregate checks, commits, and pushes. Explain any requested fallback.
 3. Once comments are available, categorize into bugs, suggestions, nitpicks, and questions.
 4. Address each with code/test updates; only reply within existing review threads when the reply adds clear value for future human reviewers.
@@ -25,8 +20,6 @@ description: Triage and resolve PR comments from humans and bots, including code
 ## Rules
 
 - Do not silently ignore comments
-- In `blocking` mode, continue polling until bot comments appear or a clear timeout/error condition occurs.
-- In non-blocking mode, do not idle; report status and wait for a later re-run.
 - Do not add low-value rebuttal noise. If a bot suggestion is clearly incorrect and not worth discussion, skip the reply and move on.
 - Reply when context is genuinely useful (non-obvious tradeoff, partial acceptance, or reason for leaving code as-is).
 - Never post a top-level PR comment unless the user explicitly asks. Put useful rationale in the relevant existing review thread; report anything else only to the user.

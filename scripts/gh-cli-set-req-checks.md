@@ -1,4 +1,4 @@
-# Auto-update required status checks for PR auto-merge with GitHub CLi
+# Auto-update required status checks for PR auto-merge with GitHub CLI
 
 Found this command in this [issue comment](https://github.com/cli/cli/issues/3528#issuecomment-1303499736) (2023-07-12).
 

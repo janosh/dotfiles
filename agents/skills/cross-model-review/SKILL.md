@@ -9,7 +9,7 @@ Draft a self-contained adversarial review prompt, launch one or more reviewer su
 
 ## Step 1: Write the review prompt
 
-Write a prompt for another agent to adversarially review the code/changes. Give enough context to judge the work against the user's intent (and the original plan, if there is one).
+Give the reviewer enough context to judge the work against the user's intent (and the original plan, if any).
 
 Include the user request, implementation scope, relevant diffs/commits, changed files, plan files, handoff notes, test results, known tradeoffs, and links/paths to resources the reviewer should read.
 
@@ -19,9 +19,9 @@ Ask the reviewer to assess: correctness (edge cases, integration, error handling
 
 Ask for concrete fixes or patches where obvious, stronger tests for weak coverage, and better designs — including significant refactors when the end result would be clearly better (simpler, faster, or more robust), not just small in-place tweaks.
 
-Explicitly task the reviewer with hunting for bloat, overengineering, slop, and non-DRY code: needless abstractions, premature generalization, duplicated logic, dead code, speculative configurability, and defensive cruft. The goal is lean, clean, optimal code — call out what to delete, simplify, or rework, not only what is broken.
+Explicitly task the reviewer with hunting for bloat, overengineering, slop, and non-DRY code: needless abstractions, premature generalization, duplicated logic, dead code, speculative configurability, and defensive cruft. Ask it to call out what to delete, simplify, or rework, not only what is broken.
 
-Make the output prompt self-contained, specific, and actionable. Do not hide risks to make the first agent's work look better.
+Make the prompt self-contained, specific, and actionable. Do not hide risks to make the first agent's work look better.
 
 ## Step 2: Pick the reviewer model
 
@@ -49,4 +49,4 @@ Process every finding the reviewer returns — none may be silently dropped. The
 - **Confirm → implement it now.** Verify the finding yourself with concrete evidence. If it holds and the fix is low-risk and behavior-preserving, make the change, add/strengthen the test, or delete the code this session. Don't defer.
 - **Can't confirm, disagree, or it's behavior-changing/subjective → report it to the user** with your reasoning, instead of acting on unverified review output, so the user can decide.
 
-Bias toward deleting and simplifying: once you've confirmed a bloat, overengineering, or non-DRY finding, cut the code rather than adding layers, shims, or abstractions. The objective is lean, clean code — do not iterate into AI slop.
+Bias toward deleting and simplifying: once you've confirmed a bloat, overengineering, or non-DRY finding, cut the code rather than adding layers, shims, or abstractions. Do not iterate into AI slop.

@@ -99,7 +99,7 @@ gdiff() {
 # Clean stale branches and non-origin remotes.
 # shellcheck disable=SC2086
 grcl() {
-  local branch gone gh_merged prs remotes
+  local branch gone gh_merged prs remote remotes
 
   git fetch --prune
 

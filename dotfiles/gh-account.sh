@@ -1,17 +1,14 @@
 # shellcheck shell=bash
 
-# `git push`/`git pull` over an HTTPS github.com remote authenticate as whichever gh account
-# happens to be active, so working in a repo the other account cannot write fails with
-# "Permission to <repo> denied to <account>". Try each logged-in account instead, advancing
-# only on an auth error so a rejected push or a conflicted merge still fails on the first try.
+# HTTPS github.com push/pull authenticate as the active gh account, which may lack access.
+# Try each logged-in account, advancing only on auth errors so other failures fail fast.
 _gh_git() {
   local subcommand=$1
   shift
   # not `status`: zsh reserves it as a read-only alias for $?
   local logins='' login token log exit_code=0
   case "$(command git remote get-url origin 2>/dev/null)" in
-    # SSH remotes authenticate with keys, and other hosts never see a gh token. Active
-    # account first: it is the one most likely to work.
+    # SSH and non-GitHub remotes never use gh tokens. Active account first.
     https://github.com/*) logins=$(command gh auth status --json hosts --jq \
       '.hosts."github.com" // [] | sort_by(.active | not) | .[].login' 2>/dev/null) ;;
   esac
@@ -42,16 +39,12 @@ gl() { _gh_git pull "$@"; }
 gh() {
   local account remote_url token
   if [ "$1" = pr ] && [ "$2" = create ]; then
-    # `|| remote_url=` so a directory with no origin (or no repo) falls through
-    # to the default below instead of aborting a `set -e` caller.
+    # `|| remote_url=`: no origin must not abort a `set -e` caller.
     remote_url=$(git remote get-url origin 2>/dev/null) || remote_url=
     case "$remote_url" in
       git@github-janosh:*) account=janosh ;;
       git@github-janosh-per:*) account=janosh_per ;;
-      # An HTTPS remote, a bare git@github.com one, or no repo at all: there is
-      # no alias to read the account from, so let gh choose with its own active
-      # account. Refusing here instead broke `gh pr create` in every repository
-      # that does not use the aliases, which is most of them.
+      # No SSH alias to read the account from: use gh's active account.
       *) command gh "$@"; return ;;
     esac
     token=$(command gh auth token --user "$account") || return

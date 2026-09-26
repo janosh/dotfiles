@@ -7,9 +7,7 @@ description: Fold new standalone tests into existing related tests to cut setup 
 
 ## Instructions
 
-When adding or reviewing tests, check whether a new standalone test can be folded into an existing related test.
-
-Before keeping a new test file or function, search nearby tests for the same module, function, fixture setup, or behavior.
+When adding or reviewing tests, before keeping a new standalone test file or function, search nearby tests for the same module, function, fixture setup, or behavior and check whether it can be folded into an existing related test.
 
 Prefer folding via `pytest.mark.parametrize`, `test.each`, `it.each`, table cases, or an added assertion when it preserves readability, intent, and failure clarity. Use clear case names/IDs for parameterized cases.
 

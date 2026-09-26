@@ -1,7 +1,6 @@
 ---
 name: cleanup
 description: "Repository housekeeping: worktrees removes stale branches/worktrees after verifying preservation; wrap-up commits and pushes ready work, then proposes deleting, trashing, or date-archiving leftovers. Not for code refactoring."
-disable-model-invocation: true
 ---
 
 # Cleanup

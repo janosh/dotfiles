@@ -23,9 +23,4 @@ description: Critique and refine an implementation plan before coding, resolving
 ## Rules
 
 - Planning only — no implementation code yet.
-- Replace hand-wavy steps with precise actions.
 - Don't ask what you can derive; batch only genuine judgment calls and iterate if answers reveal new gaps.
-
-## Outcome
-
-An agreed implementation plan ready to execute without guesswork.

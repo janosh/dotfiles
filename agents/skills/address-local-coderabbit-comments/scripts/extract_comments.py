@@ -10,8 +10,11 @@ import re
 import sys
 from collections import Counter
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import unquote
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 DETAILS_BLOCK_RE = re.compile(r"<details\b[^>]*>.*?</details>", re.DOTALL | re.IGNORECASE)
 
@@ -67,10 +70,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--ide-user-dir",
-        "--cursor-user-dir",
         dest="ide_user_dirs",
         action="append",
-        default=None,
         help=(
             "Editor user directory containing workspaceStorage. Repeatable; "
             "defaults to every known VS Code-family editor found on this machine"
@@ -119,11 +120,7 @@ def iter_reviews(payload: JsonValue) -> list[dict[str, Any]]:
 
 
 def discover_workspace_dirs(ide_user_dirs: list[str], workspace: str) -> list[str]:
-    """Return workspaceStorage directories mapped to the workspace path.
-
-    One repo can appear under several editors, so every match is returned rather
-    than the first: the caller reads them all and lets the newest review win.
-    """
+    """Return every workspaceStorage dir mapped to workspace (one per editor)."""
     workspace_uri = f"file://{workspace}"
     matched_dirs: list[str] = []
     for ide_user_dir in ide_user_dirs:
@@ -137,10 +134,8 @@ def discover_workspace_dirs(ide_user_dirs: list[str], workspace: str) -> list[st
             if not isinstance(workspace_json, dict):
                 continue
             folder = workspace_json.get("folder")
-            # Editors percent-encode the stored folder URI, so a workspace path
-            # containing spaces never equals a raw f"file://{workspace}". Decode the
-            # stored value rather than encoding the input, which would also have to
-            # reproduce the editor's exact choice of reserved characters.
+            # Editors percent-encode the stored URI; decoding it avoids having to mimic
+            # each editor's choice of reserved characters when encoding the input.
             if not isinstance(folder, str) or unquote(folder) != workspace_uri:
                 continue
             matched_dirs.append(os.path.dirname(workspace_json_path))
@@ -159,13 +154,8 @@ def discover_coderabbit_cache_files(workspace_dir: str) -> list[str]:
 
 def parse_iso_datetime(timestamp_text: str) -> datetime | None:
     """Parse ISO-like timestamp text into a datetime."""
-    normalized_text = timestamp_text.strip()
-    if not normalized_text:
-        return None
-    if normalized_text.endswith("Z"):
-        normalized_text = f"{normalized_text[:-1]}+00:00"
     try:
-        return datetime.fromisoformat(normalized_text)
+        return datetime.fromisoformat(timestamp_text.strip())
     except ValueError:
         return None
 
@@ -217,9 +207,8 @@ def flatten_file_comments(
 def extract_all_comments(review: dict[str, Any]) -> list[dict[str, Any]]:
     """Return every comment in one round, main actionable ones first.
 
-    A caller that has to pick a bucket before seeing anything will eventually pick
-    the empty one and report no work, so extraction is never partial: `--mode`
-    filters this list instead of deciding which half to read.
+    Extraction is never partial (`--mode` only filters), so an empty bucket can't be
+    mistaken for an empty round.
     """
     file_review_map = review.get("fileReviewMap")
     comments = flatten_file_comments(
@@ -266,8 +255,7 @@ def format_comments_text(
 ) -> str:
     """Render comments as compact plain text for agent context.
 
-    The round's date is in the header because these caches go stale silently: a
-    reader who cannot see the date reads months-old comments as current.
+    The header carries the round's date since caches go stale silently.
     """
     title = review_title.strip() or "(untitled review)"
     dated = f" · reviewed {review_date}" if review_date else ""
@@ -297,8 +285,7 @@ def format_comments_text(
 def collect_cache_files(ide_user_dirs: list[str] | None, workspace: str) -> list[str]:
     """Return every CodeRabbit cache file for one workspace across all editors.
 
-    Raises RuntimeError naming what was searched, so an empty result is never
-    mistaken for "this workspace has no review comments".
+    Raises RuntimeError naming what was searched rather than returning nothing.
     """
     ide_user_dirs = ide_user_dirs or default_ide_user_dirs()
     if not ide_user_dirs:
@@ -321,34 +308,35 @@ def collect_cache_files(ide_user_dirs: list[str] | None, workspace: str) -> list
     return cache_files
 
 
-def select_review(cache_files: list[str], review_id: str) -> tuple[dict[str, Any], str, float]:
-    """Select explicit review ID or newest available review round."""
-    if review_id:
-        for cache_file in cache_files:
-            try:
-                payload = read_json_file(cache_file)
-            except (OSError, json.JSONDecodeError):
-                continue
-            for review in iter_reviews(payload):
-                if review.get("id") == review_id:
-                    return review, cache_file, review_timestamp_epoch(review)
-        raise RuntimeError(f"No CodeRabbit review with id '{review_id}' was found.")
-
-    best: tuple[tuple[float, float], dict[str, Any], str] | None = None
+def iter_cached_reviews(cache_files: list[str]) -> Iterator[tuple[str, dict[str, Any]]]:
+    """Yield (cache_file, review) for every review in readable cache files."""
     for cache_file in cache_files:
         try:
             payload = read_json_file(cache_file)
         except (OSError, json.JSONDecodeError):
             continue
-        file_mtime = os.path.getmtime(cache_file)
         for review in iter_reviews(payload):
-            score = (review_timestamp_epoch(review), file_mtime)
-            if best is None or score > best[0]:
-                best = (score, review, cache_file)
-    if best is None:
-        raise RuntimeError("No CodeRabbit reviews were found for this workspace.")
-    best_score, best_review, best_source_file = best
-    return best_review, best_source_file, best_score[0]
+            yield cache_file, review
+
+
+def select_review(cache_files: list[str], review_id: str) -> tuple[dict[str, Any], str, float]:
+    """Select explicit review ID or newest available review round."""
+    reviews = iter_cached_reviews(cache_files)
+    if review_id:
+        match = next((item for item in reviews if item[1].get("id") == review_id), None)
+        if match is None:
+            raise RuntimeError(f"No CodeRabbit review with id '{review_id}' was found.")
+    else:
+        # Review timestamp first, cache file mtime breaks ties; the first maximum wins.
+        match = max(
+            reviews,
+            key=lambda item: (review_timestamp_epoch(item[1]), os.path.getmtime(item[0])),
+            default=None,
+        )
+        if match is None:
+            raise RuntimeError("No CodeRabbit reviews were found for this workspace.")
+    cache_file, review = match
+    return review, cache_file, review_timestamp_epoch(review)
 
 
 def main() -> None:
@@ -405,14 +393,13 @@ def main() -> None:
             indent=2,
             ensure_ascii=False,
         )
+        payload += "\n"
     else:
         payload = format_comments_text(
             extracted_comments,
             review_title=review_title,
             review_date=review_date,
         )
-    if not payload.endswith("\n"):
-        payload += "\n"
 
     if args.output:
         output_path = os.path.abspath(args.output)
