@@ -1,7 +1,5 @@
 """Extract CodeRabbit comments from the latest review round for a workspace."""
 
-from __future__ import annotations
-
 import argparse
 import glob
 import json
@@ -9,12 +7,10 @@ import os
 import re
 import sys
 from collections import Counter
+from collections.abc import Iterator
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from urllib.parse import unquote
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
 
 DETAILS_BLOCK_RE = re.compile(r"<details\b[^>]*>.*?</details>", re.DOTALL | re.IGNORECASE)
 
@@ -28,14 +24,7 @@ NITPICK_CACHE_KEYS = {
 }
 TIMESTAMP_KEYS = ("endedAt", "updatedAt", "startedAt", "createdAt")
 # A repo open in two editors has two independently-stale caches; newest round wins.
-IDE_DIR_NAMES = (
-    "Cursor",
-    "Code",
-    "Code - Insiders",
-    "VSCodium",
-    "Windsurf",
-    "Positron",
-)
+IDE_DIR_NAMES = ("Cursor", "Code", "Code - Insiders", "VSCodium", "Windsurf", "Positron")
 
 
 def default_ide_user_dirs() -> list[str]:
@@ -78,9 +67,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--review-id",
-        default="",
-        help="Optional explicit CodeRabbit review ID to extract",
+        "--review-id", default="", help="Optional explicit CodeRabbit review ID to extract"
     )
     parser.add_argument(
         "--mode",
@@ -92,14 +79,10 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--output",
-        default="",
-        help="Output file path (omit to print to stdout)",
+        "--output", default="", help="Output file path (omit to print to stdout)"
     )
     parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Emit full JSON instead of compact plain text",
+        "--json", action="store_true", help="Emit full JSON instead of compact plain text"
     )
     return parser.parse_args()
 
@@ -108,15 +91,6 @@ def read_json_file(file_path: str) -> JsonValue:
     """Read and parse a JSON file."""
     with open(file_path, encoding="utf-8") as file_handle:
         return json.load(file_handle)
-
-
-def iter_reviews(payload: JsonValue) -> list[dict[str, Any]]:
-    """Normalize one payload into a list of review dictionaries."""
-    if isinstance(payload, list):
-        return [item for item in payload if isinstance(item, dict)]
-    if isinstance(payload, dict):
-        return [payload]
-    return []
 
 
 def discover_workspace_dirs(ide_user_dirs: list[str], workspace: str) -> list[str]:
@@ -131,9 +105,7 @@ def discover_workspace_dirs(ide_user_dirs: list[str], workspace: str) -> list[st
                 workspace_json = read_json_file(workspace_json_path)
             except (OSError, json.JSONDecodeError):
                 continue
-            if not isinstance(workspace_json, dict):
-                continue
-            folder = workspace_json.get("folder")
+            folder = workspace_json.get("folder") if isinstance(workspace_json, dict) else None
             # Editors percent-encode the stored URI; decoding it avoids having to mimic
             # each editor's choice of reserved characters when encoding the input.
             if not isinstance(folder, str) or unquote(folder) != workspace_uri:
@@ -142,65 +114,43 @@ def discover_workspace_dirs(ide_user_dirs: list[str], workspace: str) -> list[st
     return sorted(set(matched_dirs))
 
 
-def discover_coderabbit_cache_files(workspace_dir: str) -> list[str]:
-    """Return candidate CodeRabbit cache files for one workspaceStorage directory."""
-    cache_glob = f"{workspace_dir}/coderabbit.coderabbit-vscode/*.json"
-    return sorted(
-        file_path
-        for file_path in glob.glob(cache_glob)
-        if not file_path.endswith("/categories.json")
-    )
-
-
-def parse_iso_datetime(timestamp_text: str) -> datetime | None:
-    """Parse ISO-like timestamp text into a datetime."""
-    try:
-        return datetime.fromisoformat(timestamp_text.strip())
-    except ValueError:
-        return None
-
-
 def review_timestamp_epoch(review: dict[str, Any]) -> float:
-    """Return best available review timestamp as epoch seconds."""
-    parsed_timestamps = [
-        parsed
-        for key in TIMESTAMP_KEYS
-        if isinstance((value := review.get(key)), str)
-        and (parsed := parse_iso_datetime(value)) is not None
-    ]
-    return max(parsed_timestamps).timestamp() if parsed_timestamps else 0.0
+    """Return the newest parseable review timestamp as epoch seconds, or 0 if none."""
+    epochs: list[float] = []
+    for key in TIMESTAMP_KEYS:
+        if isinstance(value := review.get(key), str):
+            try:
+                epochs.append(datetime.fromisoformat(value.strip()).timestamp())
+            except ValueError:
+                continue
+    return max(epochs, default=0.0)
 
 
 def flatten_file_comments(
-    by_file: dict[str, Any],
-    *,
-    comment_type: str | None = None,
-    nested_key: str | None = None,
+    by_file: object, comment_type: str, nested_key: str = ""
 ) -> list[dict[str, Any]]:
-    """Flatten per-file comment lists (optionally nested under nested_key)."""
+    """Flatten {filename: comments} (or {filename: {nested_key: comments}}) into rows."""
+    if not isinstance(by_file, dict):
+        return []
     flattened_comments: list[dict[str, Any]] = []
     for filename, entry in by_file.items():
-        if nested_key is not None:
-            if not isinstance(entry, dict):
-                continue
-            comments = entry.get(nested_key)
-        else:
-            comments = entry
+        comments = entry
+        if nested_key:
+            comments = entry.get(nested_key) if isinstance(entry, dict) else None
         if not isinstance(comments, list):
             continue
-        for comment in comments:
-            if not isinstance(comment, dict):
-                continue
-            flattened_comments.append(
-                {
-                    "filename": comment.get("filename") or filename,
-                    "start_line": comment.get("startLine"),
-                    "end_line": comment.get("endLine"),
-                    "severity": comment.get("severity"),
-                    "type": comment_type or comment.get("type") or "actionable",
-                    "comment": comment.get("comment"),
-                }
-            )
+        flattened_comments += [
+            {
+                "filename": comment.get("filename") or filename,
+                "start_line": comment.get("startLine"),
+                "end_line": comment.get("endLine"),
+                "severity": comment.get("severity"),
+                "type": comment_type,
+                "comment": comment.get("comment"),
+            }
+            for comment in comments
+            if isinstance(comment, dict)
+        ]
     return flattened_comments
 
 
@@ -210,23 +160,12 @@ def extract_all_comments(review: dict[str, Any]) -> list[dict[str, Any]]:
     Extraction is never partial (`--mode` only filters), so an empty bucket can't be
     mistaken for an empty round.
     """
-    file_review_map = review.get("fileReviewMap")
-    comments = flatten_file_comments(
-        file_review_map if isinstance(file_review_map, dict) else {},
-        comment_type="main",
-        nested_key="comments",
-    )
+    comments = flatten_file_comments(review.get("fileReviewMap"), "main", "comments")
     additional_details = review.get("additionalDetails")
     if not isinstance(additional_details, dict):
         additional_details = {}
     for comment_type, cache_key in NITPICK_CACHE_KEYS.items():
-        comments_by_file = additional_details.get(cache_key)
-        comments.extend(
-            flatten_file_comments(
-                comments_by_file if isinstance(comments_by_file, dict) else {},
-                comment_type=comment_type,
-            )
-        )
+        comments += flatten_file_comments(additional_details.get(cache_key), comment_type)
     return comments
 
 
@@ -270,13 +209,11 @@ def format_comments_text(
     blocks: list[str] = []
     for comment in comments:
         location = format_location(
-            str(comment["filename"]),
-            comment.get("start_line"),
-            comment.get("end_line"),
+            str(comment["filename"]), comment["start_line"], comment["end_line"]
         )
-        if (severity := comment.get("severity")) and severity != "none":
+        if (severity := comment["severity"]) and severity != "none":
             location = f"{location} [{severity}]"
-        body = str(comment.get("comment") or "(empty comment)")
+        body = str(comment["comment"] or "(empty comment)")
         body_text = re.sub(r"\n{3,}", "\n\n", DETAILS_BLOCK_RE.sub("", body)).strip()
         blocks.append(f"{location}\n{body_text}")
     return f"{header}\n\n" + "\n\n---\n\n".join(blocks) + "\n"
@@ -301,7 +238,10 @@ def collect_cache_files(ide_user_dirs: list[str] | None, workspace: str) -> list
     cache_files = [
         cache_file
         for workspace_dir in workspace_dirs
-        for cache_file in discover_coderabbit_cache_files(workspace_dir)
+        for cache_file in sorted(
+            glob.glob(f"{workspace_dir}/coderabbit.coderabbit-vscode/*.json")
+        )
+        if not cache_file.endswith("/categories.json")
     ]
     if not cache_files:
         raise RuntimeError(f"No CodeRabbit cache files under: {', '.join(workspace_dirs)}")
@@ -315,28 +255,26 @@ def iter_cached_reviews(cache_files: list[str]) -> Iterator[tuple[str, dict[str,
             payload = read_json_file(cache_file)
         except (OSError, json.JSONDecodeError):
             continue
-        for review in iter_reviews(payload):
-            yield cache_file, review
+        for review in payload if isinstance(payload, list) else [payload]:
+            if isinstance(review, dict):
+                yield cache_file, review
 
 
-def select_review(cache_files: list[str], review_id: str) -> tuple[dict[str, Any], str, float]:
-    """Select explicit review ID or newest available review round."""
+def select_review(cache_files: list[str], review_id: str) -> tuple[str, dict[str, Any]]:
+    """Return (cache_file, review) for review_id, or for the newest round if empty."""
     reviews = iter_cached_reviews(cache_files)
     if review_id:
-        match = next((item for item in reviews if item[1].get("id") == review_id), None)
-        if match is None:
-            raise RuntimeError(f"No CodeRabbit review with id '{review_id}' was found.")
-    else:
-        # Review timestamp first, cache file mtime breaks ties; the first maximum wins.
-        match = max(
-            reviews,
-            key=lambda item: (review_timestamp_epoch(item[1]), os.path.getmtime(item[0])),
-            default=None,
-        )
-        if match is None:
-            raise RuntimeError("No CodeRabbit reviews were found for this workspace.")
-    cache_file, review = match
-    return review, cache_file, review_timestamp_epoch(review)
+        if match := next((item for item in reviews if item[1].get("id") == review_id), None):
+            return match
+        raise RuntimeError(f"No CodeRabbit review with id '{review_id}' was found.")
+    # Review timestamp first, cache file mtime breaks ties; the first maximum wins.
+    if match := max(
+        reviews,
+        key=lambda item: (review_timestamp_epoch(item[1]), os.path.getmtime(item[0])),
+        default=None,
+    ):
+        return match
+    raise RuntimeError("No CodeRabbit reviews were found for this workspace.")
 
 
 def main() -> None:
@@ -345,10 +283,8 @@ def main() -> None:
     workspace = os.path.abspath(args.workspace)
     cache_files = collect_cache_files(args.ide_user_dirs, workspace)
 
-    selected_review, source_cache_file, selected_timestamp_epoch = select_review(
-        cache_files=cache_files,
-        review_id=args.review_id,
-    )
+    source_cache_file, selected_review = select_review(cache_files, args.review_id)
+    selected_timestamp_epoch = review_timestamp_epoch(selected_review)
 
     extracted_comments = filter_by_mode(extract_all_comments(selected_review), args.mode)
     # Main comments first: they are the ones that block, nitpicks are advisory.

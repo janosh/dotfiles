@@ -5,13 +5,13 @@ description: "Repository housekeeping: worktrees removes stale branches/worktree
 
 # Cleanup
 
-The keyword after `$cleanup` selects the mode; default to `worktrees`.
+The keyword after `/cleanup` selects the mode; default to `worktrees`.
 
 | Invocation | Workflow |
 | --- | --- |
-| `$cleanup worktrees` | Delete inactive, redundant branches/worktrees; offer recovery or a PR for useful unmerged work. |
-| `$cleanup wrap-up` | Commit and push ready work, then suggest cleanup of leftovers. |
-| `$cleanup wrap-up local` | Same, without pushing. |
+| `/cleanup worktrees` | Delete inactive, redundant branches/worktrees; offer recovery or a PR for useful unmerged work. |
+| `/cleanup wrap-up` | Commit and push ready work, then suggest cleanup of leftovers. |
+| `/cleanup wrap-up local` | Same, without pushing. |
 
 ## Routing
 

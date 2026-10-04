@@ -36,20 +36,19 @@ EOF
 gp() { _gh_git push "$@"; }
 gl() { _gh_git pull "$@"; }
 
+# `gh pr create` authenticates as the account named by origin's SSH host alias, if any.
 gh() {
-  local account remote_url token
-  if [ "$1" = pr ] && [ "$2" = create ]; then
-    # `|| remote_url=`: no origin must not abort a `set -e` caller.
-    remote_url=$(git remote get-url origin 2>/dev/null) || remote_url=
-    case "$remote_url" in
+  local account='' token
+  if [ "${1-}" = pr ] && [ "${2-}" = create ]; then
+    case "$(git remote get-url origin 2>/dev/null)" in
       git@github-janosh:*) account=janosh ;;
       git@github-janosh-per:*) account=janosh_per ;;
-      # No SSH alias to read the account from: use gh's active account.
-      *) command gh "$@"; return ;;
     esac
-    token=$(command gh auth token --user "$account") || return
-    GH_TOKEN=$token command gh "$@"
+  fi
+  if [ -z "$account" ]; then
+    command gh "$@"
     return
   fi
-  command gh "$@"
+  token=$(command gh auth token --user "$account") || return
+  GH_TOKEN=$token command gh "$@"
 }

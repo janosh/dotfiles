@@ -1,11 +1,11 @@
 ---
-name: cross-model-review
-description: "Run a different-model adversarial review of code/changes — correctness, tests, performance, conciseness — and action verified findings. Modifier: same-model (review with your own family)."
+name: adversarial-review
+description: "Run an adversarial review of code/changes — correctness, tests, performance, conciseness — and action verified findings. Reviews cross-model when the harness exposes another model family, else with your own model. Modifier: same-model (force your own model)."
 ---
 
-# Cross-Model Review
+# Adversarial Review
 
-Draft a self-contained adversarial review prompt, launch one or more reviewer subagents (on a different model family than yours) to execute the review — fanning out across a large diff — then action every finding they return.
+Draft a self-contained adversarial review prompt, launch one or more reviewer subagents on the Step 2 model to execute the review — fanning out across a large diff — then action every finding they return.
 
 ## Step 1: Write the review prompt
 
@@ -25,14 +25,12 @@ Make the prompt self-contained, specific, and actionable. Do not hide risks to m
 
 ## Step 2: Pick the reviewer model
 
-A different model family catches different bugs, so by default the reviewer must NOT share your family.
+A different model family catches different bugs, so use one whenever the harness offers it.
 
-With `same-model`, drop only that requirement: pick the strongest fast model in your own family (say which in your report).
+- **Several families available** (e.g. Cursor exposing both Claude and GPT subagent models): pick the strongest model from a family other than yours, chosen from the model list the harness actually exposes. Prefer the newest version; never invent or hardcode version names. Prefer fast models: avoid extra-high reasoning variants such as Fable 5 xhigh (too slow for this loop); use medium effort, or at most high in tricky cases.
+- **Single family** (e.g. Claude Code, Codex) or `same-model`: review with your own model. Omit the model override so the subagent inherits it, or pass your own model (or its alias) if the harness would otherwise default subagents to a different one.
 
-- Identify your own model family (e.g. OpenAI GPT, Anthropic Claude/Opus, Google Gemini).
-- Pick the strongest model from a *different* family, chosen from the model list the current harness actually exposes (e.g. Cursor's subagent model slugs). Prefer the newest available version; never invent or hardcode version names.
-- Prefer fast models. Avoid extra-high reasoning variants such as Fable 5 xhigh; too slow for this review loop. Prefer medium effort or at most high in tricky cases.
-- Rough mapping: if you're GPT, review with the latest Opus/Claude; if you're Claude/Opus, review with the latest GPT. If the harness exposes no model override, or no different-family model is available, omit the override and note the review is same-family (or that cross-family dispatch is unavailable).
+Report which reviewer model ran and whether the review was cross- or same-model.
 
 ## Step 3: Dispatch the reviewer subagent(s)
 

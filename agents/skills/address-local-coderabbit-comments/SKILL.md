@@ -16,7 +16,7 @@ uv run --no-project "/Users/janosh/dev/dotfiles/agents/skills/address-local-code
 
 1. Triage from the printed comments (`file:lines` + body).
 
-`--mode main` or `--mode nitpicks` narrows the output; `--json` dumps the full cache-shaped payload (keeps `<details>` bodies).
+`--mode main` or `--mode nitpicks` narrows the output (text or JSON); `--json` dumps review metadata plus each comment's raw body (keeps `<details>` blocks).
 
 ## Critical behavior
 

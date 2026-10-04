@@ -3,8 +3,6 @@
 
 # === Options ===
 shopt -s autocd # https://gnu.org/software/bash/manual/html_node/The-Shopt-Builtin
-set show-all-if-ambiguous on # https://coderwall.com/p/oqtj8w/the-single-most-useful-thing-in-bash
-set completion-ignore-case on
 export LANG=C # https://stackoverflow.com/a/2510548
 
 # === Prompt ===
@@ -21,6 +19,8 @@ PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 
 # === Key bindings ===
 if [[ $- == *i* ]]; then # https://superuser.com/a/686293
+  bind 'set show-all-if-ambiguous on' # https://coderwall.com/p/oqtj8w/the-single-most-useful-thing-in-bash
+  bind 'set completion-ignore-case on'
   bind '"\e[A": history-search-backward' # https://unix.stackexchange.com/a/20830
   bind '"\e[B": history-search-forward'
   bind '"\eOA": history-search-backward'

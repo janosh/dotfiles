@@ -22,7 +22,6 @@
 
 # === Core ===
 [core]
-	# Cursor as git editor (interactive rebase, tag annotation, ...)
 	editor = code --wait
 	# No default for attributesfile; set explicitly.
 	attributesfile = ~/.config/git/attributes
@@ -42,12 +41,9 @@
 [push]
 	# https://stackoverflow.com/a/3745250
 	followTags = true
-	# https://git-scm.com/docs/git-config#Documentation/git-config.txt-pushautoSetupRemote
-	autoSetupRemote = true
-	# `git push -u` by default
-	default = current
+	# Default push.default=simple: pushing a branch without upstream fails. Publish deliberately
+	# with `git push -u origin HEAD`.
 
 [pull]
-	# Fast-forward only; no merge commits. https://stackoverflow.com/a/62653400
-	ff = only
+	# Rebase local commits onto upstream instead of creating merge commits.
 	rebase = true

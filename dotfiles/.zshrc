@@ -27,19 +27,17 @@ PROMPT="%(?:%{$fg_bold[green]%}%1{➜%} :%{$fg_bold[red]%}%1{➜%} ) %{$fg[cyan]
 # === Completion ===
 zmodload -i zsh/complist
 WORDCHARS=''
-unsetopt menu_complete flowcontrol
-setopt auto_menu complete_in_word always_to_end
+unsetopt flowcontrol
+setopt complete_in_word always_to_end
 zstyle ':completion:*:*:*:*:*' menu select
 zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' special-dirs true
 zstyle ':completion:*' use-cache yes
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completions"
 zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
-mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completions"
 # On fpath before compinit. configure_macos chmods /opt/homebrew/share (compinit insecure-dir warn).
 [[ -d /opt/homebrew/share/zsh-completions ]] && fpath=(/opt/homebrew/share/zsh-completions $fpath)
 autoload -Uz compinit && compinit
-autoload -U +X bashcompinit && bashcompinit
 
 # === Environment ===
 # Shared py314 venv. Check -x on python: brew upgrades can leave a dangling symlink.
@@ -48,17 +46,16 @@ if [[ -x ~/.venv/py314/bin/python ]]; then
   export PATH="$VIRTUAL_ENV/bin:$PATH"
 fi
 export PATH="$HOME/.cargo/bin:$PATH"
-# No uv.lock in repos: refuse lock writes; don't sync a project .venv on `uv run`.
+# No lock files in repos: uv refuses lock writes and skips .venv sync on `uv run`;
+# pnpm writes none, overriding repo config.
 export UV_FROZEN=1
 export UV_NO_SYNC=1
 export PNPM_CONFIG_LOCKFILE=false
-# shellcheck disable=SC1091
 [[ -f "$HOME"/.local/bin/env ]] && . "$HOME"/.local/bin/env
 [[ -r "$HOME/.vite-plus/env" ]] && . "$HOME/.vite-plus/env" # https://viteplus.dev
 
 # === Plugins (syntax-highlighting last) ===
 HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
-# shellcheck disable=SC1091,SC1094
 for _zsh_plugin in zsh-autosuggestions zsh-history-substring-search zsh-syntax-highlighting; do
   [[ -r /opt/homebrew/share/$_zsh_plugin/$_zsh_plugin.zsh ]] &&
     . /opt/homebrew/share/$_zsh_plugin/$_zsh_plugin.zsh
@@ -84,9 +81,7 @@ fi
 
 # === Shared aliases / gh account selection ===
 _dotfiles_dir=${${(%):-%x}:A:h} # :A follows ~/.zshrc symlink
-# shellcheck disable=SC1091
 . "${_dotfiles_dir}/aliases.sh"
-# shellcheck disable=SC1091
 . "${_dotfiles_dir}/gh-account.sh"
 unset _dotfiles_dir
 
@@ -96,24 +91,55 @@ gdiff() {
   env -u UV_FROZEN -u UV_NO_SYNC uv run --no-project "${repo}/scripts/gdiff.py" "$@"
 }
 
-# Clean stale branches and non-origin remotes.
-# shellcheck disable=SC2086
+# Delete gone-upstream, GitHub-merged and pr/* branches (with their clean worktrees) and non-origin remotes.
 grcl() {
-  local branch gone gh_merged prs remote remotes
+  local branch head remote
+  local -a gh_merged remotes
 
   git fetch --prune
 
-  gone=$(git branch -vv | awk '/: gone]/{print $1}')
-  [ -n "$gone" ] && git branch -D $gone || echo "No gone branches to delete"
+  _grcl_delete gone ${(f)"$(git for-each-ref --format='%(refname:short)%09%(upstream:track)' refs/heads |
+    awk -F'\t' '$2 == "[gone]" {print $1}')"}
 
-  for branch in $(git branch --format='%(refname:short)' | grep -vE '^(main|master)$'); do
-    gh pr list --state merged --head "$branch" --json number -q '.[0]' 2>/dev/null | grep -q . && gh_merged="$gh_merged $branch"
+  for branch in ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads)"}; do
+    [[ $branch == (main|master) ]] && continue
+    head=$(gh pr list --state merged --head "$branch" --json headRefOid -q '.[0].headRefOid' 2>/dev/null)
+    [[ -z $head ]] && continue
+    # Squash merges leave the PR head off main, so compare the branch tip with it instead.
+    if git cat-file -e "$head^{commit}" 2>/dev/null && git merge-base --is-ancestor "refs/heads/$branch" "$head"; then
+      gh_merged+=("$branch")
+    else
+      echo "Kept $branch: its tip is not part of its merged PR's head ${head:0:9}"
+    fi
   done
-  [ -n "$gh_merged" ] && git branch -D $gh_merged || echo "No GitHub-merged branches to delete"
+  _grcl_delete GitHub-merged $gh_merged
 
-  prs=$(git branch --format='%(refname:short)' | grep '^pr/')
-  [ -n "$prs" ] && git branch -D $prs || echo "No PR branches to delete"
+  _grcl_delete PR ${(f)"$(git for-each-ref --format='%(refname:short)' 'refs/heads/pr/*')"}
 
-  remotes=$(git remote | grep -vx origin)
-  [ -n "$remotes" ] && for remote in $remotes; do git remote remove "$remote"; done || echo "No remotes to remove"
+  remotes=(${(f)"$(git remote | grep -vx origin)"})
+  for remote in $remotes; do git remote remove "$remote"; done
+  (( $#remotes )) || echo "No remotes to remove"
+}
+
+# Usage: _grcl_delete <label> <branch>... `git worktree remove` refuses dirty worktrees and the
+# primary checkout, so branches checked out there are kept. It does delete ignored files (.env,
+# tmp/, ...), so those are listed first.
+_grcl_delete() {
+  local label=$1 branch ignored worktree here=${$(git rev-parse --show-toplevel):A}
+  shift
+  (( $# )) || { echo "No $label branches to delete"; return; }
+  for branch; do
+    worktree=$(git worktree list --porcelain |
+      awk -v ref="branch refs/heads/$branch" '/^worktree /{path = substr($0, 10)} $0 == ref {print path}')
+    if [[ -n $worktree && ${worktree:A} != $here ]]; then
+      ignored=$(git -C "$worktree" ls-files --others --ignored --exclude-standard --directory)
+      [[ -n $ignored ]] && print -rl -- "Ignored files in $worktree:" ${${(f)ignored}/#/  }
+    fi
+    # Never remove the worktree grcl runs in: every later git call would fail.
+    if [[ -n $worktree ]] && { [[ ${worktree:A} == $here ]] || ! git worktree remove "$worktree"; }; then
+      echo "Kept $branch: checked out in $worktree"
+      continue
+    fi
+    git branch -D -- "$branch"
+  done
 }

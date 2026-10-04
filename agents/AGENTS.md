@@ -11,7 +11,7 @@ These rules apply to all projects.
 
 ## Multi-agent branch sharing
 
-Multiple agents may work on the same branch concurrently. Editing a file that already has uncommitted changes from another agent is fine, don't be timid, except at git time: when staging and committing. Don't stage changes unless asked to commit. Include only the changes relevant to your task and use explicit `git add <your-files>` instead of `git add -A` so you don't commit, revert, or stash another agent's out-of-scope work. Only exception being if other agent's work looks related or too menial to warrant it's own commit, then just include in your commit.
+Multiple agents may work on the same branch concurrently. Editing a file that already has uncommitted changes from another agent is fine, don't be timid, except at git time: when staging and committing. Don't stage changes unless asked to commit. Include only the changes relevant to your task and use explicit `git add <your-files>` instead of `git add -A` so you don't commit, revert, or stash another agent's out-of-scope work. Only exception being if other agent's work looks related or too menial to warrant its own commit, then just include in your commit.
 
 ## Python Projects (*.py, pyproject.toml)
 
@@ -31,7 +31,7 @@ Multiple agents may work on the same branch concurrently. Editing a file that al
 - Use `time.perf_counter()` instead of `time.time()` for wall-time measurements
 - Always prefer `plotly` over `matplotlib` for plotting. When exporting to HTML, always use `include_plotlyjs="cdn"` for much smaller file sizes (3 KB vs 3 MB).
 - Never use `fig.add_trace(go.Scatter(...))` — use `fig.add_scatter(...)`, `fig.add_bar(...)`, `fig.add_histogram(...)`, etc. directly. Shorter, avoids the redundant `go.` import for trace types, and lets plotly validate args at call time.
-- **In `notebooks/`, prefer pymatviz widgets instead: `BarPlotWidget`, `HeatmapMatrixWidget`, `HistogramWidget`, `ScatterPlotWidget`, `StructureWidget`, `ConvexHullWidget`, `TrajectoryWidget`, `PhaseDiagramWidget`, etc. over `plotly` or `matplotlib` figures. Check existing demos/notebooks for usage and API patterns before writing new visualization code.
+- **In `notebooks/`, prefer pymatviz widgets** instead: `BarPlotWidget`, `HeatmapMatrixWidget`, `HistogramWidget`, `ScatterPlotWidget`, `StructureWidget`, `ConvexHullWidget`, `TrajectoryWidget`, `PhaseDiagramWidget`, etc. over `plotly` or `matplotlib` figures. Check existing demos/notebooks for usage and API patterns before writing new visualization code.
 - avoid `typing.cast` unless absolutely necessary
 
 ## TypeScript/Svelte Projects (*.ts,*.svelte)
@@ -61,10 +61,10 @@ Multiple agents may work on the same branch concurrently. Editing a file that al
 - Don't commit without being asked
 - Never add `Co-authored-by: Cursor/Codex/...` or similar to commit messages
 - Never `git push --force/--force-with-lease` unless explicitly asked for that specific branch and situation. Once work is pushed, prefer follow-up commits over amending/rebasing.
-- A request to submit or open a PR authorizes publishing its branch and creating the PR without another confirmation. Create issues only when requested. When asked to "draft" an issue or PR, output the title and body as markdown for review — don't run `gh` until explicitly told to post.
-- **Concurrent branch updates are routine:** If an authorized push is rejected because the destination branch advanced (non-fast-forward), fetch and merge the updated destination branch, resolve conflicts, run focused checks for affected code, and retry the push without asking. Preserve both local and remote commits; do not force-push or change the destination branch.
+- A request to submit or open a PR authorizes publishing its branch and creating the PR without another confirmation. When asked to "draft" an issue or PR, output the title and body as markdown for review — don't run `gh` until explicitly told to post.
+- **Concurrent branch updates are routine:** If an authorized push is rejected because the destination branch advanced (non-fast-forward), fetch and rebase onto the updated destination branch, resolve conflicts, run focused checks for affected code, and retry the push without asking. Preserve both local and remote commits; do not force-push or change the destination branch.
 - **Permission to commit is never permission to open a PR**, and neither is a blocked push. If a push is rejected by branch protection, required status checks, or a ruleset, stop and report that policy block. Do NOT bypass it by moving the commit to a new branch and opening a PR. Leave the commit local and let the user choose how to land it.
-- Do not ask for separate permission to publish a branch as part of requested work, including setting an upstream for a new branch. Verify the destination with `git push --dry-run`. For an existing fork PR, push to its actual head repository and branch rather than creating an unrelated branch on `origin`.
+- Create an upstream (publish a new branch) only when asked, e.g. via `submit-pr`; that request needs no separate confirmation. Otherwise never push a branch that has no upstream. Verify the destination with `git push --dry-run`. For an existing fork PR, push to its actual head repository and branch rather than creating an unrelated branch on `origin`.
 - Asking a question mid-task and getting an answer authorizes only what was asked. When the plan turns out not to work, ask again. Don't substitute a different action you think is equivalent.
 
 ## CRITICAL: Protect Uncommitted Work
@@ -88,6 +88,7 @@ Multiple agents work on the same repo concurrently. Any destructive git operatio
 - Ask before adding new dependencies.
 - For my own upstream packages (e.g. `svelte-widgets` and `matterviz`), always track the upstream repository's latest `main` branch. Adapt consuming code to breaking API changes instead of pinning older commits or releases, downgrading, or adding compatibility fallbacks.
 - Prefer editing existing files over creating new ones.
+- Never write large files into iCloud Drive or iCloud-synced folders such as `~/Documents` and `~/Desktop`; use an unsynced location such as `~/Movies` for videos or `/tmp` for temporary files.
 - Prefer fast Rust CLIs over stock Unix tools when available: `fd` over `find`, `dust` over `du`, `rg` over `grep`, and `bat` over `cat`.
 - Keep existing comments when editing files unless they are stale or low value.
 - Use single-line section headers: `// === Section Name ===` not verbose multi-line box comments
@@ -98,9 +99,8 @@ Multiple agents work on the same repo concurrently. Any destructive git operatio
 - Use `prek` (Rust port), never `pre-commit` (Python)
 - **Never take an unrequested irreversible or externally-visible action** — opening PRs/issues, pushing branches, deleting remote refs, posting to Slack, commenting on GitHub. When a task stalls, report and ask; don't improvise a workaround that creates something the user has to undo.
 - Run commands yourself to collect logs/errors—don't ask the user. Run tests (`pytest`, `vitest`, `playwright`) or scripts, start dev servers, visit pages in browser, take actions to reproduce issues.
-- **Avoid redundant verification.** Do not run tests solely to establish a green baseline. Batch edits and run the narrowest affected checks once after the batch. Reuse a same-session result only when it covered the path and nothing edited that path since. Escalate to broader suites, lint, types, coverage, or mutation checks only when the change's scope or risk warrants them. Workflows whose purpose is repeated failure testing, such as mutation checks, are exempt.
+- **Avoid redundant verification.** Do not run tests solely to establish a green baseline. Batch edits and run the narrowest affected checks once after the batch. Reuse a same-session result only when it covered the path and nothing edited that path since. Escalate to broader suites, lint, types, coverage, or mutation checks only when the change's scope or risk warrants them. Workflows whose purpose is repeated failure testing, such as mutation checks, are exempt. Never run a large codebase's full suite by default: only when explicitly requested or when broad, cross-cutting changes cannot be validated otherwise.
 - When you begin risky edits in a tree that is already dirty, capture its pre-edit diff first; you cannot reconstruct it later. If an unexpected failure cannot be attributed from the diff and control flow, diagnose it in a temporary worktree — never by stashing, resetting, restoring, or checking out files in the active tree. Compare the failing check on the clean base and on that base plus only your patch; where you captured a pre-edit diff, compare base plus that pre-existing patch against base plus both patches. Account for untracked inputs and missing build environments before attributing the failure.
-- **In large codebases, run the narrowest relevant tests, never the full suite by default.** Run thousands-test suites only when explicitly requested or when broad, cross-cutting changes cannot be validated otherwise; unrelated tests waste time and machine resources.
 - When fixing a bug or making a behavior tweak, ALWAYS add or update a unit test that would have caught it. Prefer extending an existing related test over creating a new test to avoid extra setup/teardown bloat. Only create a new test when there is no related test to extend.
 
 ## Response shape

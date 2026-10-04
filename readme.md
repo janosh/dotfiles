@@ -20,8 +20,7 @@ Human-only leftovers (Bluetooth pairing, iCloud, printers):
 zsh -c "$(curl -fsSL 'https://raw.githubusercontent.com/janosh/dotfiles/main/setup/system-settings.sh')"
 ```
 
-**New Mac Setup Note:**
-When setting up new Macs with iCloud "Desktop & Documents" sync enabled, check [notes/to-self.md](notes/to-self.md) for steps to handle duplicate `Documents` folders.
+**New Mac Setup Note:** When setting up new Macs with iCloud "Desktop & Documents" sync enabled, check [notes/to-self.md](notes/to-self.md) for steps to handle duplicate `Documents` folders.
 
 ## Organization
 
@@ -29,10 +28,11 @@ When setting up new Macs with iCloud "Desktop & Documents" sync enabled, check [
 .
 ├── agents/AGENTS.md           # global agent rules (source for ~/dev/AGENTS.md symlink)
 ├── agents/skills/             # agent skills symlinked into Cursor/Codex/Claude
-├── dotfiles/                  # .zshrc (macOS), .bashrc + shared aliases/gh account selection, git, cspell
+├── dotfiles/                  # .zshrc (macOS), .bashrc + shared aliases/gh account selection, git, ssh, cspell, text replacements
 ├── notes/                     # personal runbooks (Mac setup, Cursor, etc.)
 ├── setup/                     # macOS bootstrap scripts
-└── scripts/                   # one-off utilities
+├── scripts/                   # one-off utilities
+└── tests/                     # pytest suite for shell config and agent skill scripts
 ```
 
 Setup scripts are prefixed with numbers and define functions only. `setup/main.sh` sources them and runs the install sequence.

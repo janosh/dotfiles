@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Human-only System Settings steps. Automatable knobs are in configure_macos().
-# Opens each pane, then waits for Enter. No need to quit System Settings between steps.
 
 trap 'exit 0' SIGINT # exit cleanly if aborted with ⌃c
 

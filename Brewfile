@@ -1,5 +1,3 @@
-# Used by the brew_install() function.
-
 # CLIs
 brew "bat"
 brew "dust"

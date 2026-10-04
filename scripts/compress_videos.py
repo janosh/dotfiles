@@ -18,11 +18,10 @@ if TYPE_CHECKING:
 __author__ = "Janosh Riebesell"
 __date__ = "2022-07-04"
 
-DIRNAME = os.path.dirname(__file__)
 DEFAULT_QUALITY = 62
+MIN_SIZE_REDUCTION = 0.1  # re-encodes saving less are rejected
 MAX_QUALITY = 100
 DISPLAY_MATRIX_VALUES = 9
-FRAME_RATE_TOLERANCE = 0.01
 _COMMON_COLOR_CODES = {
     "bt709": 1,
     "bt470bg": 5,
@@ -49,6 +48,16 @@ COLOR_MATRICES = _COMMON_COLOR_CODES | {
     "bt2020nc": 9,
     "bt2020c": 10,
 }
+AUXILIARY_STREAM_KEYS = (
+    "id",
+    "codec_type",
+    "codec_name",
+    "codec_tag_string",
+    "duration",
+    "nb_frames",
+    "tags",
+    "disposition",
+)
 
 
 def require_tool(name: str) -> str:
@@ -57,7 +66,8 @@ def require_tool(name: str) -> str:
         return path
     raise RuntimeError(
         f"Required executable {name!r} was not found. "
-        "Install dependencies with `brew install ffmpeg gpac`."
+        "Install with `brew install ffmpeg gpac` "
+        "(GetFileInfo/SetFile: `xcode-select --install`)."
     )
 
 
@@ -94,6 +104,36 @@ def probe_video(ffprobe: str, file_path: str) -> dict[str, Any]:
             ],
             capture_output=True,
         )
+    )
+
+
+def presentation_timestamps(
+    ffprobe: str, file_path: str, stream_position: int, time_base: str
+) -> list[Fraction]:
+    """Return exact presentation times of video packets not marked for discard."""
+    packet_probe = json.loads(
+        run_command(
+            [
+                ffprobe,
+                "-v",
+                "error",
+                "-select_streams",
+                str(stream_position),
+                "-show_packets",
+                "-show_entries",
+                "packet=pts,flags",
+                "-of",
+                "json",
+                file_path,
+            ],
+            capture_output=True,
+        )
+    )
+    seconds_per_tick = Fraction(time_base)
+    return sorted(
+        packet["pts"] * seconds_per_tick
+        for packet in packet_probe["packets"]
+        if "D" not in packet["flags"]
     )
 
 
@@ -191,6 +231,8 @@ def encode_video(
         "1",
         "-fps_mode",
         "passthrough",
+        "-enc_time_base:v",
+        source_stream["time_base"],
         "-tag:v",
         "hvc1",
     ]
@@ -235,8 +277,7 @@ def replace_video_track(
         ],
         capture_output=True,
     )
-    matrix = display_matrix(source_probe["streams"][stream_position])
-    if matrix:
+    if matrix := display_matrix(source_probe["streams"][stream_position]):
         run_command(
             [mp4box, "-mx", f"{source_track_id}={matrix}", output_file],
             capture_output=True,
@@ -254,14 +295,12 @@ def copy_macos_metadata(input_file: str, output_file: str) -> None:
         follow_symlinks=False,
     )
 
-    if sys.platform == "darwin" and (xattr := shutil.which("xattr")):
-        for name in run_command([xattr, input_file], capture_output=True).splitlines():
-            value = (
-                run_command([xattr, "-px", name, input_file], capture_output=True)
-                .replace(" ", "")
-                .replace("\n", "")
-            )
-            run_command([xattr, "-wx", name, value, output_file], capture_output=True)
+    for name in run_command(["xattr", input_file], capture_output=True).splitlines():
+        hex_value = run_command(["xattr", "-px", name, input_file], capture_output=True)
+        run_command(
+            ["xattr", "-wx", name, "".join(hex_value.split()), output_file],
+            capture_output=True,
+        )
 
     # Extended-attribute tools can update these, so restore access/modify times next.
     os.utime(
@@ -272,38 +311,14 @@ def copy_macos_metadata(input_file: str, output_file: str) -> None:
 
     # Setting an mtime older than the creation date can lower the latter on APFS.
     # Restore the original creation date only after the final os.utime call.
-    if (
-        sys.platform == "darwin"
-        and (get_file_info := shutil.which("GetFileInfo"))
-        and (set_file := shutil.which("SetFile"))
-    ):
-        creation_date = run_command(
-            [get_file_info, "-d", input_file], capture_output=True
-        ).strip()
-        run_command([set_file, "-d", creation_date, output_file], capture_output=True)
-
-
-def stream_signature(stream: dict[str, Any]) -> dict[str, Any]:
-    """Return stable fields used to verify untouched auxiliary streams."""
-    return {
-        key: stream.get(key)
-        for key in (
-            "id",
-            "codec_type",
-            "codec_name",
-            "codec_tag_string",
-            "duration",
-            "nb_frames",
-            "tags",
-            "disposition",
-        )
-    }
+    creation_date = run_command(["GetFileInfo", "-d", input_file], capture_output=True).strip()
+    run_command(["SetFile", "-d", creation_date, output_file], capture_output=True)
 
 
 def auxiliary_signatures(probe: dict[str, Any], stream_position: int) -> list[dict[str, Any]]:
-    """Return stable signatures for every stream except the primary video."""
+    """Return stable fields of every stream except the primary video to verify them."""
     return [
-        stream_signature(stream)
+        {key: stream.get(key) for key in AUXILIARY_STREAM_KEYS}
         for position, stream in enumerate(probe["streams"])
         if position != stream_position
     ]
@@ -315,9 +330,9 @@ def verify_output(
     stream_position: int,
 ) -> None:
     """Verify video properties, container tags, and all non-video streams."""
-    source_position, source_video = primary_video_stream(source_probe)
+    source_video = source_probe["streams"][stream_position]
     output_position, output_video = primary_video_stream(output_probe)
-    if source_position != stream_position or output_position != stream_position:
+    if output_position != stream_position:
         raise RuntimeError("Primary video stream moved to a different track position")
     if (
         output_video.get("codec_name") != "hevc"
@@ -342,13 +357,6 @@ def verify_output(
                 f"to {output_video.get(key)!r}"
             )
 
-    source_frame_rate = Fraction(source_video["avg_frame_rate"])
-    output_frame_rate = Fraction(output_video["avg_frame_rate"])
-    if abs(float(source_frame_rate - output_frame_rate)) > FRAME_RATE_TOLERANCE:
-        raise RuntimeError(
-            f"Frame rate changed from {float(source_frame_rate):.6f} "
-            f"to {float(output_frame_rate):.6f}"
-        )
     if display_matrix(source_video) != display_matrix(output_video):
         raise RuntimeError("Video display matrix changed")
 
@@ -360,7 +368,7 @@ def verify_output(
     if changed_video_tags:
         raise RuntimeError(f"Video track metadata changed: {changed_video_tags}")
 
-    duration_tolerance = max(0.05, float(2 / source_frame_rate))
+    duration_tolerance = max(0.05, float(2 / Fraction(source_video["avg_frame_rate"])))
     duration_delta = abs(
         float(source_probe["format"]["duration"]) - float(output_probe["format"]["duration"])
     )
@@ -382,7 +390,7 @@ def verify_output(
         raise RuntimeError(f"Container metadata changed: {changed_tags}")
 
 
-def output_path(input_file: str, outdir: str | None, suffix: str | None) -> str:
+def output_path(input_file: str, outdir: str | None, suffix: str) -> str:
     """Build an output path in outdir, else next to the input with suffix before the ext."""
     if outdir:
         return f"{outdir}/{os.path.basename(input_file)}"
@@ -397,11 +405,20 @@ def compress_video(
     quality: int,
     speed_priority: bool,
     overwrite: bool,
+    keep_original: bool,
     ffmpeg: str,
     ffprobe: str,
     mp4box: str,
-) -> tuple[int, int, float]:
-    """Compress one video and atomically publish the verified result."""
+) -> tuple[int, int, float, bool]:
+    """Compress one video and atomically publish the verified result.
+
+    A result saving less than MIN_SIZE_REDUCTION is discarded unverified. With
+    keep_original, a copy of the input is published in its place.
+
+    Returns:
+        Input size, re-encoded size and elapsed seconds, and whether the re-encode was
+        published.
+    """
     if not os.path.isfile(input_file):
         raise FileNotFoundError(input_file)
     if os.path.realpath(input_file) == os.path.realpath(output_file):
@@ -412,7 +429,6 @@ def compress_video(
     source_probe = probe_video(ffprobe, input_file)
     stream_position, video_stream = primary_video_stream(source_probe)
     output_dir = os.path.dirname(os.path.abspath(output_file))
-    os.makedirs(output_dir, exist_ok=True)
 
     started = time.perf_counter()
     with tempfile.TemporaryDirectory(prefix=".compress-video-", dir=output_dir) as tmpdir:
@@ -435,21 +451,48 @@ def compress_video(
             source_probe=source_probe,
             stream_position=stream_position,
         )
-        verify_output(source_probe, probe_video(ffprobe, rebuilt_file), stream_position)
-        os.replace(rebuilt_file, output_file)
+        source_size = os.path.getsize(input_file)
+        compressed_size = os.path.getsize(rebuilt_file)
+        accepted = compressed_size <= source_size * (1 - MIN_SIZE_REDUCTION)
+        if accepted:
+            output_probe = probe_video(ffprobe, rebuilt_file)
+            verify_output(source_probe, output_probe, stream_position)
+            source_times = presentation_timestamps(
+                ffprobe, input_file, stream_position, video_stream["time_base"]
+            )
+            output_times = presentation_timestamps(
+                ffprobe,
+                rebuilt_file,
+                stream_position,
+                output_probe["streams"][stream_position]["time_base"],
+            )
+            if source_times != output_times:
+                first_difference = next(
+                    (
+                        times
+                        for times in zip(source_times, output_times, strict=False)
+                        if times[0] != times[1]
+                    ),
+                    None,
+                )
+                raise RuntimeError(
+                    "Video presentation timestamps changed: "
+                    f"source has {len(source_times)} displayed frames, "
+                    f"output has {len(output_times)}, first difference={first_difference}"
+                )
+        elif keep_original:
+            shutil.copyfile(input_file, rebuilt_file)
+        if accepted or keep_original:
+            os.replace(rebuilt_file, output_file)
+            copy_macos_metadata(input_file, output_file)
 
-    copy_macos_metadata(input_file, output_file)
-    return (
-        os.path.getsize(input_file),
-        os.path.getsize(output_file),
-        time.perf_counter() - started,
-    )
+    return source_size, compressed_size, time.perf_counter() - started, accepted
 
 
 def main(
     source_files: Sequence[str],
     outdir: str | None = None,
-    suffix: str | None = None,
+    suffix: str = "-compressed",
     *,
     write_file_map: bool = False,
     on_error: Literal["raise", "print", "ignore"] = "raise",
@@ -457,26 +500,23 @@ def main(
     speed_priority: bool = True,
     overwrite: bool = False,
 ) -> int:
-    """Compress videos while preserving container, stream, and filesystem metadata."""
-    if not source_files:
-        raise ValueError("No input files received")
-    if not outdir and suffix is None:
-        raise ValueError("Either outdir or suffix must be provided")
+    """Compress videos while preserving container, stream, and filesystem metadata.
+
+    Re-encodes saving less than MIN_SIZE_REDUCTION are rejected. With outdir, the
+    original is copied there instead so the output directory stays complete; with a
+    suffix, the original already sits next to where the output would go, so nothing is
+    written.
+    """
     if not 0 <= quality <= MAX_QUALITY:
         raise ValueError(f"quality must be between 0 and {MAX_QUALITY}, got {quality}")
-    if on_error not in {"raise", "print", "ignore"}:
-        raise ValueError(f"Unexpected {on_error=}")
-
     if outdir:
-        if os.path.isfile(outdir):
-            raise ValueError(
-                f"{outdir=} must be a (possibly non-existent) directory, not a file"
-            )
         os.makedirs(outdir, exist_ok=True)
 
     ffmpeg = require_tool("ffmpeg")
     ffprobe = require_tool("ffprobe")
     mp4box = require_tool("MP4Box")
+    for tool in ("GetFileInfo", "SetFile"):  # copy_macos_metadata restores creation dates
+        require_tool(tool)
     in_out_map: dict[str, str] = {}
     failures = 0
 
@@ -485,12 +525,13 @@ def main(
         print(f"Compressing {idx}/{len(source_files)}: {file_path} -> {out_path}", flush=True)
 
         try:
-            source_size, compressed_size, elapsed = compress_video(
+            source_size, compressed_size, elapsed, accepted = compress_video(
                 file_path,
                 out_path,
                 quality=quality,
                 speed_priority=speed_priority,
                 overwrite=overwrite,
+                keep_original=bool(outdir),
                 ffmpeg=ffmpeg,
                 ffprobe=ffprobe,
                 mp4box=mp4box,
@@ -504,13 +545,17 @@ def main(
             continue
 
         reduction = 100 * (1 - compressed_size / source_size)
-        print(
-            f"  {source_size / 1e6:.1f} MB -> {compressed_size / 1e6:.1f} MB "
-            f"({reduction:.1f}% smaller) in {elapsed:.1f}s"
-        )
-        if compressed_size >= source_size:
-            print("  Warning: compressed file is not smaller than its source", file=sys.stderr)
-        in_out_map[file_path] = out_path
+        sizes = f"{source_size / 1e6:.1f} MB -> {compressed_size / 1e6:.1f} MB"
+        if accepted:
+            print(f"  {sizes} ({reduction:.1f}% smaller) in {elapsed:.1f}s")
+        else:
+            kept = "copied original instead" if outdir else "no output written"
+            print(
+                f"  Rejected: {sizes} is only {reduction:.1f}% smaller "
+                f"(< {MIN_SIZE_REDUCTION:.0%}), {kept}"
+            )
+        if accepted or outdir:
+            in_out_map[file_path] = out_path
 
     if write_file_map:
         file_map_path = f"{outdir or os.getcwd()}/file_map.json"
@@ -524,7 +569,7 @@ def main(
 if __name__ == "__main__":
     import argparse
 
-    with open(f"{DIRNAME}/compress-videos.md", encoding="utf-8") as md_file:
+    with open(f"{os.path.dirname(__file__)}/compress-videos.md", encoding="utf-8") as md_file:
         parser = argparse.ArgumentParser(description=md_file.read())
     parser.add_argument("source_files", nargs="+", help="Video files to be compressed")
 
@@ -536,6 +581,7 @@ if __name__ == "__main__":
     )
     out_group.add_argument(
         *("-s", "--suffix"),
+        default="-compressed",
         help="Suffix to append to the original filename to create the output filename. "
         "E.g. --suffix=-compressed gives input.mp4 -> input-compressed.mp4. "
         "Defaults to -compressed when --outdir is omitted.",
@@ -543,7 +589,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--write-file-map",
         action="store_true",
-        help="Write JSON file mapping input to output file paths to outdir.",
+        help="Write JSON file mapping input to output file paths to outdir (or the cwd).",
     )
     parser.add_argument(
         "--on-error",
@@ -572,8 +618,4 @@ if __name__ == "__main__":
         action="store_true",
         help="Replace existing output files only after a new result passes verification.",
     )
-    args = parser.parse_args()
-    if not args.outdir and args.suffix is None:
-        args.suffix = "-compressed"
-
-    raise SystemExit(main(**vars(args)))
+    raise SystemExit(main(**vars(parser.parse_args())))

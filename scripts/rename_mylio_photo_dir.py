@@ -10,18 +10,12 @@ import os
 import sys
 
 _, dirname, prefix = sys.argv
-
-
 os.chdir(dirname)
-
-files = sorted(f for f in os.listdir() if not f.endswith(".xmp"))
-
-
+files = sorted(name for name in os.listdir() if not name.endswith(".xmp"))
 print(f"Renaming {len(files)} files along with their XMP files in {dirname} with {prefix =}")
 
-
-for idx, file in enumerate(files, start=1):
-    basename, ext = os.path.splitext(file)
-    os.rename(file, f"{prefix}{idx}{ext}")
+for idx, file_name in enumerate(files, start=1):
+    basename, ext = os.path.splitext(file_name)
+    os.rename(file_name, f"{prefix}{idx}{ext}")
     if os.path.isfile(f"{basename}.xmp"):
         os.rename(f"{basename}.xmp", f"{prefix}{idx}.xmp")

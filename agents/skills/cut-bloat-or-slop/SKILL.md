@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Cut Bloat or Slop
 
-Act as an elite reviewer who holds every line to account. Prioritize correctness, reliability, maintainability, and concise design.
+Hold every line to account. Prioritize correctness, reliability, maintainability, and concise design.
 
 ## Scope
 

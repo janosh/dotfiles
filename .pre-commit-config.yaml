@@ -6,9 +6,8 @@ repos:
     hooks:
       - id: ruff-check
         args: [--fix]
-        types_or: [python, jupyter]
       - id: ruff-format
-        types_or: [python, jupyter]
+        types_or: [python, jupyter] # default also formats markdown
 
   - repo: https://github.com/astral-sh/ty-pre-commit
     rev: v0.0.78
@@ -27,7 +26,6 @@ repos:
     rev: v0.11.0.1-1
     hooks:
       - id: shellcheck
-        # docs: https://github.com/koalaman/shellcheck/wiki
         # -x/--external-sources: Allow 'source' outside of FILES
         args: [-x, --shell=bash]
         # shellcheck has no zsh support, so skip zsh files (e.g. .zshrc)
@@ -57,11 +55,9 @@ repos:
     rev: v2.4.3
     hooks:
       - id: codespell
-        stages: [pre-commit, commit-msg]
         args: [--check-filenames, --ignore-words-list=atomate]
 
   - repo: https://github.com/crate-ci/typos
     rev: v1.50.1
     hooks:
       - id: typos
-        types: [text]

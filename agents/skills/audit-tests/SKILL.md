@@ -13,14 +13,9 @@ description: Audit test files or directories for low-value coverage; simplify, f
 4. Batch simplifications and run the narrowest affected tests once with unknown-status deletion candidates still present. Delete only candidates that passed in this run and satisfy step 3; if deletion changes fixtures, helpers, or collection behavior, verify that affected behavior afterward.
 5. When coverage will decide a specific deletion, measure affected-file coverage with that candidate present and again with it removed, and reject a drop you cannot explain. Otherwise collect coverage only when project thresholds require it after the edit batch, and reject threshold failures. Mutation-check only deletion of sole regression, edge, or error-path coverage.
 6. Escalate to a broader suite, lint, or type checks only when edits affect shared fixtures/helpers or cross-cutting behavior.
+7. Report deletions, the retained behavior that justifies them, checks run, and uncertain candidates.
 
-## Scope handling
-
-- Use `distribute` when requested or when file-disjoint partitions with no shared edited fixtures or helpers justify one layer; otherwise work directly. The parent owns shared changes and aggregate verification. Explain any requested fallback.
-
-## Report
-
-- Summarize deletions, the retained behavior that justifies them, checks run, and uncertain candidates.
+Use `distribute` when requested or when file-disjoint partitions with no shared edited fixtures or helpers justify one layer; otherwise work directly. The parent owns shared changes and aggregate verification. Explain any requested fallback.
 
 ## Rules
 

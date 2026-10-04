@@ -2,14 +2,10 @@
 
 Found this command in this [issue comment](https://github.com/cli/cli/issues/3528#issuecomment-1303499736) (2023-07-12).
 
-Sets the set of GitHub actions that ran on the specified commit SHA as required to pass before a PR is auto-mergeable.
+Makes the GitHub Actions checks that ran on commit `$sha` required to pass before a PR on `$branch` is auto-mergeable.
 
 ```sh
-gh api -i repos/materialsproject/pymatgen/branches/master/protection/required_status_checks --method PATCH --input - <<<"$(gh api repos/materialsproject/pymatgen/commits/2c75998/check-runs --paginate --jq '{ context: .check_runs[].name }' | jq -s '{ checks: . | unique }')"
-```
-
-[For atomate2](https://github.com/materialsproject/atomate2/pull/522):
-
-```sh
-gh api -i repos/materialsproject/atomate2/branches/main/protection/required_status_checks --method PATCH --input - <<<"$(gh api repos/materialsproject/atomate2/commits/7d16877/check-runs --paginate --jq '{ context: .check_runs[].name }' | jq -s '{ checks: . | unique }')"
+repo=materialsproject/pymatgen branch=master sha=2c75998
+# repo=materialsproject/atomate2 branch=main sha=7d16877 # https://github.com/materialsproject/atomate2/pull/522
+gh api -i "repos/$repo/branches/$branch/protection/required_status_checks" --method PATCH --input - <<<"$(gh api "repos/$repo/commits/$sha/check-runs" --paginate --jq '{ context: .check_runs[].name }' | jq -s '{ checks: . | unique }')"
 ```

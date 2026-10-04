@@ -1,7 +1,6 @@
 ---
 name: commit
-description: "Stage, commit, and push changes in the current repository. Modifiers: nv (--no-verify), mine (own edits only), local (no push), amend update-msg|keep-msg (amend HEAD and force-push with lease; update-msg by default)."
-disable-model-invocation: true
+description: "Stage, commit, and push changes in the current repository. Use only when the user asks to commit. Modifiers: nv (--no-verify), mine (own edits only), local (no push), amend update-msg|keep-msg (amend HEAD and force-push with lease; update-msg by default)."
 ---
 
 # Commit Changes
@@ -35,8 +34,8 @@ Space-separated after `/commit`; combine freely.
 
 ## Rules
 
-- Only when user asks (invoking this skill counts)
-- Warn before committing if the diff looks unfinished, unpolished, or needlessly bloated
+- Only when the user asks to commit, types `/commit`, or invokes a skill that chains into it (e.g. green-ci, cleanup wrap-up); invoking it on your own initiative is not a request
+- Stop and explain instead of committing when the diff looks unfinished (failing checks, half-done edits); still commit polish or bloat nits but call them out in your report
 - No debug/commented-out instrumentation
 - No force-push or amend unless the user explicitly requests it; invoking `amend` authorizes both for this operation only
 - Never stash/reset/checkout others' dirty files

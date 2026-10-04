@@ -1,14 +1,9 @@
 ---
 name: check-correctness
-description: Hunt for concrete correctness bugs in changed code. Use for adversarial review of uncommitted or branch diffs.
+description: Hunt for concrete correctness bugs in changed code. Use for adversarial review of uncommitted or branch diffs before a commit or PR, or after major refactors and risky logic changes.
 ---
 
 # Check Code Correctness
-
-## When to use
-
-- Before commit/PR to catch subtle bugs
-- After major refactors or risky logic changes
 
 ## Instructions
 
@@ -23,8 +18,7 @@ description: Hunt for concrete correctness bugs in changed code. Use for adversa
    - Broken assumptions and edge cases
 4. Verify and fix issues directly:
    - Confirm each issue yourself with concrete evidence before changing code
-   - Do not ask the user to validate issues you can verify independently
-   - Ask for user input only when blocked by missing access, ambiguous product intent, or external context you cannot derive
+   - Ask the user only when blocked by missing access, ambiguous product intent, or external context you cannot derive, never to validate issues you can verify yourself
    - Apply the smallest correct fix
    - Keep behavior-focused, low-risk changes
 5. Add or strengthen regression tests for each fix where feasible:

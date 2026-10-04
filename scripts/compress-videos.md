@@ -1,23 +1,26 @@
 # Video Compression Script
 
-Re-encode only the primary picture track as HEVC with Apple's hardware VideoToolbox encoder, then use `MP4Box` to swap it back into the original MP4. Everything else survives: audio, subtitles, chapters, thumbnails, DJI timed metadata (`djmd` gyro/orientation, `dbgi`), creation times, camera tags, user-data boxes, cover images, resolution, frame rate, pixel format, color metadata, plus filesystem times, permissions, ownership, flags and extended attributes.
+Re-encode only the primary picture track as HEVC with Apple's hardware VideoToolbox encoder, then use `MP4Box` to swap it back into the original MP4. Everything else survives: audio, subtitles, chapters, thumbnails, DJI timed metadata (`djmd` gyro/orientation, `dbgi`), creation times, camera tags, user-data boxes, cover images, resolution, displayed frame timestamps, pixel format, color metadata, plus filesystem times, permissions, ownership, flags and extended attributes.
 
-Each output is verified to preserve those properties before it is atomically published. Only the video payload and encoder tag should change.
+Each rebuilt file's streams, container metadata and displayed frame timestamps are verified before it is atomically published, then filesystem metadata is copied over. Packets marked for discard by the source edit list are excluded from the timestamp comparison. Omitting those hidden packets can change the header's average frame rate.
 
 ## Install
 
 ```sh
 brew install ffmpeg gpac
+xcode-select --install  # GetFileInfo/SetFile, to restore creation dates
 ```
 
 ## Usage
 
 ```sh
-python ~/dev/dotfiles/scripts/compress_videos.py input/*.MP4                 # writes input/*-compressed.MP4
-python ~/dev/dotfiles/scripts/compress_videos.py input/*.MP4 --outdir output # keeps basenames
+uv run --no-project ~/dev/dotfiles/scripts/compress_videos.py input/*.MP4 # writes input/*-compressed.MP4
+uv run --no-project ~/dev/dotfiles/scripts/compress_videos.py input/*.MP4 --outdir ~/Movies/compressed # keeps basenames
 ```
 
 Existing outputs are kept unless `--overwrite` is passed.
+
+Re-encodes that save less than 10% are rejected. With `--outdir` the original is copied there instead, so the output directory stays complete. With a suffix nothing is written, since the original already sits next to it.
 
 ## Quality and speed
 

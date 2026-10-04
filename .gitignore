@@ -1,7 +1,2 @@
 .DS_Store
-node_modules/
 __pycache__/
-*.py[cod]
-.ruff_cache/
-.mypy_cache/
-.pytest_cache/

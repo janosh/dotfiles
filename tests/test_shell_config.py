@@ -19,6 +19,8 @@ import pytest
     [
         ("dotfiles/.zshrc", "HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1"),
         ("dotfiles/.bashrc", "HISTCONTROL=ignoreboth:erasedups"),
+        # Readline variables need `bind`; bare `set` only overwrites positional args.
+        ("dotfiles/.bashrc", "bind 'set show-all-if-ambiguous on'"),
         # Full loop line, not a bare path: prose elsewhere in the file matches a substring.
         (
             "setup/3-config.sh",
@@ -131,3 +133,77 @@ def test_text_replacements(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
                 "SELECT ZWASDELETED, ZNEEDSSAVETOCLOUD, Z_OPT, ZUNIQUENAME "
                 "FROM ZTEXTREPLACEMENTENTRY WHERE ZSHORTCUT = 'oldtel'"
             ).fetchone() == (1, 1, 2, "old-id")
+
+
+def test_grcl(tmp_path: Path) -> None:
+    """Gone, merged and pr/* branches go with clean worktrees; dirty/current/ahead stay."""
+    zshrc_path = os.path.abspath(f"{os.path.dirname(__file__)}/../dotfiles/.zshrc")
+    script = f"""
+    git init -q --bare origin.git && git clone -q origin.git repo 2>/dev/null && cd repo
+    git symbolic-ref HEAD refs/heads/master  # independent of init.defaultBranch
+    git commit -q --allow-empty -m init && git push -q origin HEAD:main 2>/dev/null
+    for branch in gone-clean gone-dirty gone-here; do
+      git branch $branch && git push -q -u origin $branch 2>/dev/null
+      git worktree add -q ../wt-$branch $branch
+      git push -q origin --delete $branch 2>/dev/null
+    done
+    touch ../wt-gone-dirty/untracked
+    echo '*.env' >> .git/info/exclude && touch ../wt-gone-clean/secret.env
+    pr_head=$(git rev-parse HEAD)
+    git branch merged && git branch pr/1
+    git branch merged-ahead $(git commit-tree -p $pr_head -m extra HEAD^{{tree}})
+    source <(sed -n '/^grcl()/,$p' {zshrc_path})
+    # `gh pr list --state merged --head <branch>`: both merged branches' PRs ended at pr_head.
+    gh() {{ [[ $6 == merged* ]] && echo $pr_head || :; }}
+    cd ../wt-gone-here && grcl
+    git branch --format='%(refname:short)'
+    """
+    env = {
+        **os.environ,
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        **{
+            f"GIT_{role}_{key}": val
+            for role in ("AUTHOR", "COMMITTER")
+            for key, val in (("NAME", "test"), ("EMAIL", "test@example.com"))
+        },
+    }
+    proc = subprocess.run(
+        ["/bin/zsh", "-fc", script],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "Unable to read current working directory" not in proc.stderr
+    # master's upstream never existed on origin, so it counts as gone but is the main checkout.
+    branches = ["gone-dirty", "gone-here", "master", "merged-ahead"]
+    assert proc.stdout.splitlines()[-4:] == branches
+    assert "Kept gone-here: checked out in" in proc.stdout
+    assert "Kept merged-ahead: its tip is not part of its merged PR's head" in proc.stdout
+    assert "wt-gone-clean:\n  secret.env\n" in proc.stdout  # listed before removal
+    assert not os.path.isdir(f"{tmp_path}/wt-gone-clean")
+    assert os.path.isdir(f"{tmp_path}/wt-gone-here")
+    assert os.path.isdir(f"{tmp_path}/wt-gone-dirty")
+
+
+@pytest.mark.parametrize("shell", ["/bin/bash", "/bin/zsh"])
+def test_configure_agents_prunes_renamed_skill_links(tmp_path: Path, shell: str) -> None:
+    """Links to renamed skills are removed; current and unrelated links stay."""
+    dotfiles_dir = f"{tmp_path}/dev/dotfiles"
+    os.makedirs(f"{dotfiles_dir}/agents/skills/new-name")
+    open(f"{dotfiles_dir}/agents/AGENTS.md", "w").close()
+    skills_dir = f"{tmp_path}/.claude/skills"
+    os.makedirs(skills_dir)
+    os.symlink(f"{dotfiles_dir}/agents/skills/old-name", f"{skills_dir}/old-name")
+    os.symlink("/nonexistent/other-skill", f"{skills_dir}/other-skill")
+
+    setup_script = os.path.abspath(f"{os.path.dirname(__file__)}/../setup/3-config.sh")
+    subprocess.run(
+        [shell, "-c", f"source {setup_script} && configure_agents"],
+        env={**os.environ, "HOME": str(tmp_path), "DOTFILES_DIR": dotfiles_dir},
+        check=True,
+    )
+    assert sorted(os.listdir(skills_dir)) == ["new-name", "other-skill"]
+    assert os.readlink(f"{skills_dir}/new-name") == f"{dotfiles_dir}/agents/skills/new-name"

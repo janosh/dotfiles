@@ -12,30 +12,25 @@ import webbrowser
 from collections import Counter
 from collections.abc import Callable, Sequence
 from html import escape
-from urllib.request import pathname2url
+from urllib.parse import quote
 
 LineRankRow = tuple[int, int, int, str]
 CommitSummary = tuple[str, int, str]
 ParsedArgs = tuple[str, int, str, str, list[str]]
 CODE_EXT_PATTERN = re.compile(r"\.(?:c|cpp|css|go|html|js|jsx|py|rs|svelte|ts|tsx)")
-ANSI_GREEN = "\033[32m"
-ANSI_RED = "\033[31m"
-ANSI_BLUE = "\033[34m"
-ANSI_YELLOW = "\033[33m"
 ANSI_RESET = "\033[0m"
-# Keyed by the term kinds line_expr passes to its style callback (also the HTML classes).
+# Keyed by the kinds line_expr passes to its style callback and file_kind returns; both
+# double as HTML classes.
 ANSI_BY_KIND = {
-    "added": ANSI_GREEN,
-    "removed": ANSI_RED,
-    "net-positive": ANSI_GREEN,
-    "net-negative": ANSI_RED,
+    "added": "\033[32m",
+    "net-positive": "\033[32m",
+    "removed": "\033[31m",
+    "net-negative": "\033[31m",
+    "code-file": "\033[34m",
+    "test-file": "\033[33m",
 }
 HTML_STYLE = """
-body {
-  color: #222;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  margin: 2rem;
-}
+body { color: #222; font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 2rem; }
 table { border-collapse: collapse; width: 100%; }
 th, td { border-bottom: 1px solid #ddd; padding: 0.35rem 0.5rem; text-align: left; }
 th { position: sticky; top: 0; background: white; }
@@ -73,30 +68,26 @@ def parse_args(args: Sequence[str]) -> ParsedArgs:
     )
     parser.add_argument("-n", "--limit", type=int, default=0)
     parser.add_argument("--sort", choices=["a", "r", "n"], default="n")
-    for dest, options in (
+    for dest, flags_by_const in (
         (
             "source_name",
-            [
-                (("--local",), "local"),
-                (("-s", "--staged"), "staged"),
-                (("--staged-files",), "staged_files"),
-                (("-u", "--unstaged"), "unstaged"),
-                (("--history",), "history"),
-            ],
+            {
+                "local": ["--local"],
+                "staged": ["-s", "--staged"],
+                "staged_files": ["--staged-files"],
+                "unstaged": ["-u", "--unstaged"],
+                "history": ["--history"],
+            },
         ),
         (
             "format_name",
-            [
-                (("--table",), "table"),
-                (("--md", "--markdown"), "markdown"),
-                (("--html",), "html"),
-            ],
+            {"table": ["--table"], "markdown": ["--md", "--markdown"], "html": ["--html"]},
         ),
     ):
         group = parser.add_mutually_exclusive_group()
-        for flags, const in options:
+        for const, flags in flags_by_const.items():
             group.add_argument(*flags, dest=dest, action="store_const", const=const)
-    parser.set_defaults(format_name="table", source_name=None)
+    parser.set_defaults(format_name="table")
 
     parsed_args, git_args = parser.parse_known_args(args)
     if parsed_args.limit < 0:
@@ -143,8 +134,8 @@ def git_stdout(
     return git_proc.stdout.strip()
 
 
-def parse_numstat_rows(numstat_stdout: str, sort_name: str = "n") -> list[LineRankRow]:
-    """Parse git numstat output into sorted line-rank rows."""
+def parse_numstat_rows(numstat_stdout: str) -> list[LineRankRow]:
+    """Parse git numstat output into unsorted line-rank rows, following renames."""
     added_by_file: Counter[str] = Counter()
     removed_by_file: Counter[str] = Counter()
     records = iter(
@@ -164,11 +155,10 @@ def parse_numstat_rows(numstat_stdout: str, sort_name: str = "n") -> list[LineRa
         added_by_file[file_path] += int(added_text)
         removed_by_file[file_path] += int(removed_text)
 
-    rows = [
+    return [
         (added - removed_by_file[file_path], added, removed_by_file[file_path], file_path)
         for file_path, added in added_by_file.items()
     ]
-    return sort_rows(rows, sort_name)
 
 
 def sort_rows(rows: list[LineRankRow], sort_name: str = "n") -> list[LineRankRow]:
@@ -182,33 +172,29 @@ def normalize_history_args(
     git_args: Sequence[str],
     *,
     right_side_only: bool = False,
-) -> list[str]:
-    """Expand history shortcuts and optionally select the right side of symmetric ranges."""
-    history_args = list(git_args)
-    pathspec_idx = pathspec_index(history_args)
-    if right_side_only:
-        history_args[:pathspec_idx] = [
-            arg.replace("...", "..", 1) if not arg.startswith("-") else arg
-            for arg in history_args[:pathspec_idx]
-        ]
-    normalized_args: list[str] = []
+) -> tuple[list[str], list[str]]:
+    """Split git_args into (revision args, pathspec tail), expanding history shortcuts.
+
+    ``@~N``/``HEAD~N`` become ranges, bare commit SHAs select just that commit, and
+    right_side_only turns symmetric ``a...b`` ranges into ``a..b``.
+    """
+    pathspec_idx = pathspec_index(git_args)
+    revision_args = [
+        arg.replace("...", "..", 1) if right_side_only and not arg.startswith("-") else arg
+        for arg in git_args[:pathspec_idx]
+    ]
     git_path = command_path("git")
-    for arg in history_args[:pathspec_idx]:
-        if arg.startswith(("-", "^")) or ".." in arg:
-            normalized_args.append(arg)
-            continue
+    for idx, arg in enumerate(revision_args):
         if shortcut_match := re.fullmatch(r"(@|HEAD)~\d+", arg):
-            normalized_args.append(f"{arg}..{shortcut_match[1]}")
-            continue
-        rev_check = subprocess.run(
-            [git_path, "-C", repo, "rev-parse", "--verify", "--quiet", f"{arg}^{{commit}}"],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        is_hex_sha = re.fullmatch(r"[0-9a-fA-F]{4,40}", arg) is not None
-        normalized_args.append(f"{arg}^!" if rev_check.returncode == 0 and is_hex_sha else arg)
-    return [*normalized_args, *history_args[pathspec_idx:]]
+            revision_args[idx] = f"{arg}..{shortcut_match[1]}"
+        elif re.fullmatch(r"[0-9a-fA-F]{4,40}", arg):
+            rev_parse_args = ["rev-parse", "--verify", "--quiet", f"{arg}^{{commit}}"]
+            rev_check = subprocess.run(
+                [git_path, "-C", repo, *rev_parse_args], check=False, capture_output=True
+            )
+            if rev_check.returncode == 0:
+                revision_args[idx] = f"{arg}^!"
+    return revision_args, list(git_args[pathspec_idx:])
 
 
 def collect_line_rank_rows(
@@ -217,47 +203,36 @@ def collect_line_rank_rows(
     git_args: Sequence[str],
     sort_name: str = "n",
 ) -> list[LineRankRow]:
-    """Collect per-file line counts for the requested source."""
+    """Collect per-file line counts for the requested source, sorted by sort_name."""
     if source_name == "history":
-        history_args = normalize_history_args(repo, git_args)
-        pathspec_idx = pathspec_index(history_args)
-        revision_args = [arg for arg in history_args[:pathspec_idx] if arg != "--reverse"]
+        revision_args, pathspec_args = normalize_history_args(repo, git_args)
+        log_args = [arg for arg in revision_args if arg != "--reverse"]
         flags = ["--reverse", "--numstat", "-z", "--find-renames=40%", "--pretty=tformat:"]
-        return parse_numstat_rows(
-            git_stdout(
-                ["-C", repo, "log", *revision_args, *flags, *history_args[pathspec_idx:]],
-                "gdiff: git log failed",
-            ),
-            sort_name,
+        numstat_stdout = git_stdout(
+            ["-C", repo, "log", *log_args, *flags, *pathspec_args], "gdiff: git log failed"
         )
-    if source_name == "staged_files":
+    elif source_name == "staged_files":
         staged_files = git_stdout(
             ["-C", repo, "diff", "--cached", "--name-only", "-z", *git_args],
             "gdiff: git diff --cached failed",
         ).split("\0")[:-1]
-        if not staged_files:
-            return []
-        return parse_numstat_rows(
-            git_stdout(
+        numstat_stdout = ""
+        if staged_files:
+            numstat_stdout = git_stdout(
                 ["-C", repo, "diff", "--numstat", "HEAD", "--", *staged_files],
                 "gdiff: git diff failed",
-            ),
-            sort_name,
+            )
+    else:
+        base_args = {"local": ["HEAD"], "staged": ["--cached"]}.get(source_name, [])
+        numstat_stdout = git_stdout(
+            ["-C", repo, "diff", "--numstat", *base_args, *git_args], "gdiff: git diff failed"
         )
-    diff_args = ["-C", repo, "diff", "--numstat"]
-    if source_name == "local":
-        diff_args.append("HEAD")
-    elif source_name == "staged":
-        diff_args.append("--cached")
-    diff_args.extend(git_args)
 
-    rows = parse_numstat_rows(git_stdout(diff_args, "gdiff: git diff failed"), sort_name)
+    rows = parse_numstat_rows(numstat_stdout)
     if source_name in {"local", "unstaged"}:
-        if "--" in git_args:
-            pathspec_args = git_args[pathspec_index(git_args) :]
-        else:
-            pathspec_only = git_args and all(not arg.startswith("-") for arg in git_args)
-            pathspec_args = ["--", *git_args] if pathspec_only else []
+        pathspec_args = list(git_args[pathspec_index(git_args) :])
+        if not pathspec_args and not any(arg.startswith("-") for arg in git_args):
+            pathspec_args = ["--", *git_args]  # bare args are pathspecs
         untracked_stdout = git_stdout(
             ["-C", repo, "ls-files", "--others", "--exclude-standard", "-z", *pathspec_args],
             "gdiff: git ls-files failed",
@@ -288,12 +263,11 @@ def commit_summary_lines(
     ]
     if len(lines) <= max_commit_count:
         return lines
-    first_count = max_commit_count // 2
-    last_start = len(lines) - max_commit_count + first_count
+    first_count, hidden_count = max_commit_count // 2, len(lines) - max_commit_count
     return [
         *lines[:first_count],
-        f"... ({len(lines) - max_commit_count} more)",
-        *lines[last_start:],
+        f"... ({hidden_count} more)",
+        *lines[first_count + hidden_count :],
     ]
 
 
@@ -327,20 +301,19 @@ def print_table(rows: Sequence[LineRankRow]) -> None:
     color_enabled = "FORCE_COLOR" in os.environ or (
         "NO_COLOR" not in os.environ and sys.stdout.isatty()
     )
+
+    def paint(kind: str, text: str) -> str:
+        """Wrap text in the ANSI color for kind when color is enabled."""
+        return f"{ANSI_BY_KIND[kind]}{text}{ANSI_RESET}" if color_enabled and kind else text
+
     print(f"{'lines':>{width}}  file")
     for row in rows_with_total:
-        file_path = row[3]
-        if not color_enabled:
-            print(f"{line_expr(row):>{width}}  {file_path}")
-            continue
-        colored = line_expr(row, lambda kind, text: f"{ANSI_BY_KIND[kind]}{text}{ANSI_RESET}")
-        file_color = {"code": ANSI_BLUE, "test": ANSI_YELLOW}.get(file_kind(file_path))
-        file_text = f"{file_color}{file_path}{ANSI_RESET}" if file_color else file_path
-        print(f"{' ' * (width - len(line_expr(row)))}{colored}  {file_text}")
+        padding = " " * (width - len(line_expr(row)))
+        print(f"{padding}{line_expr(row, paint)}  {paint(file_kind(row[3]), row[3])}")
 
 
 def file_kind(file_path: str) -> str:
-    """Return the display category for a file path."""
+    """Return the display category (test-file, code-file or "") for a file path."""
     file_name = os.path.basename(file_path)
     stem, ext = os.path.splitext(file_name)
     if (
@@ -350,8 +323,8 @@ def file_kind(file_path: str) -> str:
         or ".test." in file_name
         or ".spec." in file_name
     ):
-        return "test"
-    return "code" if CODE_EXT_PATTERN.fullmatch(ext) else ""
+        return "test-file"
+    return "code-file" if CODE_EXT_PATTERN.fullmatch(ext) else ""
 
 
 def write_html_report(repo: str, rows: Sequence[LineRankRow], commit_lines: list[str]) -> str:
@@ -362,20 +335,17 @@ def write_html_report(repo: str, rows: Sequence[LineRankRow], commit_lines: list
         editor_cmd = os.path.basename(shlex.split(editor)[0])
     except ValueError:
         editor_cmd = os.path.basename(editor)
-    url_scheme = {
-        "cursor": "cursor://file",
-        "cursor-insiders": "cursor://file",
-        "code": "vscode://file",
-        "code-insiders": "vscode://file",
-    }.get(editor_cmd, "file://")
+    url_scheme = {"cursor": "cursor://file", "code": "vscode://file"}.get(
+        editor_cmd.removesuffix("-insiders"), "file://"
+    )
     html_row_lines: list[str] = []
     for row in [*rows, total_row(rows)]:
         file_path = row[3]
         file_class = file_kind(file_path)
-        class_attr = f' class="{file_class}-file"' if file_class else ""
+        class_attr = f' class="{file_class}"' if file_class else ""
         file_cell = f"<code{class_attr}>{escape(file_path)}</code>"
         if file_path != "total":
-            file_url = url_scheme + pathname2url(f"{repo}/{file_path}")
+            file_url = url_scheme + quote(f"{repo}/{file_path}")
             file_cell = f'<a href="{escape(file_url, quote=True)}">{file_cell}</a>'
         line_html = line_expr(row, lambda kind, text: f'<span class="{kind}">{text}</span>')
         html_row_lines.append(f'<tr><td class="num">{line_html}</td><td>{file_cell}</td></tr>')
@@ -399,11 +369,7 @@ def write_html_report(repo: str, rows: Sequence[LineRankRow], commit_lines: list
 <h1>Line Rank: <code>{escape(repo_name)}</code></h1>
 <p>Sorted by net lines added. Source: <code>{escape(repo)}</code></p>
 {commits_html}<table>
-<thead>
-<tr>
-<th class="num">Lines</th><th>File</th>
-</tr>
-</thead>
+<thead><tr><th class="num">Lines</th><th>File</th></tr></thead>
 <tbody>
 {html_rows}
 </tbody>
@@ -420,11 +386,7 @@ def main(args: Sequence[str] | None = None) -> int:
     format_name, limit, sort_name, source_name, git_args = parse_args(
         sys.argv[1:] if args is None else args
     )
-    repo = git_stdout(
-        ["-C", os.getcwd(), "rev-parse", "--show-toplevel"],
-        "gdiff: not inside a git repo",
-        2,
-    )
+    repo = git_stdout(["rev-parse", "--show-toplevel"], "gdiff: not inside a git repo", 2)
     rows = collect_line_rank_rows(repo, source_name, git_args, sort_name)
     if limit:  # rows ascend, so the top-ranked files are at the end
         rows = rows[-limit:]
@@ -435,14 +397,12 @@ def main(args: Sequence[str] | None = None) -> int:
 
     commit_lines: list[str] = []
     if source_name in {"history", "diff"}:
-        history_args = normalize_history_args(
+        revision_args, pathspec_args = normalize_history_args(
             repo, git_args, right_side_only=source_name == "diff"
         )
-        pathspec_idx = pathspec_index(history_args)
         summary_flags = ["--no-patch", "--shortstat", "--format=%x00%h%x09%s"]
-        summary_args = ["-C", repo, "log", *history_args[:pathspec_idx], *summary_flags]
         summary_stdout = git_stdout(
-            [*summary_args, *history_args[pathspec_idx:]],
+            ["-C", repo, "log", *revision_args, *summary_flags, *pathspec_args],
             "gdiff: git log failed",
         )
         summaries: list[CommitSummary] = []
@@ -465,7 +425,7 @@ def main(args: Sequence[str] | None = None) -> int:
             print(f"| {line_expr(row)} | `{md_file_path}` |")
     else:
         report_path = write_html_report(repo, rows, commit_lines)
-        report_url = "file://" + pathname2url(report_path)
+        report_url = "file://" + quote(report_path)
         if not webbrowser.open(report_url) and sys.platform == "darwin":
             subprocess.run([command_path("open"), report_path], check=False)
         print(f"Opened {report_path}")

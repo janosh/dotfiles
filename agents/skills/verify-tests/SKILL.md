@@ -5,11 +5,6 @@ description: Validate test robustness using mutation-style checks. Use when you 
 
 # Verify Tests via Mutation
 
-## When to use
-
-- You suspect tests are too weak
-- You want confidence that regressions are caught
-
 ## Instructions
 
 1. Target recently changed code paths.

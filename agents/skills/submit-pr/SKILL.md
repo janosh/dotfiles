@@ -1,13 +1,9 @@
 ---
 name: submit-pr
-description: Prepare branch, commit pending changes, and open a GitHub PR with labels and structured metadata. Optional `distribute` mode delegates independent preparation to subagents.
+description: Prepare branch, commit pending changes, and open a GitHub PR with labels and structured metadata. Use only when the user explicitly asks to open a PR. Optional `distribute` mode delegates independent preparation to subagents.
 ---
 
 # Submit PR Flow
-
-## When to use
-
-- User explicitly asks to open a PR
 
 ## Mode toggle
 
@@ -25,9 +21,4 @@ description: Prepare branch, commit pending changes, and open a GitHub PR with l
    - Describe every material change as a concise component/mechanism/effect bullet. Include impact, breaking changes, and migration only when applicable; omit empty boilerplate.
    - Never include `Test plan` or `Verification` sections; CI already exposes the authoritative check state.
    - Do not use Conventional Commit prefixes such as `feat:` or `fix:`.
-4. Inspect labels and apply best-fit labels.
-
-## Rules
-
-- Use `gh` for PR and labels workflow
-- Keep commit and PR messaging concise and descriptive
+4. Inspect labels and apply best-fit labels. Use `gh` for the PR and labels workflow.

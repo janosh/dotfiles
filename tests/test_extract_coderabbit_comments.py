@@ -83,8 +83,13 @@ def test_default_is_the_whole_round(monkeypatch: pytest.MonkeyPatch) -> None:
     assert extract_comments.parse_args().mode == "all"
 
     review = {
-        "fileReviewMap": {"a.py": {"comments": [{"comment": "Fix the bug."}]}},
+        # Malformed entries are skipped, not fatal.
+        "fileReviewMap": {
+            "a.py": {"comments": [{"comment": "Fix the bug."}, "junk"]},
+            "x.py": ["not nested under comments"],
+        },
         "additionalDetails": {
+            "duplicateComments": "junk",
             "assertiveComments": {"b.py": [{"comment": "Nitpick."}]},
             "additionalComments": {"c.py": [{"comment": "Also this."}]},
         },
@@ -131,11 +136,17 @@ def test_select_review_prefers_newest_round_across_editors(tmp_path: Path) -> No
         [str(stale_dir), str(fresh_dir)], workspace
     )
     assert "/Code/User/" in cache_files[0]
-    review, source_file, _ = extract_comments.select_review(cache_files, "")
+    source_file, review = extract_comments.select_review(cache_files, "")
     assert review["id"] == "new"
     assert "/Cursor/User/" in source_file
 
-    # Zulu timestamps must parse; otherwise only cache mtimes would order the rounds.
-    assert extract_comments.review_timestamp_epoch({"endedAt": "1970-01-01T00:00:01Z"}) == 1
+    # Zulu timestamps must parse (else only cache mtimes would order the rounds), the
+    # newest key wins, and naive, aware and unparsable values may mix.
+    mixed_timestamps = {
+        "endedAt": "not a date",
+        "updatedAt": "1960-01-01",
+        "createdAt": "1970-01-01T00:00:01Z",
+    }
+    assert extract_comments.review_timestamp_epoch(mixed_timestamps) == 1
     # An explicit id still reaches the older editor's round, proving both caches were read.
-    assert extract_comments.select_review(cache_files, "old")[0]["id"] == "old"
+    assert extract_comments.select_review(cache_files, "old")[1]["id"] == "old"

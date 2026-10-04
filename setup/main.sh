@@ -4,10 +4,8 @@
 #   DOTFILES_REPO=https://github.com/me/dotfiles.git zsh -c "$(curl -fsSL ...)"
 readonly DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/janosh/dotfiles.git}"
 # Canonical checkout path used when bootstrapping via curl (no local clone yet).
-: "${DOTFILES_DIR:=${HOME}/dev/dotfiles}"
-# :A makes it absolute. A relative path would resolve against the wrong directory
-# once we cd into the checkout.
-DOTFILES_DIR=${DOTFILES_DIR:A}
+# :A makes it absolute, else it would resolve against the wrong dir once we cd into the checkout.
+DOTFILES_DIR=${${DOTFILES_DIR:-${HOME}/dev/dotfiles}:A}
 
 # %x is this script's own path, which is empty when the body arrived over a pipe rather
 # than as a file. PWD covers being run from the repo root or from inside setup/.

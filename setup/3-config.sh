@@ -36,6 +36,12 @@ configure_agents() {
       # -n: replace an existing skill symlink instead of linking inside the dir it points to.
       ln -sfn "${skill}" "${dest}/${skill##*/}"
     done
+    # Drop dangling links to renamed or deleted skills (after linking, so the glob matches).
+    for skill in "${dest}"/*; do
+      if [[ -L $skill && ! -e $skill && $(readlink "$skill") == "${DOTFILES_DIR}/agents/skills/"* ]]; then
+        rm "$skill"
+      fi
+    done
   done
 }
 
@@ -170,9 +176,12 @@ configure_macos() {
   # More options at https://github.com/mathiasbynens/dotfiles/blob/main/.macos.
 
   # === Terminal ===
-  echo '- Terminal: use the dark Pro profile for startup and new windows.'
+  echo '- Terminal: use the dark Pro profile (opaque) for startup and new windows.'
   defaults write com.apple.Terminal 'Default Window Settings' -string 'Pro'
   defaults write com.apple.Terminal 'Startup Window Settings' -string 'Pro'
+  # Pro ships 85% opaque. Set via Terminal, since it rewrites its plist on quit. An RGB
+  # color set from AppleScript carries no alpha, so the background becomes fully opaque.
+  osascript -e 'tell application "Terminal" to set background color of settings set "Pro" to {0, 0, 0}'
 
   # === General UI ===
   echo '- Switch appearance automatically with time of day.'
@@ -198,14 +207,11 @@ configure_macos() {
 
   configure_text_replacements
 
-  echo '- Disable Resume after reboot system-wide.'
-  defaults write com.apple.systempreferences NSQuitAlwaysKeepsWindows -bool false
+  echo '- Close windows when quitting apps (no Resume), system-wide.'
+  defaults write -g NSQuitAlwaysKeepsWindows -bool false
 
   echo '- Prevent Safari from auto-opening "safe" files after download.'
   defaults write com.apple.Safari AutoOpenSafeDownloads -bool false
-
-  echo '- Set Help Viewer windows to non-floating mode.'
-  defaults write com.apple.helpviewer DevMode -bool true
 
   echo '- Enable full keyboard access and fast key repeat.'
   defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
@@ -259,16 +265,9 @@ configure_macos() {
   sudo sysadminctl -guestAccount off
 
   echo '- Enable Touch ID for sudo (via update-safe sudo_local, not sudo itself).'
-  # Template ships on Sonoma+; without it (or a prior sudo_local) there is nothing to edit.
-  if [[ ! -f /etc/pam.d/sudo_local && ! -f /etc/pam.d/sudo_local.template ]]; then
-    echo '  skipped: /etc/pam.d/sudo_local.template missing (macOS Sonoma+ required).'
-  elif [[ ! -f /etc/pam.d/sudo_local ]] &&
-    ! sudo cp /etc/pam.d/sudo_local.template /etc/pam.d/sudo_local; then
-    echo '  failed: could not create /etc/pam.d/sudo_local from template.'
-  fi
-  if [[ -f /etc/pam.d/sudo_local ]]; then
-    sudo sed -i '' 's/^#auth/auth/' /etc/pam.d/sudo_local
-  fi
+  # The template ships on Sonoma+.
+  [[ -f /etc/pam.d/sudo_local ]] || sudo cp /etc/pam.d/sudo_local.template /etc/pam.d/sudo_local
+  sudo sed -i '' 's/^#auth/auth/' /etc/pam.d/sudo_local
 
   # === Finder ===
   echo '- Set Home as the default location for new Finder windows.'
@@ -312,7 +311,7 @@ configure_macos() {
   echo '- Disable click wallpaper to show desktop (Sonoma+).'
   defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
 
-  echo 'Disable hot corners.'
+  echo '- Disable hot corners.'
   for corner in tl tr br bl; do
     defaults write com.apple.dock "wvous-$corner-corner" -int 0
   done
@@ -341,10 +340,9 @@ configure_macos() {
 
   echo '- Disable power chime on connecting to power.'
   defaults write com.apple.PowerChime ChimeOnNoHardware -bool true
-  killall PowerChime
 
-  # Restart UI agents so defaults take effect (three-finger drag may still need logout).
-  killall Dock Finder ControlCenter 2> /dev/null || true
+  # Restart agents so defaults take effect (three-finger drag may still need logout).
+  killall PowerChime Dock Finder ControlCenter 2> /dev/null
 
   # === Tooling ===
   echo '- Disable Homebrew analytics.'
@@ -355,12 +353,10 @@ configure_macos() {
   [[ -d /opt/homebrew/share ]] && chmod go-w /opt/homebrew/share
   [[ -d /opt/homebrew/share/zsh ]] && chmod -R go-w /opt/homebrew/share/zsh
 
-  echo '- Disable PNPM lockfiles and the minimum release age gate.'
-  # pnpm 11 ignores `pnpm config --global set` (legacy rc); write config.yaml it reads.
-  # Repo-local values still win. Interactive shells also set PNPM_CONFIG_LOCKFILE in .zshrc.
+  echo '- Disable the PNPM minimum release age gate (.zshrc disables lockfiles).'
+  # pnpm 11+ ignores `pnpm config --global set` (legacy rc); write config.yaml it reads.
   pnpm_config="${HOME}/Library/Preferences/pnpm/config.yaml"
   mkdir -p "$(dirname "${pnpm_config}")"
-  grep -q '^lockfile:' "${pnpm_config}" 2> /dev/null || echo 'lockfile: false' >> "${pnpm_config}"
   grep -q '^minimumReleaseAge:' "${pnpm_config}" 2> /dev/null ||
     echo 'minimumReleaseAge: 0' >> "${pnpm_config}"
 
