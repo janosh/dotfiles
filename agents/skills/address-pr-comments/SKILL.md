@@ -10,7 +10,7 @@ description: Triage and resolve PR comments from humans and bots, including code
 1. Determine PR number and fetch comments via `gh` APIs.
 2. Interpret invocation modifiers; `blocking` and `distribute` may be combined:
    - `blocking`: poll for bot comments every 120 seconds in the foreground and do not switch to other tasks until bot comments appear or a clear timeout/error condition occurs. Without it, do a single fetch pass; if bot comments are not ready, report status and wait for a later re-run instead of idling.
-   - `distribute`: use when requested or when independent file/thread groups justify one parallel layer. Subagents edit only assigned disjoint paths and propose thread dispositions; the parent owns replies, resolutions, aggregate checks, commits, and pushes. Explain any requested fallback.
+   - `distribute`: subagents also propose thread dispositions; the parent owns replies and resolutions.
 3. Once comments are available, categorize into bugs, suggestions, nitpicks, and questions.
 4. Address each with code/test updates.
 5. Resolve review threads through GraphQL for comments that are fixed or intentionally accepted as no-change. Do not leave bot comment threads open.
