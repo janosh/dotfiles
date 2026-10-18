@@ -5,7 +5,6 @@ import glob
 import json
 import os
 import re
-import sys
 from collections import Counter
 from collections.abc import Iterator
 from datetime import UTC, datetime
@@ -77,9 +76,6 @@ def parse_args() -> argparse.Namespace:
             "Filter the round's comments: all (default), main "
             "(fileReviewMap actionable) or nitpicks (additionalDetails buckets)"
         ),
-    )
-    parser.add_argument(
-        "--output", default="", help="Output file path (omit to print to stdout)"
     )
     parser.add_argument(
         "--json", action="store_true", help="Emit full JSON instead of compact plain text"
@@ -336,15 +332,6 @@ def main() -> None:
             review_title=review_title,
             review_date=review_date,
         )
-
-    if args.output:
-        output_path = os.path.abspath(args.output)
-        with open(output_path, "w", encoding="utf-8") as file_handle:
-            file_handle.write(payload)
-        print(output_path, file=sys.stderr)
-        print(f"comment_count={len(extracted_comments)}", file=sys.stderr)
-        print(f"source_cache_file={source_cache_file}", file=sys.stderr)
-        return
     print(payload, end="")
 
 

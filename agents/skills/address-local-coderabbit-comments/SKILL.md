@@ -11,7 +11,7 @@ description: Extract CodeRabbit comments for the most recent review round in the
 1. Run the helper. One call returns the whole round, main comments first:
 
 ```bash
-uv run --no-project "/Users/janosh/dev/dotfiles/agents/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo"
+uv run --no-project "$HOME/.agents/skills/address-local-coderabbit-comments/scripts/extract_comments.py" --workspace "/absolute/path/to/repo"
 ```
 
 1. Triage from the printed comments (`file:lines` + body).
