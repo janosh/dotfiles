@@ -15,6 +15,7 @@ ignore = [
   "PLR0913", # too many arguments
   "PTH",     # prefer os.path over pathlib per project convention
   "S603",    # subprocess call with trusted local input
+  "SIM905",  # allow "-a b -c".split() for argv flags, reads like the shell command
   "T201",    # allow print in CLI scripts
   "TRY003",  # allow long messages outside exception class
   "TRY301",  # allow raise within try block
@@ -24,6 +25,14 @@ isort.split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 "**/test_*.py" = ["S101"] # allow assert in pytest tests
+
+# Scripts are standalone files, not a package: put their dirs on the import path.
+[tool.pytest.ini_options]
+pythonpath = ["scripts", "agents/skills/address-local-coderabbit-comments/scripts"]
+testpaths = ["tests"]
+
+[tool.ty.environment]
+extra-paths = ["scripts", "agents/skills/address-local-coderabbit-comments/scripts"]
 
 [tool.typos.default.extend-words]
 atomate = "atomate"

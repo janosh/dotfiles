@@ -48,15 +48,11 @@ COLOR_MATRICES = _COMMON_COLOR_CODES | {
     "bt2020nc": 9,
     "bt2020c": 10,
 }
+VIDEO_PROPERTY_KEYS = (
+    "width height pix_fmt color_range color_space color_transfer color_primaries".split()
+)
 AUXILIARY_STREAM_KEYS = (
-    "id",
-    "codec_type",
-    "codec_name",
-    "codec_tag_string",
-    "duration",
-    "nb_frames",
-    "tags",
-    "disposition",
+    "id codec_type codec_name codec_tag_string duration nb_frames tags disposition".split()
 )
 
 
@@ -90,45 +86,18 @@ def run_command(command: Sequence[str], *, capture_output: bool = False) -> str:
 
 def probe_video(ffprobe: str, file_path: str) -> dict[str, Any]:
     """Return all stream and container metadata reported by FFprobe."""
-    return json.loads(
-        run_command(
-            [
-                ffprobe,
-                "-v",
-                "error",
-                "-show_format",
-                "-show_streams",
-                "-of",
-                "json",
-                file_path,
-            ],
-            capture_output=True,
-        )
-    )
+    flags = "-v error -show_format -show_streams -of json".split()
+    return json.loads(run_command([ffprobe, *flags, file_path], capture_output=True))
 
 
 def presentation_timestamps(
     ffprobe: str, file_path: str, stream_position: int, time_base: str
 ) -> list[Fraction]:
     """Return exact presentation times of video packets not marked for discard."""
-    packet_probe = json.loads(
-        run_command(
-            [
-                ffprobe,
-                "-v",
-                "error",
-                "-select_streams",
-                str(stream_position),
-                "-show_packets",
-                "-show_entries",
-                "packet=pts,flags",
-                "-of",
-                "json",
-                file_path,
-            ],
-            capture_output=True,
-        )
-    )
+    flags = f"-v error -select_streams {stream_position} -show_packets "
+    flags += "-show_entries packet=pts,flags -of json"
+    command = [ffprobe, *flags.split(), file_path]
+    packet_probe = json.loads(run_command(command, capture_output=True))
     seconds_per_tick = Fraction(time_base)
     return sorted(
         packet["pts"] * seconds_per_tick
@@ -205,37 +174,17 @@ def encode_video(
         if value in codes:
             color_metadata.append(f"{option}={codes[value]}")
 
-    command = [
-        ffmpeg,
-        "-hide_banner",
-        "-nostdin",
-        "-y",
-        "-hwaccel",
-        "videotoolbox",
-        "-hwaccel_output_format",
-        "videotoolbox_vld",
-        "-noautorotate",
-        "-i",
-        input_file,
-        "-map",
-        f"0:{stream_position}",
-        "-map_metadata",
-        "0",
-        "-c:v",
-        "hevc_videotoolbox",
-        "-q:v",
-        str(quality),
-        "-prio_speed",
-        str(int(speed_priority)),
-        "-spatial_aq",
-        "1",
-        "-fps_mode",
-        "passthrough",
-        "-enc_time_base:v",
-        source_stream["time_base"],
-        "-tag:v",
-        "hvc1",
-    ]
+    # Split only flag strings: file paths may contain spaces.
+    decode_flags = (
+        "-hide_banner -nostdin -y -hwaccel videotoolbox "
+        "-hwaccel_output_format videotoolbox_vld -noautorotate -i"
+    )
+    encode_flags = (
+        f"-map 0:{stream_position} -map_metadata 0 -c:v hevc_videotoolbox -q:v {quality} "
+        f"-prio_speed {int(speed_priority)} -spatial_aq 1 -fps_mode passthrough"
+    )
+    command = [ffmpeg, *decode_flags.split(), input_file, *encode_flags.split()]
+    command += ["-enc_time_base:v", source_stream["time_base"], "-tag:v", "hvc1"]
     if color_metadata:
         command.extend(("-bsf:v", f"hevc_metadata={':'.join(color_metadata)}"))
     command.append(output_file)
@@ -288,12 +237,7 @@ def copy_macos_metadata(input_file: str, output_file: str) -> None:
     """Copy filesystem timestamps, mode, flags, and macOS extended attributes."""
     source_stat = os.stat(input_file, follow_symlinks=False)
     shutil.copystat(input_file, output_file, follow_symlinks=False)
-    os.chown(
-        output_file,
-        source_stat.st_uid,
-        source_stat.st_gid,
-        follow_symlinks=False,
-    )
+    os.chown(output_file, source_stat.st_uid, source_stat.st_gid, follow_symlinks=False)
 
     for name in run_command(["xattr", input_file], capture_output=True).splitlines():
         hex_value = run_command(["xattr", "-px", name, input_file], capture_output=True)
@@ -303,11 +247,8 @@ def copy_macos_metadata(input_file: str, output_file: str) -> None:
         )
 
     # Extended-attribute tools can update these, so restore access/modify times next.
-    os.utime(
-        output_file,
-        ns=(source_stat.st_atime_ns, source_stat.st_mtime_ns),
-        follow_symlinks=False,
-    )
+    atime_mtime = (source_stat.st_atime_ns, source_stat.st_mtime_ns)
+    os.utime(output_file, ns=atime_mtime, follow_symlinks=False)
 
     # Setting an mtime older than the creation date can lower the latter on APFS.
     # Restore the original creation date only after the final os.utime call.
@@ -342,15 +283,7 @@ def verify_output(
     if source_video.get("id") != output_video.get("id"):
         raise RuntimeError("Primary video track ID changed")
 
-    for key in (
-        "width",
-        "height",
-        "pix_fmt",
-        "color_range",
-        "color_space",
-        "color_transfer",
-        "color_primaries",
-    ):
+    for key in VIDEO_PROPERTY_KEYS:
         if source_video.get(key) != output_video.get(key):
             raise RuntimeError(
                 f"Video property {key!r} changed from {source_video.get(key)!r} "
@@ -495,7 +428,7 @@ def main(
     suffix: str = "-compressed",
     *,
     write_file_map: bool = False,
-    on_error: Literal["raise", "print", "ignore"] = "raise",
+    on_error: Literal["raise", "print"] = "raise",
     quality: int = DEFAULT_QUALITY,
     speed_priority: bool = True,
     overwrite: bool = False,
@@ -540,8 +473,7 @@ def main(
             failures += 1
             if on_error == "raise":
                 raise
-            if on_error == "print":
-                print(f"{file_path}: {exc}", file=sys.stderr)
+            print(f"{file_path}: {exc}", file=sys.stderr)
             continue
 
         reduction = 100 * (1 - compressed_size / source_size)
@@ -563,7 +495,7 @@ def main(
             json.dump(in_out_map, json_file, indent=2)
         print(f"A map from input to output file paths was written to {file_map_path}")
 
-    return int(failures > 0 and on_error != "ignore")
+    return int(failures > 0)
 
 
 if __name__ == "__main__":
@@ -593,11 +525,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--on-error",
-        choices=("raise", "print", "ignore"),
+        choices=("raise", "print"),
         default="raise",
-        help="What to do if an error occurs. If 'raise', will exit non-zero. If "
-        "'print' will print error to stderr, then continue with next file. If "
-        "'ignore' directly continues with next file.",
+        help="'raise' stops at the first error. 'print' reports it to stderr, continues "
+        "with the next file and exits non-zero at the end.",
     )
     parser.add_argument(
         *("-q", "--quality"),

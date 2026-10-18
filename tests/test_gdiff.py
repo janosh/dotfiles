@@ -2,16 +2,11 @@
 
 import os
 import subprocess
-from importlib import util
 from pathlib import Path
 
+import gdiff
 import pytest
 
-spec = util.spec_from_file_location("gdiff", f"{os.path.dirname(__file__)}/gdiff.py")
-assert spec is not None
-assert spec.loader is not None
-gdiff = util.module_from_spec(spec)
-spec.loader.exec_module(gdiff)
 GIT_IDENTITY_ARGS = ("-c", "user.name=Test User", "-c", "user.email=test@example.com")
 GREEN, RED, BLUE, YELLOW, RESET = "\033[32m", "\033[31m", "\033[34m", "\033[33m", "\033[0m"
 

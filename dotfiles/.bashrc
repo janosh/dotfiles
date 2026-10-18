@@ -3,7 +3,7 @@
 
 # === Options ===
 shopt -s autocd # https://gnu.org/software/bash/manual/html_node/The-Shopt-Builtin
-export LANG=C # https://stackoverflow.com/a/2510548
+export LANG=C.UTF-8 # C rules with UTF-8 output (e.g. Å), https://stackoverflow.com/a/2510548
 
 # === Prompt ===
 parse_git_branch() {

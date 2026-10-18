@@ -45,7 +45,8 @@ if [[ -x ~/.venv/py314/bin/python ]]; then
   export VIRTUAL_ENV="$HOME/.venv/py314"
   export PATH="$VIRTUAL_ENV/bin:$PATH"
 fi
-export PATH="$HOME/.cargo/bin:$PATH"
+export PNPM_HOME="$HOME/Library/pnpm" # pnpm global bins
+export PATH="$HOME/.cargo/bin:$PNPM_HOME/bin:$PATH"
 # No lock files in repos: uv refuses lock writes and skips .venv sync on `uv run`;
 # pnpm writes none, overriding repo config.
 export UV_FROZEN=1

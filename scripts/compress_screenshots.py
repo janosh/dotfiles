@@ -1,10 +1,13 @@
+# /// script
+# dependencies = ["pillow"]
+# ///
 """Compress screenshots dropped into ~/Desktop, then move them to ~/Downloads.
 
 PNG files are capped at 2000px wide, quantized with pngquant and shrunk with
 zopflipng; JPGs are re-saved with Pillow. Run from a Folder Action ('Folder Actions
 Setup.app') watching ~/Desktop with inputs passed as arguments:
-    python3 ~/dev/dotfiles/scripts/compress_screenshots.py "$@"
-Requires: brew install pngquant zopfli imagemagick && pip install pillow
+    ~/.local/bin/uv run ~/dev/dotfiles/scripts/compress_screenshots.py "$@"
+Requires: brew install pngquant zopfli imagemagick (uv installs pillow from the header above)
 If the action never triggers, toggle "Enable Folder Actions" in that app.
 """
 

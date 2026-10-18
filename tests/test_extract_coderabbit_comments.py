@@ -1,22 +1,11 @@
 """Tests for the CodeRabbit comment extractor."""
 
-import importlib.util
 import json
-import os
 import sys
 from pathlib import Path
 
+import extract_comments
 import pytest
-
-_SCRIPT = (
-    f"{os.path.dirname(__file__)}/../agents/skills/"
-    "address-local-coderabbit-comments/scripts/extract_comments.py"
-)
-_SPEC = importlib.util.spec_from_file_location("extract_comments", _SCRIPT)
-assert _SPEC is not None
-assert _SPEC.loader is not None
-extract_comments = importlib.util.module_from_spec(_SPEC)
-_SPEC.loader.exec_module(extract_comments)
 
 
 def make_editor_cache(user_dir: Path, folder_uri: str, reviews: list[dict[str, str]]) -> str:

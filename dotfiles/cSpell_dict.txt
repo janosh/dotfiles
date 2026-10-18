@@ -131,7 +131,7 @@ Broyden
 BSON
 bucher
 bundesvorstand
-burnin # codespell:ignore
+burnin
 Caglioti
 Cahill's
 calabi

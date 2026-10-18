@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pytest
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 @pytest.mark.parametrize(
     ("relative_path", "setting"),
@@ -38,16 +40,14 @@ import pytest
 )
 def test_expected_config_setting(relative_path: str, setting: str) -> None:
     """Keep important shell and macOS defaults in setup."""
-    config_path = f"{os.path.dirname(__file__)}/../{relative_path}"
+    config_path = f"{ROOT}/{relative_path}"
     with open(config_path, encoding="utf-8") as config_file:
         assert setting in config_file.read()
 
 
 def test_text_replacements(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Decode private values, retire shortcuts, and preserve unrelated local settings."""
-    with open(
-        f"{os.path.dirname(__file__)}/../setup/3-config.sh", encoding="utf-8"
-    ) as source_file:
+    with open(f"{ROOT}/setup/3-config.sh", encoding="utf-8") as source_file:
         script = source_file.read().split("<<'PY'\n", 1)[1].split("\nPY\n", 1)[0]
     script_path = tmp_path / "sync.py"
     script_path.write_text(script)
@@ -137,7 +137,7 @@ def test_text_replacements(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
 
 def test_grcl(tmp_path: Path) -> None:
     """Gone, merged and pr/* branches go with clean worktrees; dirty/current/ahead stay."""
-    zshrc_path = os.path.abspath(f"{os.path.dirname(__file__)}/../dotfiles/.zshrc")
+    zshrc_path = f"{ROOT}/dotfiles/.zshrc"
     script = f"""
     git init -q --bare origin.git && git clone -q origin.git repo 2>/dev/null && cd repo
     git symbolic-ref HEAD refs/heads/master  # independent of init.defaultBranch
@@ -199,7 +199,7 @@ def test_configure_agents_prunes_renamed_skill_links(tmp_path: Path, shell: str)
     os.symlink(f"{dotfiles_dir}/agents/skills/old-name", f"{skills_dir}/old-name")
     os.symlink("/nonexistent/other-skill", f"{skills_dir}/other-skill")
 
-    setup_script = os.path.abspath(f"{os.path.dirname(__file__)}/../setup/3-config.sh")
+    setup_script = f"{ROOT}/setup/3-config.sh"
     subprocess.run(
         [shell, "-c", f"source {setup_script} && configure_agents"],
         env={**os.environ, "HOME": str(tmp_path), "DOTFILES_DIR": dotfiles_dir},

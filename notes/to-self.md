@@ -19,7 +19,7 @@ Why each link exists:
 VS Code keeps local file history in `~/Library/Application Support/Code/User/History` ([superuser answer](https://superuser.com/a/1723403)). Once (2022-08-04) a `.ipynb` renamed to `.py` reverted to its notebook JSON after closing the workspace, losing 2h of edits. Recover by grepping the history for a term added late in the session:
 
 ```sh
-find . -name "*.py" -exec grep accuracy_dict {} +
+rg accuracy_dict -g '*.py'
 ```
 
 ## `brew upgrade` breaks `uv` venvs

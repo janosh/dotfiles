@@ -333,7 +333,7 @@ configure_macos() {
   defaults write com.apple.LaunchServices LSQuarantine -bool false
 
   # File associations (requires restart). https://apple.stackexchange.com/a/123834
-  # Cursor's CFBundleIdentifier; matches `alias code=cursor` in .zshrc.
+  # Cursor's CFBundleIdentifier.
   set_file_association net.daringfireball.markdown com.todesktop.230313mzl4w4u92
   set_file_association public.plain-text com.todesktop.230313mzl4w4u92
   set_file_association public.html com.brave.Browser

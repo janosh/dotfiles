@@ -1,6 +1,5 @@
 """Tests for the video compression script."""
 
-import importlib.util
 import json
 import os
 import shutil
@@ -8,14 +7,8 @@ import subprocess
 from fractions import Fraction
 from pathlib import Path
 
+import compress_videos
 import pytest
-
-_SCRIPT = f"{os.path.dirname(__file__)}/../scripts/compress_videos.py"
-_SPEC = importlib.util.spec_from_file_location("compress_videos", _SCRIPT)
-assert _SPEC is not None
-assert _SPEC.loader is not None
-compress_videos = importlib.util.module_from_spec(_SPEC)
-_SPEC.loader.exec_module(compress_videos)
 
 
 @pytest.fixture(scope="module", params=["constant-rate", "variable-rate", "edited"])
@@ -148,3 +141,20 @@ def test_missing_tool_fails_before_encoding(
     monkeypatch.setattr(compress_videos, "compress_video", pytest.fail)
     with pytest.raises(RuntimeError, match=f"'{missing_tool}' was not found"):
         compress_videos.main(["video.mp4"])
+
+
+def test_on_error_print_continues_and_fails(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """on_error='print' reports every failure, keeps going and still exits non-zero."""
+    monkeypatch.setattr(compress_videos.shutil, "which", lambda name: name)
+
+    def fail(input_file: str, *_args: object, **_kwargs: object) -> None:
+        raise RuntimeError(f"broken {input_file}")
+
+    monkeypatch.setattr(compress_videos, "compress_video", fail)
+    assert compress_videos.main(["a.mp4", "b.mp4"], on_error="print") == 1
+    assert capsys.readouterr().err.splitlines() == [
+        "a.mp4: broken a.mp4",
+        "b.mp4: broken b.mp4",
+    ]
