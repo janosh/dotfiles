@@ -2,7 +2,7 @@ default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.4
+    rev: v0.17.6
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -10,7 +10,7 @@ repos:
         types_or: [python, jupyter] # default also formats markdown
 
   - repo: https://github.com/astral-sh/ty-pre-commit
-    rev: v0.0.99
+    rev: v0.0.109
     hooks:
       - id: ty
         # uvx installs ty + --with deps into one tool env (no uv.lock / .venv).
@@ -43,7 +43,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.50.0
+    rev: v0.50.1
     hooks:
       - id: markdownlint
         # MD013: line too long
@@ -52,6 +52,6 @@ repos:
         args: [--disable, MD013, MD033, MD041, '--']
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.52.0
+    rev: v1.52.2
     hooks:
       - id: typos

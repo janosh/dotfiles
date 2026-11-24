@@ -17,7 +17,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 @pytest.mark.parametrize(
-    ("relative_path", "setting"),
+    ("rel_path", "setting"),
     [
         ("dotfiles/.zshrc", "HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1"),
         ("dotfiles/.bashrc", "HISTCONTROL=ignoreboth:erasedups"),
@@ -26,7 +26,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         # Full loop line, not a bare path: prose elsewhere in the file matches a substring.
         (
             "setup/3-config.sh",
-            "for dest in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.cursor/skills",
+            "for dest in ~/.agents/skills ~/.claude/skills",
         ),
         ("setup/3-config.sh", "AppleInterfaceStyleSwitchesAutomatically -bool true"),
         ("setup/3-config.sh", "NSAutomaticDashSubstitutionEnabled -bool false"),
@@ -38,9 +38,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         ("setup/system-settings.sh", "FileVault is On"),
     ],
 )
-def test_expected_config_setting(relative_path: str, setting: str) -> None:
+def test_expected_config_setting(rel_path: str, setting: str) -> None:
     """Keep important shell and macOS defaults in setup."""
-    config_path = f"{ROOT}/{relative_path}"
+    config_path = f"{ROOT}/{rel_path}"
     with open(config_path, encoding="utf-8") as config_file:
         assert setting in config_file.read()
 

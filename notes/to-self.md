@@ -1,6 +1,6 @@
 # Notes to self
 
-## Agent Setup (Cursor, Codex, Claude Code)
+## Agent Setup (Codex, Claude Code)
 
 `configure_agents` in `setup/3-config.sh` creates all the symlinks below. It runs as part of `setup/main.sh`; re-run it after cloning new repos:
 
@@ -11,8 +11,7 @@ source ~/dev/dotfiles/setup/3-config.sh && DOTFILES_DIR=~/dev/dotfiles configure
 Why each link exists:
 
 - Codex reads `~/.codex/AGENTS.md` globally. Claude Code inherits `AGENTS.md` up the directory tree, so `~/dev/AGENTS.md` covers every repo below it.
-- Cursor only reads `AGENTS.md` at and below the workspace root, so opening a single repo misses `~/dev/AGENTS.md`. Every repo therefore gets its own link, except repos with their own `AGENTS.md`. The global gitignore keeps these links untracked.
-- Global skills live in `~/.cursor/skills/` (Cursor), `~/.agents/skills/` and `~/.codex/skills/` (Codex), and `~/.claude/skills/` (Claude Code). All share the `SKILL.md` frontmatter format, so the same skill dirs are linked into each. This repo also links `.cursor/skills` to `agents/skills` so Cursor finds them as repo skills.
+- Global skills live in `~/.agents/skills/` (Codex) and `~/.claude/skills/` (Claude Code, which does not read `~/.agents`). Both use the `SKILL.md` format, so the same skill dirs are linked into each.
 
 ## Recovering lost work in VS Code
 

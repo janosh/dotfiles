@@ -8,11 +8,6 @@ pnpm-workspace.yaml
 
 # code editor config
 .vscode
-.cursor
 
 # secrets
 .env
-
-# AI agent instructions (symlinked into every repo)
-AGENTS.md
-!agents/AGENTS.md

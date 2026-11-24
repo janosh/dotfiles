@@ -1,7 +1,7 @@
 #!/bin/bash
 
 configure_agents() {
-  local dev_dir agents_md repo dest skill
+  local dev_dir agents_md dest skill
   dev_dir=$(dirname "${DOTFILES_DIR}")
   agents_md="${DOTFILES_DIR}/agents/AGENTS.md"
 
@@ -11,25 +11,9 @@ configure_agents() {
   ln -sfn "${agents_md}" ~/.codex/AGENTS.md
   ln -sfn "${agents_md}" "${dev_dir}/AGENTS.md"
 
-  # Cursor does not walk up past the workspace root, so every repo needs its own link.
-  # Repos that ship their own AGENTS.md are left alone.
-  # -e "${repo}.git": worktrees and submodules have a .git file, not a directory.
-  # -L on the target as well: -e alone is false for a dangling link, and ln would fail.
-  for repo in "${dev_dir}"/*/; do
-    if [[ -e "${repo}.git" && ! -e "${repo}AGENTS.md" && ! -L "${repo}AGENTS.md" ]]; then
-      ln -s "${agents_md}" "${repo}AGENTS.md"
-    fi
-  done
-
-  # Cursor discovers repo skills at .cursor/skills; keep the source in agents/skills.
-  # Claude Code needs no project link: personal scope wins over project scope, and
-  # ~/.claude/skills below already points at the same dirs.
-  mkdir -p "${DOTFILES_DIR}/.cursor"
-  ln -sfn "../agents/skills" "${DOTFILES_DIR}/.cursor/skills"
-
   # All agents share the SKILL.md format. Link every skill into each global directory
   # so newly added skills are installed automatically when setup runs.
-  for dest in ~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.cursor/skills; do
+  for dest in ~/.agents/skills ~/.claude/skills; do
     mkdir -p "${dest}"
     for skill in "${DOTFILES_DIR}"/agents/skills/*/; do
       skill=${skill%/} # glob leaves a trailing slash, strip it to get the skill name
@@ -333,9 +317,9 @@ configure_macos() {
   defaults write com.apple.LaunchServices LSQuarantine -bool false
 
   # File associations (requires restart). https://apple.stackexchange.com/a/123834
-  # Cursor's CFBundleIdentifier.
-  set_file_association net.daringfireball.markdown com.todesktop.230313mzl4w4u92
-  set_file_association public.plain-text com.todesktop.230313mzl4w4u92
+  # VS Code's CFBundleIdentifier.
+  set_file_association net.daringfireball.markdown com.microsoft.VSCode
+  set_file_association public.plain-text com.microsoft.VSCode
   set_file_association public.html com.brave.Browser
 
   echo '- Disable power chime on connecting to power.'

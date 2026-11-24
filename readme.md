@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Shell scripts and config to bootstrap a fresh macOS install (Homebrew, dotfiles, system defaults), plus agent rules/skills (Cursor, Codex, Claude Code) and assorted utilities.
+Shell scripts and config to bootstrap a fresh macOS install (Homebrew, dotfiles, system defaults), plus agent rules/skills (Codex, Claude Code) and assorted utilities.
 
 ## Usage
 
@@ -27,9 +27,9 @@ zsh -c "$(curl -fsSL 'https://raw.githubusercontent.com/janosh/dotfiles/main/set
 ```text
 .
 ├── agents/AGENTS.md           # global agent rules (source for ~/dev/AGENTS.md symlink)
-├── agents/skills/             # agent skills symlinked into Cursor/Codex/Claude
+├── agents/skills/             # agent skills symlinked into Codex/Claude
 ├── dotfiles/                  # .zshrc (macOS), .bashrc + shared aliases/gh account selection, git, ssh, cspell, text replacements
-├── notes/                     # personal runbooks (Mac setup, Cursor, etc.)
+├── notes/                     # personal runbooks (Mac setup, agents, etc.)
 ├── setup/                     # macOS bootstrap scripts
 ├── scripts/                   # one-off utilities
 └── tests/                     # pytest suite for shell config and agent skill scripts

@@ -330,7 +330,7 @@ def file_kind(file_path: str) -> str:
 def write_html_report(repo: str, rows: Sequence[LineRankRow], commit_lines: list[str]) -> str:
     """Write rows (plus a total) as an HTML report linking each file, returning its path."""
     repo_name = os.path.basename(repo)
-    editor = os.environ.get("VISUAL") or os.environ.get("EDITOR") or "cursor"
+    editor = os.environ.get("VISUAL") or os.environ.get("EDITOR") or "code"
     try:
         editor_cmd = os.path.basename(shlex.split(editor)[0])
     except ValueError:

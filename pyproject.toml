@@ -28,11 +28,11 @@ isort.split-on-trailing-comma = false
 
 # Scripts are standalone files, not a package: put their dirs on the import path.
 [tool.pytest.ini_options]
-pythonpath = ["scripts", "agents/skills/address-local-coderabbit-comments/scripts"]
+pythonpath = ["scripts"]
 testpaths = ["tests"]
 
 [tool.ty.environment]
-extra-paths = ["scripts", "agents/skills/address-local-coderabbit-comments/scripts"]
+extra-paths = ["scripts"]
 
 [tool.typos.default.extend-words]
 atomate = "atomate"

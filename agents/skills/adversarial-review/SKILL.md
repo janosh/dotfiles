@@ -27,7 +27,7 @@ Make the prompt self-contained, specific, and actionable. Do not hide risks to m
 
 A different model family catches different bugs, so use one whenever the harness offers it.
 
-- **Several families available** (e.g. Cursor exposing both Claude and GPT subagent models): pick the strongest model from a family other than yours, chosen from the model list the harness actually exposes. Prefer the newest version; never invent or hardcode version names. Prefer fast models: avoid extra-high reasoning variants such as Fable 5 xhigh (too slow for this loop); use medium effort, or at most high in tricky cases.
+- **Several families available**: pick the strongest model from a family other than yours (if available, otherwise same family). Prefer the newest version. Prefer fast models: use medium effort, or at most high in tricky cases.
 - **Single family** (e.g. Claude Code, Codex) or `same-model`: review with your own model. Omit the model override so the subagent inherits it, or pass your own model (or its alias) if the harness would otherwise default subagents to a different one.
 
 Report which reviewer model ran and whether the review was cross- or same-model.
