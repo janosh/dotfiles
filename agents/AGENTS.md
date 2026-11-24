@@ -11,7 +11,7 @@ These rules apply to all projects.
 
 ## Multi-agent branch sharing
 
-Multiple agents may work on the same branch concurrently. Editing a file that already has uncommitted changes from another agent is fine, don't be timid, except at git time: when staging and committing. Don't stage changes unless asked to commit. Include only the changes relevant to your task and use explicit `git add <your-files>` instead of `git add -A` so you don't commit, revert, or stash another agent's out-of-scope work. Only exception being if other agent's work looks related or too menial to warrant its own commit, then just include in your commit.
+Multiple agents may work on the same branch concurrently. Editing a file that already has uncommitted changes from another agent is fine, don't be timid, except at git time: when staging and committing. Include only the changes relevant to your task and use explicit `git add <your-files>` instead of `git add -A` so you don't commit, revert, or stash another agent's out-of-scope work. Only exception being if other agent's work looks related or too menial to warrant its own commit, then just include in your commit.
 
 Work in the main checkout on the current branch. Ask before branching only when starting a new project, and if the current branch's PR has merged, update local main and branch off it. Create a worktree only when the user asks or when your work would clash with another agent's in a way signaling can't resolve (rare): worktrees cost build targets, disk and cleanup. One such clash: a cross-cutting refactor that holds dozens of files uncommitted for hours while other agents commit to the same branch. Do it in a worktree and merge at the end.
 
@@ -21,14 +21,10 @@ Archive side sessions and subagent threads you started, unprompted, once they ar
 
 ## Python Projects (*.py, pyproject.toml)
 
-- Always add typing annotations to functions and classes, including return types
-- Add descriptive docstrings to all functions and classes
 - Don't add shebangs (no `#!/usr/bin/env python`)
 - Run scripts with `uv run script.py`, not bare `python script.py` or `python -m pytest`, in your own commands and in anything others run (CI steps, docstring usage lines, docs). In CI, set `UV_NO_PROJECT: '1'` once in the job's `env:`. Locally, run everything in the global venv, currently `~/.venv/py314`: inside a uv project that means `uv run --no-project`, since plain `uv run` creates a project `.venv/`. Scripts declaring PEP 723 inline `dependencies` get uv's isolated env. Don't create venv's, per-project unless needed for temp debugging.
-- Use `pytest` for testing, never `unittest`
 - All tests go in `./tests` with concise single-line docstrings
 - Use `pytest.mark.parametrize()` to cover multiple parameter values
-- Use `np.random.default_rng(seed=0)` not the legacy `np.random.*` API
 - Prefer `os.path.isfile/isdir` over `os.path.exists`
 - Use f-strings for paths, not `os.path.join()`
 - Prefer `os.path` over `pathlib.Path` (except with `tmp_path` fixture)
@@ -63,8 +59,7 @@ Archive side sessions and subagent threads you started, unprompted, once they ar
 ## Git & GitHub CLI
 
 - Git editor is `code --wait`, so interactive commands hang. Override it with a `sed` script instead, e.g. `GIT_EDITOR="sed -i '' 's/pick/squash/2'" git rebase -i HEAD~n`.
-- If `gh` commands fail with auth errors (e.g. "Unauthorized"), try switching accounts: `gh auth switch` (don't ask permission for this, just do)
-- Don't commit without being asked
+- Don't stage or commit without being asked
 - Never add `Co-authored-by: Codex/Claude/...` or similar to commit messages
 - Never `git push --force/--force-with-lease` unless explicitly asked for that specific branch and situation. Once work is pushed, prefer follow-up commits over amending/rebasing.
 - A request to submit or open a PR authorizes publishing its branch and creating the PR without another confirmation. When asked to "draft" an issue or PR, output the title and body as markdown for review — don't run `gh` until explicitly told to post.
@@ -82,6 +77,7 @@ Archive side sessions and subagent threads you started, unprompted, once they ar
 
 - If you need a clean working tree for your task, use `git worktree add` instead of stashing
 - Check with `ls -la` and `file <path>` before deleting—directories may be symlinks to working copies
+- When you begin risky edits in a tree that is already dirty, capture its pre-edit diff first; you cannot reconstruct it later. If an unexpected failure cannot be attributed from the diff and control flow, diagnose it in a temporary worktree. Compare the failing check on the clean base and on that base plus only your patch; where you captured a pre-edit diff, compare base plus that pre-existing patch against base plus both patches. Account for untracked inputs and missing build environments before attributing the failure.
 
 ## General
 
@@ -91,25 +87,20 @@ Archive side sessions and subagent threads you started, unprompted, once they ar
 - **No single-letter or concatenated variable names!** Use proper snake_case: `idx` not `i`, `n_images` not `nimages`, `f_max` not `fmax`, `col_idx` not `colidx`
 - **No fallbacks or backward-compatible interfaces** unless explicitly told. Throw an error or fail early—silent catches, default shims, and compatibility wrappers mask bugs. This is about software-engineering fallbacks (swallowed errors, legacy code paths, defaults that hide a broken input or call). It does not forbid scientific fallbacks: when a physical estimate is uncertain (e.g. no confident oxidation-state assignment for a MAGMOM seed), falling back to the next-best physical default is correct, as long as the result records which path was taken (audit field, log line) so it stays visible.
 - Remove dead code aggressively. Prefer a clean codebase over deprecation.
-- Log useful context with errors—include relevant variable values
 - Ask before adding new dependencies.
 - For my own upstream packages (e.g. `svelte-widgets` and `matterviz`), always track the upstream repository's latest `main` branch. Adapt consuming code to breaking API changes instead of pinning older commits or releases, downgrading, or adding compatibility fallbacks.
-- Prefer editing existing files over creating new ones.
 - Never write large files into iCloud Drive or iCloud-synced folders such as `~/Documents` and `~/Desktop`; use an unsynced location such as `~/Movies` for videos or `/tmp` for temporary files.
 - Prefer fast Rust CLIs over stock Unix tools when available: `fd` over `find`, `dust` over `du`, `rg` over `grep`, and `bat` over `cat`.
-- Keep existing comments when editing files unless they are stale or low value.
 - Use single-line section headers: `// === Section Name ===` not verbose multi-line box comments
 - **Never hard-wrap markdown.** There is no max line length: write each paragraph and list item as one long line and let the renderer wrap it. Reflowing prose to a column makes later edits produce noisy diffs. The only exception is inside code fences, where line breaks are content. This applies to prose you write for humans too, e.g. Slack messages, PR descriptions, commit bodies.
 - **Always link issues, PRs and commit SHAs** in markdown and in message drafts (Slack, email, PR bodies): `[owner/repo#123](https://github.com/owner/repo/pull/123)`, `` [`e7b2128`](https://github.com/owner/repo/commit/e7b2128) ``, never a bare `#123` or SHA. Where the host has no per-commit URL (e.g. Overleaf), link the closest page (the project) and keep the SHA visible.
 - Never add an `Unreleased` section to a changelog unless the user explicitly asks for one.
-- Never create or commit package-manager artifacts: lock files (`uv.lock`, `pnpm-lock.yaml`, `package-lock.json`, `deno.lock`, etc.) or metadata such as `pnpm-workspace.yaml`. Prefer `uv run --no-project` (or keep `UV_FROZEN=1` / `UV_NO_SYNC=1`); do not run `uv lock` / `uv sync` in repos that omit a lockfile.
+- Never create or commit package-manager artifacts: lock files (`uv.lock`, `pnpm-lock.yaml`, `package-lock.json`, `deno.lock`, etc.) or metadata such as `pnpm-workspace.yaml`. Do not run `uv lock` / `uv sync` in repos that omit a lockfile.
 - **Never commit handover docs, temp data files, or proof-of-concept artifacts** (no `HANDOVER.md`, sample `.jsonl`/`.lmdb` files, exploratory notebooks, etc.). These clutter the monorepo — keep them local or in `tmp/`.
 - Use `prek` (Rust port), never `pre-commit` (Python)
 - **Never take an unrequested irreversible or externally-visible action** — opening PRs/issues, pushing branches, deleting remote refs, posting to Slack, commenting on GitHub. When a task stalls, report and ask; don't improvise a workaround that creates something the user has to undo. Exception: delete a remote branch you created yourself by mistake (e.g. a push that re-created a merged PR's deleted branch) without asking, once `git log <merged-head>..origin/<branch>` shows it holds only your own commits; then report it.
-- Run commands yourself to collect logs/errors—don't ask the user. Run tests (`pytest`, `vitest`, `playwright`) or scripts, start dev servers, visit pages in browser, take actions to reproduce issues.
 - **Avoid redundant verification.** Do not run tests solely to establish a green baseline. Batch edits and run the narrowest affected checks once after the batch. Reuse a same-session result only when it covered the path and nothing edited that path since. Escalate to broader suites, lint, types, coverage, or mutation checks only when the change's scope or risk warrants them. Workflows whose purpose is repeated failure testing, such as mutation checks, are exempt. Never run a large codebase's full suite by default: only when explicitly requested or when broad, cross-cutting changes cannot be validated otherwise.
 - **Fast Rust iteration builds.** Crates whose release profile uses `lto = "fat"` and `codegen-units = 1` spend most of a rebuild in one serial LTO pass, so more cores or cluster login nodes barely help. While iterating (variants, bisects, mutation checks, A/B timing), override the profile through env vars in a separate target dir, which changes nothing in the repo: `CARGO_PROFILE_RELEASE_LTO=off CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 CARGO_PROFILE_RELEASE_INCREMENTAL=true cargo build --release ... --target-dir <scratch>/target-fast` (~45 s vs ~6-7 min for one such crate). A/B ratios stay valid when both sides use the same profile; final timings, gates and shipped extensions use the real LTO build. Several variant builds can run side by side in separate target dirs since the serial pass leaves cores idle.
-- When you begin risky edits in a tree that is already dirty, capture its pre-edit diff first; you cannot reconstruct it later. If an unexpected failure cannot be attributed from the diff and control flow, diagnose it in a temporary worktree — never by stashing, resetting, restoring, or checking out files in the active tree. Compare the failing check on the clean base and on that base plus only your patch; where you captured a pre-edit diff, compare base plus that pre-existing patch against base plus both patches. Account for untracked inputs and missing build environments before attributing the failure.
 - When fixing a bug or making a behavior tweak, ALWAYS add or update a unit test that would have caught it. Prefer extending an existing related test over creating a new test to avoid extra setup/teardown bloat. Only create a new test when there is no related test to extend.
 
 ## Response shape

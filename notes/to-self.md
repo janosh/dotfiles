@@ -11,7 +11,7 @@ source ~/dev/dotfiles/setup/3-config.sh && DOTFILES_DIR=~/dev/dotfiles configure
 Why each link exists:
 
 - Codex reads `~/.codex/AGENTS.md` globally. Claude Code inherits `AGENTS.md` up the directory tree, so `~/dev/AGENTS.md` covers every repo below it.
-- Global skills live in `~/.agents/skills/` (Codex) and `~/.claude/skills/` (Claude Code, which does not read `~/.agents`). Both use the `SKILL.md` format, so the same skill dirs are linked into each.
+- Global skills live in `~/.agents/skills/` (Codex) and `~/.claude/skills/` (Claude Code, which does not read `~/.agents`). Both use the `SKILL.md` format, so the same skill dirs are linked into each.## Recovering lost work in VS Code
 
 ## Recovering lost work in VS Code
 
@@ -20,12 +20,6 @@ VS Code keeps local file history in `~/Library/Application Support/Code/User/His
 ```sh
 rg accuracy_dict -g '*.py'
 ```
-
-## `brew upgrade` breaks `uv` venvs
-
-A `uv` venv only symlinks its Python binary, so a brew Python upgrade (e.g. 3.12.3 -> 3.12.4 on 2024-07-09) left `~/.venv/py312/bin/python` dangling (`bad interpreter`). The stopgap was relinking it: `ln -f $(which python3) ~/.venv/py312/bin/python`.
-
-Fixed for good in `setup/2-apps.sh`: `uv` comes from its standalone installer (not brew) and `~/.venv/py314` is created with `--managed-python`, so brew can no longer invalidate it.
 
 ## iCloud Documents Sync & New Mac Setup
 

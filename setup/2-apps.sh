@@ -17,7 +17,7 @@ brew_install() {
   brew bundle --file="${DOTFILES_DIR}/Brewfile"
 
   # Standalone installers, not brew: a brew-managed uv ties venvs to brew's Python, which
-  # has broken them on upgrade before (see notes/to-self.md).
+  # has broken them on upgrade before.
   curl -LsSf https://astral.sh/uv/install.sh | sh
   curl -LsSf https://github.com/j178/prek/releases/latest/download/prek-installer.sh | sh
 

@@ -40,7 +40,7 @@ zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-dir
 autoload -Uz compinit && compinit
 
 # === Environment ===
-# Shared py314 venv. Check -x on python: brew upgrades can leave a dangling symlink.
+# Shared py314 venv.
 if [[ -x ~/.venv/py314/bin/python ]]; then
   export VIRTUAL_ENV="$HOME/.venv/py314"
   export PATH="$VIRTUAL_ENV/bin:$PATH"
@@ -80,10 +80,9 @@ if (( $+functions[history-substring-search-up] )); then
   [[ -n $terminfo[kcud1] ]] && bindkey "$terminfo[kcud1]" history-substring-search-down
 fi
 
-# === Shared aliases / gh account selection ===
+# === Shared aliases ===
 _dotfiles_dir=${${(%):-%x}:A:h} # :A follows ~/.zshrc symlink
 . "${_dotfiles_dir}/aliases.sh"
-. "${_dotfiles_dir}/gh-account.sh"
 unset _dotfiles_dir
 
 # Rank files by net lines added. --no-project: stdlib script, no cwd project sync/lock.

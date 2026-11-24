@@ -1,5 +1,5 @@
 #!/bin/bash
-# Cluster/HPC shell. Not linked by macOS setup; copy with aliases.sh + gh-account.sh.
+# Cluster/HPC shell. Not linked by macOS setup; copy with aliases.sh.
 
 # === Options ===
 shopt -s autocd # https://gnu.org/software/bash/manual/html_node/The-Shopt-Builtin
@@ -30,12 +30,10 @@ if [[ $- == *i* ]]; then # https://superuser.com/a/686293
   bind '"\C-u": unix-line-discard' # delete to start of line
 fi
 
-# === Shared aliases / gh account selection (realpath follows symlinks) ===
+# === Shared aliases (realpath follows symlinks) ===
 _dotfiles_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 # shellcheck disable=SC1091
 . "${_dotfiles_dir}/aliases.sh"
-# shellcheck disable=SC1091
-. "${_dotfiles_dir}/gh-account.sh"
 unset _dotfiles_dir
 
 # === SLURM ===

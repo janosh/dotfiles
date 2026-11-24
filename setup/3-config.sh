@@ -51,7 +51,6 @@ configure_login_items() {
 }
 
 link_dotfiles() {
-  local ssh_config_tmp
   # -sf: force replace existing file/symlink.
   ln -sf "${DOTFILES_DIR}/dotfiles/.zshrc" ~/.zshrc
 
@@ -59,15 +58,6 @@ link_dotfiles() {
   ln -sf "${DOTFILES_DIR}/dotfiles/git/global-ignore" ~/.config/git/ignore
   ln -sf "${DOTFILES_DIR}/dotfiles/git/global-attributes" ~/.config/git/attributes
   ln -sf "${DOTFILES_DIR}/dotfiles/git/config" ~/.gitconfig
-
-  mkdir -p ~/.ssh/config.d
-  ln -sf "${DOTFILES_DIR}/dotfiles/ssh/github.conf" ~/.ssh/config.d/github.conf
-  touch ~/.ssh/config
-  ssh_config_tmp=$(mktemp)
-  awk 'BEGIN { print "Include ~/.ssh/config.d/*" } $0 != "Include ~/.ssh/config.d/*" { print }' \
-    ~/.ssh/config > "${ssh_config_tmp}"
-  mv "${ssh_config_tmp}" ~/.ssh/config
-  chmod 600 ~/.ssh/config
 }
 
 set_file_association() {

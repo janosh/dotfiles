@@ -28,7 +28,7 @@ zsh -c "$(curl -fsSL 'https://raw.githubusercontent.com/janosh/dotfiles/main/set
 .
 ├── agents/AGENTS.md           # global agent rules (source for ~/dev/AGENTS.md symlink)
 ├── agents/skills/             # agent skills symlinked into Codex/Claude
-├── dotfiles/                  # .zshrc (macOS), .bashrc + shared aliases/gh account selection, git, ssh, cspell, text replacements
+├── dotfiles/                  # .zshrc (macOS), .bashrc + shared aliases, git, cspell dict, text replacements
 ├── notes/                     # personal runbooks (Mac setup, agents, etc.)
 ├── setup/                     # macOS bootstrap scripts
 ├── scripts/                   # one-off utilities

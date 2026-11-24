@@ -8,8 +8,8 @@
 # === Credentials ===
 [credential]
 	helper = osxkeychain
-# osxkeychain pins one account and ignores `gh auth switch`. Empty helper clears the
-# inherited list; gh then supplies the active token for HTTPS GitHub ops.
+# Empty helper clears the inherited osxkeychain entry, so gh supplies its token for
+# HTTPS GitHub ops.
 [credential "https://github.com"]
 	helper =
 	helper = !/opt/homebrew/bin/gh auth git-credential
